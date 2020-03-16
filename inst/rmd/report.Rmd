@@ -1,0 +1,169 @@
+---
+title: "report"
+output: pdf_document
+params:
+   tempdir: ""
+   metric: "cor"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+temp.dir <- params$tempdir
+benchmark.name <- strsplit(temp.dir, "/")[[1]][length(strsplit(temp.dir, "/")[[1]])]
+load(paste(temp.dir, "/input_data/raw.rda", sep=""))
+load(paste(temp.dir, "/input_data/processed.rda", sep=""))
+```
+
+## Deconvolution Benchmark
+
+### Input data
+
+Function call used to execute the benchmark: `r function.call`  
+
+Single-cell data contained `r nrow(sc.counts)` features for `r ncol(sc.counts)` cells.  
+
+
+Corresponding phenotype data contained labels for `r length(unique(sc.pheno$cell_type))` cell types: `r unique(sc.pheno$cell_type)`  
+
+
+Used algorithms: `r algorithm.names`   
+
+
+`r ncol(real.counts)` real bulk profiles were available.  
+
+
+Common features: `r length(intersect(rownames(real.counts), rownames(sc.counts)))`.  
+
+Ground-truth cell type quantities were available for `r nrow(real.props)` cell types.  
+
+
+
+```{r real_props, echo = FALSE}
+print(real.props)
+```
+\pagebreak
+## Deconvolution of real bulks
+
+```{r real_results, echo=FALSE}
+files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.rds")
+results.lists <- list()
+for(i in 1:length(files)) {
+  results.lists[[i]] <- readRDS(files[i])
+}
+real.df <- data.frame()
+for(i in 1:length(results.lists)){
+  real.df <- rbind(real.df, prepare_data(results.lists[[i]], params$metric))
+}
+
+score.plot <- evaluation_plot(real.df, "deconvolution quality",params$metric)
+runtime.plot <- plot_runtime(real.df)
+scatter.plots.list <- list()
+for(i in 1:length(results.lists)) {
+	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]])
+}
+```
+```{r score_plot, echo = FALSE, fig.width = 10, fig.height = 9}
+plot(score.plot)
+```
+\pagebreak  
+
+
+```{r runtime_plot, echo = FALSE, fig.width = 16, fig.height = 9}
+plot(runtime.plot)
+```
+\pagebreak  
+
+
+```{r scatter_plots, echo = FALSE, fig.width = 18, fig.height = 5}
+for(l in scatter.plots.list){
+	for(p in l) {
+		plot(p)
+	}
+}
+```
+\pagebreak
+
+## Simulations
+```{r simulation_results, echo = FALSE}
+# bulk benchmark
+if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
+	results.lists <- list()
+	files <- list.files(paste(temp.dir,"/results/simulation/bulks", sep=""), full.names = T, pattern = "*.rds")
+	for(i in 1:length(files)){
+		results.lists[[i]] <- readRDS(files[i])
+	}
+	bulks.df <- data.frame()
+	for(i in 1:length(results.lists)){
+		bulks.df <- rbind(bulks.df, prepare_data(results.lists[[i]], params$metric))
+	}
+
+	score.plot.sim <- evaluation_plot(bulks.df, "deconvolution quality (simulated bulks)", params$metric)
+	runtime.plot.sim <- plot_runtime(bulks.df)
+	scatter.plots.list.sim <- list()
+	for(i in 1:length(results.lists)){
+		scatter.plots.list.sim[[i]] <- create_scatterplots(results.lists[[i]])
+	}
+}
+# sample benchmark
+if(dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))){
+	results.lists <- list()
+	files <- list.files(paste(temp.dir, "/results/simulation/samples", sep = ""), full.names = T, pattern = "*.rds")
+	for(i in 1:length(files)){
+		results.lists[[i]] <- readRDS(files[i])
+	}
+	samples.df <- data.frame()
+	for(i in 1:length(results.lists)){
+		samples.df <- rbind(samples.df, prepare_data(results.lists[[i]], params$metric))
+	}
+	sample.plots <- create_boxplots(samples.df)
+}
+
+# gene benchmark
+if(dir.exists(paste(temp.dir, "/results/simulation/genes", sep=""))){
+	results.lists <- list()
+	files <- list.files(paste(temp.dir, "/results/simulation/genes/", sep=""), full.names = T, pattern = "*.rds")
+	for(i in 1:length(files)){
+		results.lists[[i]] <- readRDS(files[i])
+	}
+	genes.df <- data.frame()
+	for(i in 1:length(results.lists)){
+		genes.df <- rbind(genes.df, prepare_data(results.lists[[i]], params$metric))
+	}
+	gene.plots <- create_lineplots(genes.df, genesets, rownames(training.exprs))
+}
+```
+
+### Bulk simulations
+```{r bulk_sim_scores, fig.width = 10, fig.height = 9}
+if(exists("score.plot.sim"))
+	plot(score.plot.sim)
+```
+
+```{r bulk_sim_scatter, fig.width = 18, fig.height = 5}
+if(exists("scatter.plots.list.sim")){
+	for(l in scatter.plots.list.sim){
+		for(p in l){
+			plot(p)
+		}
+	}
+}
+```
+
+\pagebreak
+### Training set size simulation
+```{r sample_sim, fig.width = 16, fig.height = 9}
+if(exists("sample.plots")){
+	plot(sample.plots$score.plot)
+	for(p in sample.plots$cell.type.plots) plot(p)
+}
+```
+
+\pagebreak
+### Geneset simulation
+```{r geneset_sim, fig.width = 16, fig.height = 9}
+if(exists("gene.plots")){
+	plot(gene.plots$runtime.plot)
+	for(p in gene.plots$cell.type.plots)
+		plot(p)
+}
+```
