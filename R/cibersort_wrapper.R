@@ -82,8 +82,8 @@ run_cibersort <- function(exprs,
     # CIBERSORT automatically stores the results in a file,
     # but we do not need it
     file.remove("CIBERSORT-Results.txt")
-    file.remove("data/CIBERSORT/signature_matrix.txt")
-    file.remove("data/CIBERSORT/mixture.txt")
+    file.remove("CIBERSORT/signature_matrix.txt")
+    file.remove("CIBERSORT/mixture.txt")
     unlink("CIBERSORT/")
 
     return(list(est.props = est.props, sig.matrix = ref.profiles))
