@@ -43,8 +43,6 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
       optimize = optimize,
       split.data = split.data
     ))
-
-  print(any(duplicated(rownames(bulks))))
   # DeconRNASeq requires data frame as input
   df.mix <- as.data.frame(bulks)
   rownames(df.mix) <- rownames(bulks)
@@ -53,7 +51,6 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   sink("/dev/null")
   result <- try(DeconRNASeq::DeconRNASeq(df.mix, ref.profiles))
   sink()
-  print("Done")
   if (!class(result) == "try-error") {
     return(list(est.props = t(result$out.all[1:ncol(bulks), , drop = FALSE]), sig.matrix = ref.profiles))
   } else {
