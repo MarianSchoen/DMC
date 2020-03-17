@@ -51,7 +51,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 	# check and process algorithms input	
 	algorithms <- list(
 			   list(algorithm = run_dtd, name = "DTD"),
-			   #list(algorithm = run_cibersort, name = "CIBERSORT"),
+			   list(algorithm = run_cibersort, name = "CIBERSORT"),
 			   #list(algorithm = run_music, name = "MuSiC"),
 			   list(algorithm = run_deconrnaseq, name = "DeconRNASeq")
 			   #list(algorithm = run_bseqsc, name = "BSEQ-sc"),
