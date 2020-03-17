@@ -67,6 +67,10 @@ create_bulks <- function(exprs, pheno, n.bulks = 500, include.in.bulks = NULL, f
             props[t, i] <- sum(pheno[bulk.samples, "cell_type"] == t) / length(bulk.samples)
         }
     }
+    if(any(duplicated(rownames(bulk.exprs)))){
+        print("Found duplicate features in simulated bulks. Removing...")
+        bulk.exprs <- bulk.exprs[-which(duplicated(bulk.exprs)), ]
+    }
 
     if (sum.to.count) {
         bulk.exprs <- apply(bulk.exprs, 2, function(x) {

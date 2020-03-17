@@ -61,6 +61,7 @@ scatter.plots.list <- list()
 for(i in 1:length(results.lists)) {
 	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]])
 }
+cond.num.plots <- plot_cond_num(real.df)
 ```
 ```{r score_plot, echo = FALSE, fig.width = 10, fig.height = 9}
 plot(score.plot)
@@ -81,7 +82,13 @@ for(l in scatter.plots.list){
 	}
 }
 ```
+
 \pagebreak
+```{r condition_plots, fig.width = 16, fig.height = 9}
+plot(cond.num.plots$cond_num_plot)
+plot(cond.num.plots$cond_vs_score)
+plot(cond.num.plots$variation_plot)
+```
 
 ## Simulations
 ```{r simulation_results, echo = FALSE}

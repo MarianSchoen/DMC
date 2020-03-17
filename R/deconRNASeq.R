@@ -18,7 +18,6 @@
 suppressMessages(library(DeconRNASeq, quietly = TRUE))
 
 run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE) {
-
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -36,16 +35,16 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
 
   # scale to counts and create signature
   exprs <- scale_to_count(exprs)
-  ref.profiles <- as.data.frame(
-    create_sig_matrix(exprs,
+
+  ref.profiles <- as.data.frame(create_sig_matrix(exprs,
       pheno,
       exclude.from.signature,
       max.genes = max.genes,
       optimize = optimize,
       split.data = split.data
-    )
-  )
+    ))
 
+  print(any(duplicated(rownames(bulks))))
   # DeconRNASeq requires data frame as input
   df.mix <- as.data.frame(bulks)
   rownames(df.mix) <- rownames(bulks)
@@ -54,7 +53,7 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   sink("/dev/null")
   result <- try(DeconRNASeq::DeconRNASeq(df.mix, ref.profiles))
   sink()
-
+  print("Done")
   if (!class(result) == "try-error") {
     return(list(est.props = t(result$out.all[1:ncol(bulks), , drop = FALSE]), sig.matrix = ref.profiles))
   } else {

@@ -102,7 +102,6 @@ deconvolute <- function(training.expr,
       features <- intersect(rownames(training.expr), rownames(bulks.expr))
       if (length(features) > 0) {
           training.expr <- training.expr[features, ]
-          #test.expr <- test.expr[features, ]
           bulks.expr <- bulks.expr[features, ]
       }
   }

@@ -187,7 +187,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 		}
 		res.no <- length(previous.results) + 1
 
-		# create unified interface for the benchmarks in the future
+		# create unified interface for the benchmarks in the future?
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				print("bulk simulation")
