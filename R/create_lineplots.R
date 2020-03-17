@@ -1,4 +1,4 @@
-create_lineplots <- function(results.df, genesets = NULL, available.features = NULL) {
+create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL) {
     require(ggplot2)
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
     # order algorithms by performance
@@ -19,31 +19,6 @@ create_lineplots <- function(results.df, genesets = NULL, available.features = N
         geneset.limits <- levels(results.df$geneset)
     }
    
-    
-    # create overall performance plot
-    #correlation.plot <- ggplot(overall.df, aes(
-    #x = geneset,
-    #y = score,
-    #group = algorithm, col = algorithm
-    #)) +
-    #geom_line(size = 2) + geom_point() +
-    #xlab("gene set") + ylab(paste("average",metric)) +
-    #ggtitle("deconvolution quality using different gene sets", subtitle = metric) +
-    #ylim(0, 1) +
-    #theme(
-    #    legend.text = element_text(size = 20),
-    #    legend.title = element_text(size = 22),
-    #    title = element_text(size = 24),
-    #    axis.title.x = element_text(size = 24),
-    #    axis.text.x = element_text(size = 20),
-    #    axis.title.y = element_text(size = 24),
-    #    axis.text.y = element_text(size = 20)
-    #) +
-    #scale_x_discrete(limits = geneset.limits, labels = geneset.labs) +
-    #guides(linetype = guide_legend(override.aes = list(size = 2)))
-
-    # plot runtime
-    
     # create plot per cell type
     cell.type.plots <- list()
     for(t in unique(results.df$cell_type)) {
@@ -72,9 +47,11 @@ create_lineplots <- function(results.df, genesets = NULL, available.features = N
             "deconvolution quality using different gene sets (", t, ")",
             sep = ""
             )) +
-            ylim(0, 1) +
             scale_x_discrete(limits = geneset.limits) +
             guides(linetype = guide_legend(override.aes = list(size = 2)))
+        if(metric == "cor"){
+            cell.type.plots[[t]] <- cell.type.plots[[t]] + ylim(0,1)
+        }
     	if(t == "overall") {
 		runtime.plot <- ggplot(sub.df, aes(
       		x = geneset, y = log(time, 10),

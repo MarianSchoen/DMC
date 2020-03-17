@@ -1,4 +1,4 @@
-create_boxplots <- function(results.df) {
+create_boxplots <- function(results.df, metric = "cor") {
     require(ggplot2)
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
     # order algorithms by performance
@@ -34,10 +34,12 @@ create_boxplots <- function(results.df) {
 	sub.df$algorithm <- factor(sub.df$algorithm, levels = levels(overall.df$algorithm))
         cell.type.plots[[t]] <- ggplot(sub.df, aes(x = algorithm, y = score)) +
             geom_boxplot(aes(col = algorithm)) +
-            ylim(0, 1) +
             xlab("algorithm") +
             ylab(metric) +
             ggtitle("quality of deconvolution results", subtitle = t)
+        if(metric == "cor"){
+            cell.type.plots[[t]] <- cell.type.plots[[t]] + ylim(0,1)
+        }
     }
     return(list(score.plot = overall.plot, cell.type.plots = cell.type.plots))
 }

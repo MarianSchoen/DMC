@@ -1,4 +1,4 @@
-plot_cond_num <- function(results.df){
+plot_cond_num <- function(results.df, metric = "cor"){
     require(ggplot2)
     # do this only for 'overall' rows
     results.df <- results.df[which(results.df$cell_type == "overall"), ] 
@@ -41,8 +41,10 @@ plot_cond_num <- function(results.df){
         geom_point(aes(x = condition_number, y = score, col = algorithm)) +
         ggtitle("score vs condition number") +
         xlab("condition number") +
-        ylab("score") +
-        ylim(0,1)
+        ylab("score")
+    if(metric == "cor"){
+        cond_vs_score <- cond_vs_score + ylim(0,1)
+    }
 
     variation_plot <- ggplot(overall.df) +
         geom_point(aes(x = condition_variation, y = score_variation, col = algorithm)) +
