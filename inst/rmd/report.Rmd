@@ -61,7 +61,7 @@ scatter.plots.list <- list()
 for(i in 1:length(results.lists)) {
 	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]])
 }
-cond.num.plots <- plot_cond_num(real.df)
+cond.num.plots <- plot_cond_num(real.df, metric = params$metric)
 ```
 ```{r score_plot, echo = FALSE, fig.width = 10, fig.height = 9}
 plot(score.plot)
@@ -122,7 +122,7 @@ if(dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))){
 	for(i in 1:length(results.lists)){
 		samples.df <- rbind(samples.df, prepare_data(results.lists[[i]], params$metric))
 	}
-	sample.plots <- create_boxplots(samples.df)
+	sample.plots <- create_boxplots(samples.df, metric = params$metric)
 }
 
 # gene benchmark
@@ -136,7 +136,7 @@ if(dir.exists(paste(temp.dir, "/results/simulation/genes", sep=""))){
 	for(i in 1:length(results.lists)){
 		genes.df <- rbind(genes.df, prepare_data(results.lists[[i]], params$metric))
 	}
-	gene.plots <- create_lineplots(genes.df, genesets, rownames(training.exprs))
+	gene.plots <- create_lineplots(genes.df, metric = params$metric, genesets, rownames(training.exprs))
 }
 ```
 

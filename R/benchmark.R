@@ -53,9 +53,9 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 			   list(algorithm = run_dtd, name = "DTD"),
 			   list(algorithm = run_cibersort, name = "CIBERSORT"),
 			   #list(algorithm = run_music, name = "MuSiC"),
-			   list(algorithm = run_deconrnaseq, name = "DeconRNASeq")
+			   list(algorithm = run_deconrnaseq, name = "DeconRNASeq"),
 			   #list(algorithm = run_bseqsc, name = "BSEQ-sc"),
-			   #list(algorithm = run_dtd_baseline, name = "DTD_baseline")
+			   list(algorithm = run_least_squares, name = "Least_Squares")
 	)
 	algorithm.names <- sapply(algorithms, function(x) x$name)
 
