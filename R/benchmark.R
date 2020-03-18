@@ -14,13 +14,14 @@
 #' @param temp.dir 
 #' @param exclude.from.bulks 
 #' @param exclude.from.signature
-#' @param n.bulks 
+#' @param n.bulks
+#' @param cpm
 #'
 #' @return
 #' @export
 #'
 #' @examples
-benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL, n.bulks = 1000){
+benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL, n.bulks = 1000, cpm = TRUE){
 	# check whether temporary directory is available and writeable
 	if(is.null(temp.dir)){
 		warning("No temporary directory was provided. Using .tmp in current directory.")
@@ -122,6 +123,10 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 	save(sc.counts, sc.pheno, real.counts, real.props, algorithm.names, genesets, function.call, file = paste(output.folder,"/input_data/raw.rda",sep=""))
 
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
+		if(cpm){
+			sc.counts <- scale_to_count(sc.counts)
+			real.counts <- scale_to_count(real.counts)
+		}
 		split.data <- split_dataset(sc.counts, sc.pheno)
 		training.exprs <- split.data$training$exprs
 		training.pheno <- split.data$training$pheno
@@ -132,7 +137,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 		}else{
 			include.in.bulks <- NULL
 		}
-		sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks)
+		sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
 		save(training.exprs, training.pheno, test.exprs, test.pheno, sim.bulks, file = paste(output.folder, "/input_data/processed.rda", sep=""))	
 	}
 	
