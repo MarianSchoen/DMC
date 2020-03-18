@@ -1,7 +1,24 @@
-# written by Tim Mirus
-
-# main function of the benchmark
-
+#' main function of the benchmark
+#'
+#' @param sc.counts numeric matrix with features as rows, and scRNA-Seq profiles
+#' as columns. 
+#' @param sc.pheno 
+#' @param real.counts 
+#' @param real.props 
+#' @param benchmark.name 
+#' @param input.algorithms 
+#' @param simulations 
+#' @param genesets 
+#' @param metric 
+#' @param repeats 
+#' @param temp.dir 
+#' @param exclude.from.bulks 
+#' @param exclude.from.signature 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL){
 	# check whether temporary directory is available and writeable
 	if(is.null(temp.dir)){
