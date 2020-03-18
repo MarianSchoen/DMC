@@ -5,7 +5,8 @@
 #' @param sc.pheno 
 #' @param real.counts 
 #' @param real.props 
-#' @param benchmark.name 
+#' @param benchmark.name
+#' @param grouping
 #' @param input.algorithms 
 #' @param simulations 
 #' @param genesets 
@@ -25,7 +26,8 @@ benchmark <- function(sc.counts,
 					  sc.pheno, 
 					  real.counts, 
 					  real.props,  
-					  benchmark.name, 
+					  benchmark.name,
+					  grouping,
 					  input.algorithms = NULL, 
 					  simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), 
 					  genesets = NULL, 
@@ -78,6 +80,9 @@ benchmark <- function(sc.counts,
 	}
 	if(!metric %in% c("cor", "mad", "rmsd")){
 		stop("metric must be one of 'cor', 'mad', 'rmsd'")
+	}
+	if(!is.factor(grouping) || !length(levels(grouping)) == 2 || !length(grouping) == ncol(sc.counts)){
+		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts) with two levels indicating training and validation set")
 	}
 
 	# check and process algorithms input
@@ -150,7 +155,7 @@ benchmark <- function(sc.counts,
 			real.counts <- scale_to_count(real.counts)
 		}
 		# split (randomly at the moment) into test and validation set
-		split.data <- split_dataset(sc.counts, sc.pheno)
+		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
 		training.exprs <- split.data$training$exprs
 		training.pheno <- split.data$training$pheno
 		test.exprs <- split.data$test$exprs
