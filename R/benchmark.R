@@ -140,13 +140,20 @@ benchmark <- function(sc.counts,
 	# if it exists load previously processed data from temp
 	if(file.exists(paste(output.folder,"/input_data/processed.rda",sep=""))){
 		if(verbose) print("Using data found in temp directory")
-		load(paste(output.folder,"/input_data/processed.rda",sep=""))
+		training_set <- read_data(paste(output.folder, "/input_data/training_set.h5", sep = ""))
+		validation_set <- read_data(paste(output.folder, "/input_data/validation_set.h5", sep=""))
+		training.exprs <- training_set$sc.counts
+		training.pheno <- training_set$sc.pheno
+		test.exprs <- validation_set$sc.counts
+		test.pheno <- validation_set$sc.pheno
+		sim.bulks <- list(bulks = validation_set$real.counts, props = validation_set$real.props)
 	}else{
 		dir.create(paste(output.folder,"/input_data",sep=""))
 	}
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
-	save(sc.counts, sc.pheno, real.counts, real.props, algorithm.names, genesets, function.call, file = paste(output.folder,"/input_data/raw.rda",sep=""))
+	write_data(sc.counts, sc.pheno, real.counts, real.props, paste(output.folder,"input_data/raw.h5", sep = "/"))
+	save(algorithm.names, genesets, function.call, grouping, file = paste(output.folder,"input_data/params.rda",sep="/"))
 
 	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
@@ -168,7 +175,8 @@ benchmark <- function(sc.counts,
 		}
 		sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
 		# save processed data for later use and repeated benchmarks
-		save(training.exprs, training.pheno, test.exprs, test.pheno, sim.bulks, file = paste(output.folder, "/input_data/processed.rda", sep=""))	
+		write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))
+		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
 	}
 	
 	# we have not agreed on whether data plots should be generated yet ...
