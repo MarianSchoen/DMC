@@ -1,3 +1,5 @@
+# written by Tim Mirus
+
 plot_runtime <- function(results.df, title = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)) {
@@ -11,8 +13,8 @@ plot_runtime <- function(results.df, title = NULL) {
     mean.times <- tapply(results.df$time, results.df$algorithm, mean)
     sd.times <- tapply(results.df$time, results.df$algorithm, sd)
 
+    # create data frame and plot
     runtimes <- data.frame(algorithm = names(mean.times), runtime = mean.times, sd = sd.times)
-    
     runtime.plot <- ggplot(runtimes) +
     geom_bar(
         aes(

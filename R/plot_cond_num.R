@@ -1,11 +1,11 @@
+# written by Tim Mirus
 plot_cond_num <- function(results.df, metric = "cor"){
     require(ggplot2)
-    # do this only for 'overall' rows
-    results.df <- results.df[which(results.df$cell_type == "overall"), ] 
+    # use only 'overall' rows
+    results.df <- results.df[which(results.df$cell_type == "overall"), ]
     overall.df <- c()
-    print(results.df)
-    print(str(results.df))
 
+    # create means and sds of scores and condition numbers from repetitions
     for(a in unique(results.df$algorithm)){
         overall.df <- rbind(overall.df, 
         c(
@@ -24,19 +24,20 @@ plot_cond_num <- function(results.df, metric = "cor"){
     "score" ,
     "score_variation"
     )
-    print(overall.df)
-    print(str(overall.df))
+    # fix variable types
     overall.df$condition_number <- as.numeric(as.character(overall.df$condition_number))
     overall.df$condition_variation <- as.numeric(as.character(overall.df$condition_variation))
     overall.df$score <- as.numeric(as.character(overall.df$score))
     overall.df$score_variation <- as.numeric(as.character(overall.df$score_variation))
-    print(str(overall.df))
+
+    # plot condition numbers as barplot
     cond_num_plot <- ggplot(overall.df) +
         geom_bar(aes(x = as.numeric(algorithm), y = condition_number, fill = algorithm), stat = "identity", position = "dodge") +
         ggtitle("average signature matrix condition number") +
         ylab("condition number") +
         xlab("algorithm")
 
+    # plot score vs condition number
     cond_vs_score <- ggplot(overall.df) +
         geom_point(aes(x = condition_number, y = score, col = algorithm)) +
         ggtitle("score vs condition number") +
@@ -46,6 +47,7 @@ plot_cond_num <- function(results.df, metric = "cor"){
         cond_vs_score <- cond_vs_score + ylim(0,1)
     }
 
+    # plot sd of score vs sd of condition number
     variation_plot <- ggplot(overall.df) +
         geom_point(aes(x = condition_variation, y = score_variation, col = algorithm)) +
         ggtitle("SDs of score vs SDs of condition number") +

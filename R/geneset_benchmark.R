@@ -2,6 +2,7 @@
 
 geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, genesets, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL){
   geneset.lists <- list()
+  # deconvolute using each geneset
   for (i in 1:length(genesets)) {
     genes <- genesets[[i]]
     # reduce to genes contained in current gene set
@@ -22,8 +23,10 @@ geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.p
       bulks = bulk.data,
       n.repeats = n.repeats
     )
+    # add only the results, not the real proportions that are returned
     geneset.lists[[names(genesets)[i]]] <- temp.results[[1]]
   }
+  # add real props once at the top level
   geneset.lists[["bulk.props"]] <- temp.results$bulk.props
   return(geneset.lists)
 }

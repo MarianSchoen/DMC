@@ -1,20 +1,18 @@
-# has to be adjusted to use prepare_data
 evaluation_plot <- function(results.df, title, metric = "cor", real.props = NULL) {
     if (is.null(title)) {
         title <- "deconvolution quality"
     }
-
     # reduce to one entry per cell type and algorithm by taking the mean
     quality.scores <- c()
     for (a in unique(results.df$algorithm)) {
-        for (ct in unique(results.df$cell_type)) {
-            subset <- which(results.df$algorithm == a & results.df$cell_type == ct)
-            if(length(subset > 0)) {
-                quality.scores <- rbind(quality.scores, 
-                                        c(mean(results.df[subset,]$score),
-                                        sd(results.df[subset,]$score),
-                                        ct, a, metric))
-            }
+      for (ct in unique(results.df$cell_type)) {
+        subset <- which(results.df$algorithm == a & results.df$cell_type == ct)
+        if(length(subset > 0)) {
+            quality.scores <- rbind(quality.scores, 
+                                    c(mean(results.df[subset,]$score),
+                                    sd(results.df[subset,]$score),
+                                    ct, a, metric))
+        }
       }
     }
     
@@ -36,19 +34,20 @@ evaluation_plot <- function(results.df, title, metric = "cor", real.props = NULL
       quality.scores$cell_type <- factor(quality.scores$cell_type, levels = labels)
       if(!is.null(real.props)) {
         for (i in 1:length(labels)) {
-		if(labels[i] != "overall"){
-            prop <- round(mean(real.props[labels[i],]), 2)
-            labels[i] <-
-                paste(labels[i], "\n", prop * 100, "%", sep = "")
-		}
+              if(labels[i] != "overall"){
+                      prop <- round(mean(real.props[labels[i],]), 2)
+                      labels[i] <-
+                          paste(labels[i], "\n", prop * 100, "%", sep = "")
+              }
             }
         }
-      
+
       # cleaner plot by setting negative correlations to 0
       quality.scores$value <- as.numeric(as.character(quality.scores$value))
       quality.scores$value[quality.scores$value < 0] <- 0
       quality.scores$value[is.na(quality.scores$value)] <- 0
-      
+
+      # order by performance
       ranking <- tapply(quality.scores$value, quality.scores$algorithm, mean)
       quality.scores$algorithm <- factor(quality.scores$algorithm,
                                          levels = levels(quality.scores$algorithm)[order(ranking)])

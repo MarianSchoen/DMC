@@ -1,3 +1,5 @@
+# written by Tim Mirus
+
 create_scatterplots <- function(results.list, real.props = NULL, training.pheno = NULL, real = FALSE) {
   require(ggplot2)
   real.props <- results.list$bulk.props
@@ -16,9 +18,9 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
     scatter.plots <- list()
     # create scatter plots only for one repetition
     for (res in results.list[[1]]) {   
-      # only cell types that are in both data sets
+      # only cell types that are in real props and estimates
       cts <- intersect(rownames(res$est.props), rownames(real.props))
-      # create data frame for plotting
+      # create data frame for plotting (containing real and estimates for each cell type)
       df <- c()
       for (i in 1:length(cts)) {
         t <- cts[i]
