@@ -22,32 +22,28 @@
 benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL){
 	# check whether temporary directory is available and writeable
 	if(is.null(temp.dir)){
-		warning("No temporary directory was provided. If you have data from previous benchmarks you want to use or if you want to store your results for later use please provide a directory name.")
+		warning("No temporary directory was provided. Using .tmp in current directory.")
+		temp.dir <- paste(getwd(),"/.tmp",sep = "")
+	}
+	if(!dir.exists(temp.dir)){
+		flag <- dir.create(temp.dir, recursive = TRUE)
+		if(!flag) stop("Could not create temp directory. Please provide a writeable directory.")
 	}else{
-		store.data <- TRUE
-		if(!dir.exists(temp.dir)){
-			flag <- dir.create(temp.dir)
-			if(!flag) store.data <- FALSE
+		if(is.null(benchmark.name) || benchmark.name == ""){
+			stop("Invalid benchmark name. Please provide a unique name for this benchmark.")
 		}else{
-			if(is.null(benchmark.name) || benchmark.name == ""){
-				warning("Invalid benchmark name. Disable storing.")
-				store.data <- FALSE
+			if(dir.exists(paste(temp.dir,"/",benchmark.name,sep=""))){
+				print("Found existing project directory within temp")
 			}else{
-				if(dir.exists(paste(temp.dir,"/",benchmark.name,sep=""))){
-					print("Found existing project directory within temp")
-				}else{
-					flag <- dir.create(paste(temp.dir, "/", benchmark.name, sep = ""))
-					if(!flag) {
-						warning("Could not create project folder. Is temp writeable? Falling back to no storing.")
-						store.data <- FALSE
-					}
+				flag <- dir.create(paste(temp.dir, "/", benchmark.name, sep = ""))
+				if(!flag) {
+					stop("Could not create project folder. Is temp writeable?")
 				}
 			}
 		}
 	}
-	if(store.data) {
-		output.folder <- paste(temp.dir,"/",benchmark.name,sep="")
-	}
+	
+	output.folder <- paste(temp.dir,"/",benchmark.name,sep="")
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
@@ -114,16 +110,16 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 	}
 
 	# load / process / store data
-	if(store.data){
-		if(dir.exists(paste(output.folder,"/input_data",sep=""))){
-			print("Using data found in temp directory")
-			load(paste(output.folder,"/input_data/processed.rda",sep=""))
-		}else{
-			dir.create(paste(output.folder,"/input_data",sep=""))
-		}
-		function.call <- match.call()
-		save(sc.counts, sc.pheno, real.counts, real.props, algorithm.names, genesets, function.call, file = paste(output.folder,"/input_data/raw.rda",sep=""))
+
+	if(dir.exists(paste(output.folder,"/input_data",sep=""))){
+		print("Using data found in temp directory")
+		load(paste(output.folder,"/input_data/processed.rda",sep=""))
+	}else{
+		dir.create(paste(output.folder,"/input_data",sep=""))
 	}
+	function.call <- match.call()
+	save(sc.counts, sc.pheno, real.counts, real.props, algorithm.names, genesets, function.call, file = paste(output.folder,"/input_data/raw.rda",sep=""))
+
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
 		split.data <- split_dataset(sc.counts, sc.pheno)
 		training.exprs <- split.data$training$exprs
