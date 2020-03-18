@@ -13,13 +13,14 @@
 #' @param repeats 
 #' @param temp.dir 
 #' @param exclude.from.bulks 
-#' @param exclude.from.signature 
+#' @param exclude.from.signature
+#' @param n.bulks 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL){
+benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL, n.bulks = 1000){
 	# check whether temporary directory is available and writeable
 	if(is.null(temp.dir)){
 		warning("No temporary directory was provided. Using .tmp in current directory.")
@@ -131,7 +132,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 		}else{
 			include.in.bulks <- NULL
 		}
-		sim.bulks <- create_bulks(test.exprs, test.pheno, 1000, include.in.bulks)
+		sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks)
 		save(training.exprs, training.pheno, test.exprs, test.pheno, sim.bulks, file = paste(output.folder, "/input_data/processed.rda", sep=""))	
 	}
 	
