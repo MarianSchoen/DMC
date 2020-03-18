@@ -1,6 +1,6 @@
 # written by Tim Mirus
 
-sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05) {
+sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE) {
 sample.size.lists <- list()
 for(i in seq(1, 1 / step.size)){
   sample.size.lists[[as.character(i*step.size)]] <- list()
@@ -49,7 +49,7 @@ for (rep in seq_len(n.repeats)) {
       test.expr = test.exprs,
       test.pheno = test.pheno,
       algorithms = algorithms,
-      verbose = FALSE,
+      verbose = verbose,
       split.data = FALSE,
       exclude.from.signature = exclude.from.signature,
       optimize = TRUE,

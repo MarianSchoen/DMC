@@ -38,7 +38,7 @@ benchmark <- function(sc.counts,
 					  exclude.from.signature = NULL, 
 					  n.bulks = 1000, 
 					  cpm = TRUE, 
-					  verbose = TRUE){
+					  verbose = FALSE){
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
@@ -207,7 +207,7 @@ benchmark <- function(sc.counts,
 
 	# deconvolute real bulks
 	if(length(to.run)>0){
-		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], FALSE, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
+		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
 		saveRDS(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".rds",sep=""))
 	}
 
@@ -246,17 +246,17 @@ benchmark <- function(sc.counts,
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				print("bulk simulation")
-				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], FALSE, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats)
+				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats)
 				benchmark.results <- sim.bulk.benchmark
 			}
 			if(s == "genes"){
 				print("geneset simulation")
-				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature)
+				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose)
 				benchmark.results <- sim.genes.benchmark
 			}
 			if(s == "samples"){
 				print("sample simulation")
-				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], bulks, repeats, exclude.from.signature, 0.25)
+				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], bulks, repeats, exclude.from.signature, 0.25, verbose)
 				benchmark.results <- sim.sample.benchmark
 			}
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){

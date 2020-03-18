@@ -1,6 +1,6 @@
 # written by Tim Mirus
 
-geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, genesets, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL){
+geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, genesets, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, verbose = FALSE){
   geneset.lists <- list()
   # deconvolute using each geneset
   for (i in 1:length(genesets)) {
@@ -14,7 +14,7 @@ geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.p
       test.expr = test.exprs,
       test.pheno = test.pheno,
       algorithms = algorithms,
-      verbose = TRUE,
+      verbose = verbose,
       split.data = FALSE,
       exclude.from.signature = exclude.from.signature,
       optimize = TRUE,

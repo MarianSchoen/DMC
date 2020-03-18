@@ -115,9 +115,9 @@ run_dtd <- function(exprs,
   start.tweak <- rep(1, n.genes)
   names(start.tweak) <- top.features
 
-  if (verbose) print("DTD start learning")
   if (dtd.learn.seeding) set.seed(1234)
 
+  suppressWarnings(
   dtd.model <- try(train_deconvolution_model(
     tweak = start.tweak,
     X.matrix = sig.matrix,
@@ -126,10 +126,10 @@ run_dtd <- function(exprs,
     verbose = FALSE,
     NORM.FUN = "identity",
     learning.rate = 1,
-    cv.verbose = verbose
+    cv.verbose = FALSE
   ))
+  )
 
-  if (verbose) print("DTD start estimating")
   est.props.colscale <- NULL
   est.props.rowscale <- NULL
 
@@ -145,7 +145,6 @@ run_dtd <- function(exprs,
     est.props.colscale <- est.props
     est.props.rowscale <- est.props
     if (any(est.props < 0)) {
-      if (verbose) print("DTD coefficients negative!")
       est.props.rowscale[est.props.rowscale < 0] <- 0
       est.props.colscale[est.props.colscale < 0] <- 0
     }
@@ -159,8 +158,6 @@ run_dtd <- function(exprs,
     g_vec <- dtd.model$best.model$Tweak
     sig.mat.effective <- apply(sig.matrix, 2, function(x){x * g_vec})
   } else {
-    # in case of error save sig mat, training bulks and dtd.model
-    save(sig.matrix, training.bulks, start.tweak, dtd.model, file = paste("../error_dtd_", Sys.time(), ".rda", sep = ""))
     est.props <- NULL
     g_vec <- NULL
     sig.mat.effective <- NULL

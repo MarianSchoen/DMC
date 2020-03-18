@@ -92,14 +92,6 @@ run_least_squares <- function(exprs,
     DTD.model = start.tweak,
     estimate.c.type = "direct"
   )
-  if (any(is.na(est.props)) || any(is.null(est.props)) || any(apply(est.props, 1, var) == 0)) {
-    # save information about error
-    saveRDS(
-      est.props,
-      paste("../error_DTD_baseline_", Sys.time(), ".RDS", sep = "")
-    )
-  }
-
   # rescale by column and by row in order to determine how this changes results
   est.props.colscale <- est.props
   est.props.rowscale <- est.props
