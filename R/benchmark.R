@@ -23,10 +23,13 @@
 #' @examples
 benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL, n.bulks = 1000, cpm = TRUE){
 	# check whether temporary directory is available and writeable
+	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
 		warning("No temporary directory was provided. Using .tmp in current directory.")
 		temp.dir <- paste(getwd(),"/.tmp",sep = "")
 	}
+	# check that temp.dir exists and is writeable 
+	# stop if it is not
 	if(!dir.exists(temp.dir)){
 		flag <- dir.create(temp.dir, recursive = TRUE)
 		if(!flag) stop("Could not create temp directory. Please provide a writeable directory.")
@@ -46,6 +49,8 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 	}
 	
 	output.folder <- paste(temp.dir,"/",benchmark.name,sep="")
+
+	# check counts and props input
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
@@ -56,14 +61,11 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 		warning("No gene sets provided skipping this benchmark")
 		simulations["genes"] <- F
 	}
-	#if(!all(c("bulks","genes","samples") %in% names(benchmark))) {
-	#	stop("Not all benchmarks specified")
-	#}
 	if(!metric %in% c("cor", "mad", "rmsd")){
 		stop("metric must be one of 'cor', 'mad', 'rmsd'")
 	}
 
-	# check and process algorithms input	
+	# check and process algorithms input
 	algorithms <- list(
 			   list(algorithm = run_dtd, name = "DTD"),
 			   list(algorithm = run_cibersort, name = "CIBERSORT"),
@@ -75,6 +77,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 	algorithm.names <- sapply(algorithms, function(x) x$name)
 
 	if(!is.null(input.algorithms)){
+		# input.algorithms must be a list
 		if(!is.list(input.algorithms)){
 			stop("Invalid algorithm input")
 		}
@@ -84,8 +87,9 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 		# or characters specifying one of the predefined algorithms
 		for(a in input.algorithms) {
 			if(is.list(a)){
+				# for now check only whether algorithm exists, not its output
 				if(exists(as.character(substitute(a$algorithm))) && is.character(a$name)){
-					new.algos <- c(new.algos, a)
+					new.algos <- c(new.algos, a)s("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
 					stop("Invalid algorithm")
 				}
 			}else{
@@ -96,6 +100,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 				}
 			}
 		}
+		# join supplied (new) algorithms and specified existing algorithms
 		if(length(predef.algos) > 0 || length(new.algos) > 0){
 			if(length(predef.algos) > 0) {
 				algorithms <- algorithms[predef.algos]
@@ -109,6 +114,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 			stop("No algorithms selected")
 		}
 		algorithm.names <- sapply(algorithms, function(x) x$name)
+	}
 	}
 
 	# load / process / store data
