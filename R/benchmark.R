@@ -21,7 +21,22 @@
 #' @export
 #'
 #' @examples
-benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.name, input.algorithms = NULL, simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), genesets = NULL, metric = "cor", repeats = 3, temp.dir = NULL, exclude.from.bulks = NULL, exclude.from.signature = NULL, n.bulks = 1000, cpm = TRUE){
+benchmark <- function(sc.counts, 
+					  sc.pheno, 
+					  real.counts, 
+					  real.props,  
+					  benchmark.name, 
+					  input.algorithms = NULL, 
+					  simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), 
+					  genesets = NULL, 
+					  metric = "cor", 
+					  repeats = 3, 
+					  temp.dir = NULL, 
+					  exclude.from.bulks = NULL, 
+					  exclude.from.signature = NULL, 
+					  n.bulks = 1000, 
+					  cpm = TRUE, 
+					  verbose = TRUE){
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
@@ -69,9 +84,7 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 	algorithms <- list(
 			   list(algorithm = run_dtd, name = "DTD"),
 			   list(algorithm = run_cibersort, name = "CIBERSORT"),
-			   #list(algorithm = run_music, name = "MuSiC"),
 			   list(algorithm = run_deconrnaseq, name = "DeconRNASeq"),
-			   #list(algorithm = run_bseqsc, name = "BSEQ-sc"),
 			   list(algorithm = run_least_squares, name = "Least_Squares")
 	)
 	algorithm.names <- sapply(algorithms, function(x) x$name)
@@ -89,7 +102,8 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 			if(is.list(a)){
 				# for now check only whether algorithm exists, not its output
 				if(exists(as.character(substitute(a$algorithm))) && is.character(a$name)){
-					new.algos <- c(new.algos, a)s("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
+					new.algos <- c(new.algos, a)
+				}else{
 					stop("Invalid algorithm")
 				}
 			}else{
@@ -115,35 +129,40 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 		}
 		algorithm.names <- sapply(algorithms, function(x) x$name)
 	}
-	}
+
 
 	# load / process / store data
-
-	if(dir.exists(paste(output.folder,"/input_data",sep=""))){
-		print("Using data found in temp directory")
+	# if it exists load previously processed data from temp
+	if(file.exists(paste(output.folder,"/input_data/processed.rda",sep=""))){
+		if(verbose) print("Using data found in temp directory")
 		load(paste(output.folder,"/input_data/processed.rda",sep=""))
 	}else{
 		dir.create(paste(output.folder,"/input_data",sep=""))
 	}
+	# save input data of benchmark() to temp directory
 	function.call <- match.call()
 	save(sc.counts, sc.pheno, real.counts, real.props, algorithm.names, genesets, function.call, file = paste(output.folder,"/input_data/raw.rda",sep=""))
 
+	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
 		if(cpm){
 			sc.counts <- scale_to_count(sc.counts)
 			real.counts <- scale_to_count(real.counts)
 		}
+		# split (randomly at the moment) into test and validation set
 		split.data <- split_dataset(sc.counts, sc.pheno)
 		training.exprs <- split.data$training$exprs
 		training.pheno <- split.data$training$pheno
 		test.exprs <- split.data$test$exprs
 		test.pheno <- split.data$test$pheno
+		# exclude.from.bulks is a paramweter of benchmark(), create_bulks expects the opposite
 		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno$cell_type), exclude.from.bulks)) > 0){
 			include.in.bulks <- unique(test.pheno$cell_type)[-which(unique(test.pheno$cell_type %in% exclude.from.bulks))]
 		}else{
 			include.in.bulks <- NULL
 		}
 		sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
+		# save processed data for later use and repeated benchmarks
 		save(training.exprs, training.pheno, test.exprs, test.pheno, sim.bulks, file = paste(output.folder, "/input_data/processed.rda", sep=""))	
 	}
 	
@@ -151,22 +170,24 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 	#
 	#
 	#
-
-	# here ends data processing
 	# begin deconvolution part
 
 	# select algorithms that have not been evaluated in a previous runs
-	print("Benchmarking performance on real bulks")
+	if(verbose) print("Benchmarking performance on real bulks")
 	previous.results <- list()
+	# read available files for this benchmark
 	if(dir.exists(paste(output.folder,"/results/real/",sep=""))){
 		files <- list.files(paste(output.folder, "/results/real/", sep = ""), full.names = T, pattern = "*.rds")
-		for(i in 1:length(files)){
-			f <- files[i]
-			previous.results[[i]] <- readRDS(f)
+		if(length(files) > 0){
+			for(i in 1:length(files)){
+				f <- files[i]
+				previous.results[[i]] <- readRDS(f)
+			}
 		}
 	}else{
 		dir.create(paste(output.folder,"/results/real/",sep=""), recursive = T)
 	}
+	# exclude algorithms for which results are already present
 	if(length(previous.results) == 0){
 		to.run <- 1:length(algorithms)
 	}else{
@@ -174,26 +195,29 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 		for(r in previous.results){
 			present.algorithms <- c(present.algorithms, unique(as.character(prepare_data(r)$algorithm)))
 		}
-		print(present.algorithms)
+		if(verbose) print(present.algorithms)
 		to.run <- which(! algorithm.names %in% present.algorithms)
 	}
 	res.no <- length(previous.results) + 1
 
+	# deconvolute real bulks
 	if(length(to.run)>0){
 		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], FALSE, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
 		saveRDS(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".rds",sep=""))
 	}
 
-	if(any(simulations)) print("Starting simulations")
+	# iterate through supplied simulation vector and perform those that are TRUE
+	available.sims <- c("genes", "samples", "bulks")
+	if(any(simulations) && verbose) print("Starting simulations")
 	for(s in names(simulations)){
-		if(!simulations[s]) next
+		if(!simulations[s] || ! s %in% available.sims) next
+		# read previous results and exclude present algorithms
 		previous.results <- list()
 		if(dir.exists(paste(output.folder, "/results/simulation/",s,"/", sep=""))){
 			files <- list.files(paste(output.folder, "/results/simulation/",s,"/",sep = ""), full.names = T, pattern = "*.rds")
 			if(length(files) > 0){
 			for(i in 1:length(files)) {
 				f <- files[i]
-				print(f)
 				previous.results[[i]] <- readRDS(f)
 			}
 			}
@@ -207,12 +231,13 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 			for(r in previous.results){
 				present.algorithms <- c(present.algorithms, unique(as.character(prepare_data(r)$algorithm)))
 			}
-			print(present.algorithms)
+			if(verbose) print(present.algorithms)
 			to.run <- which(! algorithm.names %in% present.algorithms)
 		}
 		res.no <- length(previous.results) + 1
 
 		# create unified interface for the benchmarks in the future?
+		# execute benchmark corresponding to s and save results
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				print("bulk simulation")
@@ -229,7 +254,9 @@ benchmark <- function(sc.counts, sc.pheno, real.counts, real.props,  benchmark.n
 				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], bulks, repeats, exclude.from.signature, 0.25)
 				benchmark.results <- sim.sample.benchmark
 			}
-		 dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)	
+			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
+		 		dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)
+			}
 			saveRDS(benchmark.results, paste(output.folder, "/results/simulation/",s,"/deconv_output_",res.no,".rds",sep=""))
 		}
 	}
