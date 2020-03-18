@@ -160,7 +160,6 @@ if(exists("scatter.plots.list.sim")){
 ### Training set size simulation
 ```{r sample_sim, fig.width = 16, fig.height = 9}
 if(exists("sample.plots")){
-	plot(sample.plots$score.plot)
 	for(p in sample.plots$cell.type.plots) plot(p)
 }
 ```
