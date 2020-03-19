@@ -1,4 +1,11 @@
-library(DeconvolutionAlgorithmBenchmarking)
+# no filthy workspace: 
+rm(list = ls())
+
+# while developing, maybe devtools::load_all is better than library, 
+# as current changes get loaded, and must not be installed
+# library(DeconvolutionAlgorithmBenchmarking)
+devtools::load_all(".")
+
 # data from PB2
 load("development/cll_normalized_sampled.rda")
 # there are duplicated rows to deal with
@@ -8,7 +15,8 @@ genesets <- readRDS("development/genesets.RDS")
 # remove patient '12'; does not contain useful cells
 to.remove <- which(nchar(as.character(cll.pheno$patient)) < 4)
 cll.exprs <- cll.exprs[, -to.remove]
- cll.pheno <- cll.pheno[-to.remove, ]
+cll.pheno <- cll.pheno[-to.remove, ]
+
 
 # split by patient
 patient.info <- substr(as.character(cll.pheno$patient), 1, 1)
@@ -24,4 +32,15 @@ test.samples <- which(patient.info == 6 | patient.info == 8)
 grouping <- rep(1, (length(training.samples)+length(test.samples)))
 grouping[test.samples] <- 2
 
-benchmark(cll.exprs, cll.pheno, bulks$bulks, bulks$props, benchmark.name = "test_benchmark", exclude.from.signature = c("unassigned", "not_annotated"), genesets = genesets, temp.dir = "/tmp/", simulation = c("genes" = T, "samples" = T, "bulks" = T), repeats = 3, grouping = as.factor(grouping))
+benchmark(
+  sc.counts = cll.exprs
+  , sc.pheno = cll.pheno
+  , real.counts = bulks$bulks
+  , real.props = bulks$props
+  , benchmark.name = "test_benchmark"
+  , exclude.from.signature = c("unassigned", "not_annotated")
+  , genesets = genesets
+  , simulation = c("genes" = T, "samples" = T, "bulks" = T)
+  , repeats = 3
+  , grouping = as.factor(grouping)
+  )
