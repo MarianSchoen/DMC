@@ -39,6 +39,8 @@ benchmark <- function(sc.counts,
 					  n.bulks = 1000, 
 					  cpm = TRUE, 
 					  verbose = FALSE){
+	if(verbose) print("calculating checksum")
+	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm))
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
@@ -54,8 +56,15 @@ benchmark <- function(sc.counts,
 		if(is.null(benchmark.name) || benchmark.name == ""){
 			stop("Invalid benchmark name. Please provide a unique name for this benchmark.")
 		}else{
-			if(dir.exists(paste(temp.dir,"/",benchmark.name,sep=""))){
+			if(dir.exists(paste(temp.dir, benchmark.name,sep="/"))){
 				print("Found existing project directory within temp")
+				if(file.exists(paste(temp.dir, benchmark.name, "hash.rds",sep="/"))){
+					hash.old <- readRDS(paste(temp.dir, benchmark.name, "hash.rds", sep="/"))
+					if(hash != hash.old){
+						stop("Hash values of current and old function call do not match. If you changed your data or other important parameters please name your benchmark differently.")
+					}
+				}
+				saveRDS(hash, paste(temp.dir, benchmark.name, "hash.rds",sep="/"))
 			}else{
 				flag <- dir.create(paste(temp.dir, "/", benchmark.name, sep = ""))
 				if(!flag) {
