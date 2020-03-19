@@ -71,3 +71,38 @@ read_data <- function(filename){
     }
     return(list(sc.counts = sc.counts, sc.pheno = sc.pheno, bulk.counts = bulk.counts, bulk.props = bulk.props))
 }
+
+write_misc_input <- function(genesets, algorithm.names, function.call, grouping, filename) {
+    h5createFile(filename)
+    if(!is.null(genesets)){
+        h5createGroup(filename, "genesets")
+        for(g in names(genesets)){
+            h5write(as.vector(genesets[[g]]), filename, paste("genesets", g, sep = "/"))
+        }
+    }
+    h5write(as.vector(algorithm.names), filename, "algorithms")
+    h5write(as.vector(grouping), filename, "grouping")
+    h5createGroup(filename, "function_call")
+    function.args <- as.character(function.call)
+    function.argnames <- names(as.list(function.call))
+    h5write(as.vector(function.args), filename, "function_call/args")
+    h5write(as.vector(function.argnames), filename, "function_call/argnames")
+}
+
+read_misc_input <- function(filename){
+    content <- h5ls(filename)
+    if("/genesets" %in% content$group){
+        genesets <- list()
+        for(name in content$name[which(content$group == "/genesets")]){
+            genesets[[name]] <- h5read(filename, paste("genesets/",name,sep="/"))
+        }
+    }else{
+        genesets <- NULL
+    }
+    algorithms <- h5read(filename, "algorithms")
+    grouping <- h5read(filename, "grouping")
+    function.call <- as.list(h5read(filename, "function_call/args"))
+    names(function.call) <- h5read(filename, "function_call/argnames")
+    function.call <- as.call(function.call)
+    return(list(genesets = genesets, algorithms = algorithms, grouping = grouping, function.call = function.call))
+}

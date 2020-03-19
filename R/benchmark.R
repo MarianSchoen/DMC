@@ -153,7 +153,7 @@ benchmark <- function(sc.counts,
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
 	write_data(sc.counts, sc.pheno, real.counts, real.props, paste(output.folder,"input_data/raw.h5", sep = "/"))
-	save(algorithm.names, genesets, function.call, grouping, file = paste(output.folder,"input_data/params.rda",sep="/"))
+	write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))
 
 	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
