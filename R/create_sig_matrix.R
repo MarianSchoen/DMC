@@ -201,7 +201,7 @@ create_sig_matrix <- function(
   }
 
   if (split.data && !any(type.counts < 3)) {
-    ref.mat <- sig.matrix(optimal.genes, )
+    ref.mat <- sig.matrix[optimal.genes, ]
   } else {
     ref.mat <- ref.profiles[optimal.genes, ]
   }

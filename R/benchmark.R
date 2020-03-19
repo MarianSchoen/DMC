@@ -144,6 +144,8 @@ benchmark <- function(sc.counts,
 		algorithm.names <- sapply(algorithms, function(x) x$name)
 	}
 
+	check_algorithms(algorithms)
+
 
 	# load / process / store data
 	# if it exists load previously processed data from temp
