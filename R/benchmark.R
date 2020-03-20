@@ -159,7 +159,7 @@ benchmark <- function(sc.counts,
 		test.pheno <- validation_set$sc.pheno
 		sim.bulks <- list(bulks = validation_set$real.counts, props = validation_set$real.props)
 	}else{
-		dir.create(paste(output.folder,"/input_data",sep=""))
+		dir.create(paste(output.folder,"/input_data",sep=""), recursive = TRUE)
 	}
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
@@ -275,7 +275,7 @@ benchmark <- function(sc.counts,
 			}
 			if(s == "samples"){
 				print("sample simulation")
-				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], bulks, repeats, exclude.from.signature, 0.25, verbose)
+				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose)
 				benchmark.results <- sim.sample.benchmark
 			}
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){

@@ -19,7 +19,7 @@ grouping <- sample(
   , size = ncol(data.list$sc.data)
   , replace = TRUE
 )
-tmp.dir <- "./.tmp"
+tmp.dir <- paste(getwd(),".tmp",sep="/")
 unlink(
   x = tmp.dir
   , recursive = TRUE
@@ -35,7 +35,7 @@ benchmark(
   , benchmark.name = "fast_test_benchmark"
   , exclude.from.signature = c()
   , genesets = genesets
-  , simulation = c("genes" = TRUE, "samples" = TRUE, "bulks" = TRUE)
+  , simulation = c("genes" = FALSE, "samples" = TRUE, "bulks" = TRUE)
   , repeats = 3
   , grouping = as.factor(grouping)
   , temp.dir = tmp.dir

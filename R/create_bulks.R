@@ -50,8 +50,8 @@ create_bulks <- function(exprs, pheno, n.bulks = 500, include.in.bulks = NULL, f
     colnames(bulk.exprs) <- as.character(1:n.bulks)
 
     # create a matrix to contain true proportions for each simulated bulk
-    props <- matrix(0, nrow = length(unique(pheno[, 4])), ncol = n.bulks)
-    rownames(props) <- unique(pheno[, 4])
+    props <- matrix(0, nrow = length(unique(pheno[, "cell_type"])), ncol = n.bulks)
+    rownames(props) <- unique(pheno[, "cell_type"])
     colnames(props) <- colnames(bulk.exprs)
 
     # create random bulks

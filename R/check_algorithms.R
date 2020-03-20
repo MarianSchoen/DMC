@@ -1,5 +1,4 @@
 check_algorithms <- function(algorithms){
-    print("cehcking proper algorithm implementation...")
     randomRNA <- DTD::generate_random_data(
         n.types = 3,
         n.samples.per.type = 10,
@@ -39,5 +38,4 @@ check_algorithms <- function(algorithms){
             }
         }
     }
-    print("done")
 }

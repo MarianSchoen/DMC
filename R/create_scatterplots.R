@@ -11,7 +11,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
         "test only"
       ))
     } else {
-      bulk.shapes <- rep(1, ncol(bulks$props))
+      bulk.shapes <- rep(1, ncol(real.props))
     }
 
     results.list <- results.list[[1]]

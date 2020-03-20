@@ -22,6 +22,7 @@ training.exprs <- training_set$sc.counts
 training.pheno <- training_set$sc.pheno
 test.exprs <- validation_set$sc.counts
 test.pheno <- validation_set$sc.pheno
+sim.bulks <- list(bulks = validation_set$real.counts, props = validation_set$real.props)
 # load input parameters
 input_params <- read_misc_input(paste(temp.dir, "input_data/params.h5", sep = "/"))
 genesets <- input_params$genesets
@@ -80,8 +81,10 @@ for(i in 1:length(results.lists)) {
 	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]])
 }
 cond.num.plots <- plot_cond_num(real.df, metric = params$metric)
+score.width <- 2 * length(unique(real.df$cell_type))
+score.height <- 2 * length(algorithm.names)
 ```
-```{r score_plot, echo = FALSE, fig.width = 10, fig.height = 9}
+```{r score_plot, echo = FALSE, fig.width = score.width, fig.height = score.height}
 plot(score.plot)
 ```
 \pagebreak  
@@ -128,6 +131,7 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 	for(i in 1:length(results.lists)){
 		scatter.plots.list.sim[[i]] <- create_scatterplots(results.lists[[i]])
 	}
+	score.width <- 2*length(unique(bulks.df$cell_type))
 }
 # sample benchmark
 if(dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))){
@@ -159,7 +163,7 @@ if(dir.exists(paste(temp.dir, "/results/simulation/genes", sep=""))){
 ```
 
 ### Bulk simulations
-```{r bulk_sim_scores, fig.width = 10, fig.height = 9}
+```{r bulk_sim_scores, fig.width = score.width, fig.height = score.height}
 if(exists("score.plot.sim"))
 	plot(score.plot.sim)
 ```
