@@ -117,7 +117,7 @@ run_dtd <- function(exprs,
 
   if (dtd.learn.seeding) set.seed(1234)
 
-  suppressWarnings(
+  suppressMessages(
   dtd.model <- try(train_deconvolution_model(
     tweak = start.tweak,
     X.matrix = sig.matrix,

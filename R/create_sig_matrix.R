@@ -102,7 +102,7 @@ create_sig_matrix <- function(
       # apparently an error occurs when qvalue calls pi0est, which calls smooth.spline; input does not contain
       # missing or infinite values, thereforce catch the error and try to compensate in some way -> adj.p
       sink(file = "/dev/null")
-      q.vals <- try(qvalue::qvalue(p.vals)$qvalues)
+      q.vals <- try(qvalue::qvalue(p.vals)$qvalues, silent = TRUE)
       sink()
       if (class(q.vals) == "try-error") {
         q.vals <- p.adjust(p.vals, "BH")
@@ -123,7 +123,7 @@ create_sig_matrix <- function(
 
       # catch same error as above
       sink(file = "/dev/null")
-      q.vals <- try(qvalue::qvalue(p.vals)$qvalues)
+      q.vals <- try(qvalue::qvalue(p.vals)$qvalues, silent = TRUE)
       sink()
 
       if (class(q.vals) == "try-error") {
