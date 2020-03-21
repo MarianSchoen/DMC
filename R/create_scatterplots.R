@@ -22,6 +22,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
       cts <- intersect(rownames(res$est.props), rownames(real.props))
       # create data frame for plotting (containing real and estimates for each cell type)
       df <- c()
+      if(!length(cts) > 0) next
       for (i in 1:length(cts)) {
         t <- cts[i]
         temp.df <- data.frame(real = real.props[t, ], estimate = res$est.props[t, ])

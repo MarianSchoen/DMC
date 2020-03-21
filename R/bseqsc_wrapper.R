@@ -72,12 +72,12 @@ run_bseqsc <- function(exprs,
     deg.per.type <- try(marker_genes(exprs, pheno, NULL))
   }
   if (class(deg.per.type) == "try-error") {
-    if (verbose) print("Error while trying to find marker genes")
+    warning("Error while trying to find marker genes")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
 
   if (length(deg.per.type) == 0) {
-    if (verbose) print("No genes passed the BSEQ-sc criteria")
+    warning("No genes passed the BSEQ-sc criteria")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
 
@@ -101,7 +101,7 @@ run_bseqsc <- function(exprs,
     )
   })
   if (class(B) == "try-error") {
-    if (verbose) print("BSEQ-sc signature matrix creation failed")
+    warning("BSEQ-sc signature matrix creation failed")
     # save information in case of error
     save(sc.exprs, deg.per.type, file = paste("../bseqsc-error_", Sys.time(), sep = ""))
     return(list(est.props = NULL, sig.matrix = NULL))
@@ -109,7 +109,7 @@ run_bseqsc <- function(exprs,
 
   fit <- try(bseqsc_proportions(bulks, B, log = F, verbose = verbose))
   if (class(fit) == "try-error") {
-    if (verbose) print("BSEQ-sc estimation failed")
+    warning("BSEQ-sc estimation failed")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
   return(list(est.props = fit$coefficients, sig.matrix = B))

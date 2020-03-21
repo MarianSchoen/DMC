@@ -68,10 +68,13 @@ run_music <- function(exprs,
   }
 
   # deconvolution
-  est.prop.music <- music_prop(
+  est.prop.music <- try(music_prop(
     bulk.eset = bulks, sc.eset = sc.exprs, clusters = "cell_type",
     samples = "sample.name", select.ct = include.in.x, verbose = FALSE
-  )
+  ))
+  if(class(est.prop.music) == "try-error"){
+	  return(list(est.props = NULL, sig.matrix = NULL))
+  }
 
   est.props <- as.matrix(t(est.prop.music$Est.prop.weighted))
   return(list(est.props = est.props, sig.matrix = NULL))

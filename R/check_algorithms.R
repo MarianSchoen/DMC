@@ -1,8 +1,8 @@
 check_algorithms <- function(algorithms){
     randomRNA <- DTD::generate_random_data(
-        n.types = 2,
-        n.samples.per.type = 10,
-        n.features = 20,
+        n.types = 3,
+        n.samples.per.type = 20,
+        n.features = 25,
         sample.type = "Cell",
         feature.type = "gene",
         seed = 1234
@@ -32,10 +32,10 @@ check_algorithms <- function(algorithms){
             pheno,
             bulks$mixtures
         )
-        if(!is.list(res)){
-            if(!all(c("est.props", "sig.matrix") %in% names(res))){
+    	
+        if(!is.list(res) || !all(c("est.props", "sig.matrix") %in% names(res))){
                 stop("Algorithm did not return expected values. Please check implementation")
-            }
         }
+	
     }
 }

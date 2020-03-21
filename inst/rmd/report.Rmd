@@ -69,9 +69,16 @@ results.lists <- list()
 for(i in 1:length(files)) {
   results.lists[[i]] <- readRDS(files[i])
 }
-real.df <- data.frame()
+
 for(i in 1:length(results.lists)){
-  real.df <- rbind(real.df, prepare_data(results.lists[[i]], params$metric))
+	temp.df <- prepare_data(results.lists[[i]], params$metric)
+	if(!is.null(temp.df)){
+		if(!exists("real.df")){
+			real.df <- temp.df
+		}else{
+			real.df <- rbind(real.df, temp.df)
+ 		}
+	}
 }
 
 score.plot <- evaluation_plot(real.df, "deconvolution quality",params$metric)

@@ -85,6 +85,8 @@ prepare_data <- function(results.all, metric="cor") {
         }
     }
     df <- as.data.frame(df)
+    if(ncol(df) != 8) 
+	    return(data.frame())
     colnames(df) <- c("algorithm", "score", "cell_type", "geneset", "metric", "time", "fraction", "condition_number")
     df$score <- as.numeric(as.character(df$score))
     df$time <- as.numeric(as.character(df$time))
