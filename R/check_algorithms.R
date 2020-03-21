@@ -1,8 +1,8 @@
 check_algorithms <- function(algorithms){
     randomRNA <- DTD::generate_random_data(
-        n.types = 3,
+        n.types = 2,
         n.samples.per.type = 10,
-        n.features = 50,
+        n.features = 20,
         sample.type = "Cell",
         feature.type = "gene",
         seed = 1234
@@ -22,8 +22,8 @@ check_algorithms <- function(algorithms){
         expr.data = randomRNA,
         pheno = pheno.data,
         included.in.X = unique(pheno.data),
-        n.samples = 50,
-        n.per.mixture = 5
+        n.samples = 20,
+        n.per.mixture = 4
     )
 
     for(a in algorithms){
