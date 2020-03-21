@@ -100,8 +100,8 @@ benchmark <- function(sc.counts,
 			   list(algorithm = run_cibersort, name = "CIBERSORT"),
 			   list(algorithm = run_deconrnaseq, name = "DeconRNASeq"),
 			   list(algorithm = run_least_squares, name = "Least_Squares"),
-			   list(algorithm = run_bseqsc, name = "BSEQ-sc"),
-			   list(algorithm = run_music, name = "MuSiC")
+			   list(algorithm = run_music, name = "MuSiC"),
+			   list(algorithm = run_bseqsc, name = "BSEQ-sc")
 	)
 	algorithm.names <- sapply(algorithms, function(x) x$name)
 
@@ -236,25 +236,10 @@ benchmark <- function(sc.counts,
 	available.sims <- c("genes", "samples", "bulks")
 	if(any(simulations) && verbose) print("Starting simulations")
 	for(s in names(simulations)){
-		if(!simulations[s] || ! s %in% avai
-  # plot weights against variance as a test
-  if (!file.exists("results/variance_weight_plot.pdf")) {
-    music.weights <- est.prop.music$Weight.gene
-    x.vars <- apply(exprs, 1, var)[rownames(music.weights)]
-    y.vars <- apply(exprs(bulks), 1, var)[rownames(music.weights)]
-    music.weights <- rowMeans(music.weights)
-
-    weight.x.plot <- ggplot(mapping = aes(x = x.vars, y = music.weights)) + geom_point() +
-      ylab("MuSiC weight") + xlab("Variance") + ggtitle("Gene-wise variance vs weight (X)")
-
-    weight.y.plot <- ggplot() + geom_point(aes(x = y.vars, y = music.weights)) +
-      ylab("MuSiC weight") + xlab("Variance") + ggtitle("Gene-wise variance vs weight (Y)")
-
-    pdf("results/variance_weight_plot.pdf", title = "weights vs. variances")
-    print(weight.x.plot)
-    print(weight.y.plot)
-    dev.off()
-  }"/results/simulation/",s,"/", sep=""))){
+		if(!simulations[s] || ! s %in% available.sims) next
+		# read previous results and exclude present algorithms
+		previous.results <- list()
+		if(dir.exists(paste(output.folder, "/results/simulation/",s,"/", sep=""))){
 			files <- list.files(paste(output.folder, "/results/simulation/",s,"/",sep = ""), full.names = T, pattern = "*.rds")
 			if(length(files) > 0){
 			for(i in 1:length(files)) {
