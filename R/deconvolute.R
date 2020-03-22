@@ -110,17 +110,17 @@ deconvolute <- function(training.expr,
   # deconvolute bulks with all supplied algorithms
   if (verbose)
     print("Deconvoluting...")
-  results.list <- vector(mode = "list", length = n.repeats)
+  results.list <- list()
   # perform deconvolution several times
   for (i in seq_len(n.repeats)) {
     if (verbose && n.repeats > 1)
       cat("Repetition ", i, "\n", sep = "")
-    results.list[[i]] <- list()
+    results.list[[as.character(i)]] <- list()
     for (f in algorithms) {
       if (verbose)
         print(f$name)
       time <- system.time({
-        results.list[[i]][[f$name]] <- f$algorithm(
+        results.list[[as.character(i)]][[f$name]] <- f$algorithm(
           training.expr,
           training.pheno,
           bulks.expr,
@@ -130,8 +130,8 @@ deconvolute <- function(training.expr,
           split.data = split.data
         )
       })[3]
-      results.list[[i]][[f$name]]$name <- f$name
-      results.list[[i]][[f$name]]$times <- time
+      results.list[[as.character(i)]][[f$name]]$name <- f$name
+      results.list[[as.character(i)]][[f$name]]$times <- time
     }
   }
   return(list(results.list = results.list, bulk.props = real.props))

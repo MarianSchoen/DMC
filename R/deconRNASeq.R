@@ -52,7 +52,9 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   result <- try(DeconRNASeq::DeconRNASeq(df.mix, ref.profiles))
   sink()
   if (!class(result) == "try-error") {
-    return(list(est.props = t(result$out.all[1:ncol(bulks), , drop = FALSE]), sig.matrix = ref.profiles))
+    result <- t(result$out.all[1:ncol(bulks), , drop = FALSE])
+    colnames(result) <- colnames(bulks)
+    return(list(est.props = result, sig.matrix = as.matrix(ref.profiles)))
   } else {
     # store information of the error
     save(df.mix,
@@ -60,6 +62,6 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
       result,
       file = paste("../error_deconrnaseq_", Sys.time(), ".rda", sep = "")
     )
-    return(list(est.props = NULL, sig.matrix = ref.profiles))
+    return(list(est.props = NULL, sig.matrix = as.matrix(ref.profiles)))
   }
 }
