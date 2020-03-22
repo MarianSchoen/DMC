@@ -109,8 +109,8 @@ read_misc_input <- function(filename){
     return(list(genesets = genesets, algorithms = algorithms, grouping = grouping, function.call = function.call))
 }
 
-write_list <- function(result.list, filename, group = NULL){
-    print("calling")
+write_result_list <- function(result.list, filename, group = NULL){
+    require(rhdf5)
     if(!file.exists(filename)) h5createFile(filename)
     if(any(sapply(result.list, function(x){is.list(x)}))){
         for(name in names(result.list)){
@@ -131,8 +131,6 @@ write_list <- function(result.list, filename, group = NULL){
             }
         }
     }else{
-        print("down")
-        print(str(result.list))
         if(!is.null(result.list[["est.props"]])){
             h5createGroup(filename, paste(group, "est.props", sep = "/"))
             h5write(as.matrix(result.list[["est.props"]]), filename, paste(group, "est.props", "data", sep = "/"))
@@ -150,5 +148,36 @@ write_list <- function(result.list, filename, group = NULL){
     }
 }
 
-read_results <- function(filename) {
+read_result_list <- function(filename, content = NULL, groupname = NULL) {
+    require(rhdf5)
+    if(is.null(content)){
+        content <- h5dump(filename)
+    }
+    # go down recursively as in the write function
+    # return the content in each function call and add it to the larger list one
+    # level above...
+    if(any(sapply(content, function(x){is.list(x)}))){
+        for(name in names(content)){
+            if(is.list(content[[name]])){
+                content[[name]] <- read_results(filename, content[[name]], name)
+            }
+        }
+    }else{
+        if("data" %in% names(content)){
+        temp <- as.matrix(content[["data"]])
+        if(!is.null(groupname)){
+            if(groupname == "est.props" || groupname == "bulk.props"){
+                rownames(temp) <- content[["celltypeids"]]
+                colnames(temp) <- content[["bulkids"]]
+            }else{
+                if(groupname == "sig.matrix"){
+                    rownames(temp) <- content[["geneids"]]
+                    colnames(temp) <- content[["celltypeids"]]
+                }
+            }
+        }
+        return(temp)
+        }
+    }
+    return(content)
 }
