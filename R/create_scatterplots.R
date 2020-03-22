@@ -14,7 +14,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
       bulk.shapes <- rep(1, ncol(real.props))
     }
 
-    results.list <- results.list[[1]]
+    results.list <- results.list[["results.list"]]
     scatter.plots <- list()
     # create scatter plots only for one repetition
     for (res in results.list[[1]]) {   

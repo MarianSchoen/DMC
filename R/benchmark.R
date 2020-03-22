@@ -229,7 +229,8 @@ benchmark <- function(sc.counts,
 	# deconvolute real bulks
 	if(length(to.run)>0){
 		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
-		saveRDS(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".rds",sep=""))
+		#saveRDS(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".rds",sep=""))
+		write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
@@ -284,10 +285,14 @@ benchmark <- function(sc.counts,
 		 		dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)
 			}
 			saveRDS(benchmark.results, paste(output.folder, "/results/simulation/",s,"/deconv_output_",res.no,".rds",sep=""))
+		  write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = ""))
 		}
 	}
 
 	# deconvolution step is over
 	# create results markdown
 	render_results(output.folder, metric)
+	if(dir.exists("CIBERSORT")){
+	  unlink("CIBERSORT", recursive = TRUE)
+	}
 }

@@ -121,7 +121,7 @@ write_result_list <- function(result.list, filename, group = NULL){
             }
             h5createGroup(filename, groupname)
             if(is.list(result.list[[name]])){
-                write_list(result.list[[name]], filename, groupname)
+                write_result_list(result.list[[name]], filename, groupname)
             }else{
                 if(name == "bulk.props"){
                     h5write(as.matrix(result.list[[name]]), filename, paste(groupname, "data", sep = "/"))
@@ -159,7 +159,7 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
     if(any(sapply(content, function(x){is.list(x)}))){
         for(name in names(content)){
             if(is.list(content[[name]])){
-                content[[name]] <- read_results(filename, content[[name]], name)
+                content[[name]] <- read_result_list(filename, content[[name]], name)
             }
         }
     }else{
@@ -177,6 +177,10 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
             }
         }
         return(temp)
+        }
+        if(all(c("name", "times") %in% names(content))){
+            content["est.props"] <- list(NULL)
+            content["sig.matrix"] <- list(NULL)
         }
     }
     return(content)

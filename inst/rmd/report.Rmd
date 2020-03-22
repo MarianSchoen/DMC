@@ -64,10 +64,10 @@ print(real.props)
 ## Deconvolution of real bulks
 
 ```{r real_results, echo=FALSE}
-files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.rds")
+files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.h5")
 results.lists <- list()
 for(i in 1:length(files)) {
-  results.lists[[i]] <- readRDS(files[i])
+  results.lists[[i]] <- read_result_list(files[i])
 }
 
 for(i in 1:length(results.lists)){
@@ -123,9 +123,9 @@ plot(cond.num.plots$variation_plot)
 # bulk benchmark
 if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 	results.lists <- list()
-	files <- list.files(paste(temp.dir,"/results/simulation/bulks", sep=""), full.names = T, pattern = "*.rds")
+	files <- list.files(paste(temp.dir,"/results/simulation/bulks", sep=""), full.names = T, pattern = "*.h5")
 	for(i in 1:length(files)){
-		results.lists[[i]] <- readRDS(files[i])
+		results.lists[[i]] <- read_result_list(files[i])
 	}
 	bulks.df <- data.frame()
 	for(i in 1:length(results.lists)){
@@ -143,9 +143,9 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 # sample benchmark
 if(dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))){
 	results.lists <- list()
-	files <- list.files(paste(temp.dir, "/results/simulation/samples", sep = ""), full.names = T, pattern = "*.rds")
+	files <- list.files(paste(temp.dir, "/results/simulation/samples", sep = ""), full.names = T, pattern = "*.h5")
 	for(i in 1:length(files)){
-		results.lists[[i]] <- readRDS(files[i])
+		results.lists[[i]] <- read_result_list(files[i])
 	}
 	samples.df <- data.frame()
 	for(i in 1:length(results.lists)){
@@ -157,9 +157,9 @@ if(dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))){
 # gene benchmark
 if(dir.exists(paste(temp.dir, "/results/simulation/genes", sep=""))){
 	results.lists <- list()
-	files <- list.files(paste(temp.dir, "/results/simulation/genes/", sep=""), full.names = T, pattern = "*.rds")
+	files <- list.files(paste(temp.dir, "/results/simulation/genes/", sep=""), full.names = T, pattern = "*.h5")
 	for(i in 1:length(files)){
-		results.lists[[i]] <- readRDS(files[i])
+		results.lists[[i]] <- read_result_list(files[i])
 	}
 	genes.df <- data.frame()
 	for(i in 1:length(results.lists)){

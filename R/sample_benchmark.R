@@ -58,7 +58,7 @@ for (rep in seq_len(n.repeats)) {
       bulks = bulk.data,
       n.repeats = 1
     )
-    sample.size.lists[[as.character(step*step.size)]][[rep]] <- temp.results[[1]][[1]]
+    sample.size.lists[[as.character(step*step.size)]][[as.character(rep)]] <- temp.results[[1]][[1]]
   }
 }
 sample.size.lists[["bulk.props"]] <- temp.results$bulk.props
