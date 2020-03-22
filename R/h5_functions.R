@@ -32,6 +32,7 @@ write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bu
 }
 
 read_data <- function(filename){
+    require(rhdf5)
     content <- h5ls(filename, recursive = T)
     # read data that was stored using write_data
     # assume that if a group is present, all expected subgroups etc are available
@@ -73,6 +74,7 @@ read_data <- function(filename){
 }
 
 write_misc_input <- function(genesets, algorithm.names, function.call, grouping, filename) {
+    require(rhdf5)
     h5createFile(filename)
     if(!is.null(genesets)){
         h5createGroup(filename, "genesets")
@@ -105,4 +107,48 @@ read_misc_input <- function(filename){
     names(function.call) <- h5read(filename, "function_call/argnames")
     function.call <- as.call(function.call)
     return(list(genesets = genesets, algorithms = algorithms, grouping = grouping, function.call = function.call))
+}
+
+write_list <- function(result.list, filename, group = NULL){
+    print("calling")
+    if(!file.exists(filename)) h5createFile(filename)
+    if(any(sapply(result.list, function(x){is.list(x)}))){
+        for(name in names(result.list)){
+            if(!is.null(group)){
+                groupname <- paste(group, name, sep = "/")
+            }else{
+                groupname <- name
+            }
+            h5createGroup(filename, groupname)
+            if(is.list(result.list[[name]])){
+                write_list(result.list[[name]], filename, groupname)
+            }else{
+                if(name == "bulk.props"){
+                    h5write(as.matrix(result.list[[name]]), filename, paste(groupname, "data", sep = "/"))
+                    h5write(as.vector(rownames(result.list[[name]])), filename, paste(groupname, "celltypeids", sep = "/"))
+                    h5write(as.vector(colnames(result.list[[name]])), filename, paste(groupname, "bulkids", sep = "/"))
+                }
+            }
+        }
+    }else{
+        print("down")
+        print(str(result.list))
+        if(!is.null(result.list[["est.props"]])){
+            h5createGroup(filename, paste(group, "est.props", sep = "/"))
+            h5write(as.matrix(result.list[["est.props"]]), filename, paste(group, "est.props", "data", sep = "/"))
+            h5write(as.vector(rownames(result.list[["est.props"]])), filename, paste(group, "est.props", "celltypeids", sep = "/"))
+            h5write(as.vector(colnames(result.list[["est.props"]])), filename, paste(group, "est.props", "bulkids", sep = "/"))
+        }
+        if(!is.null(result.list[["sig.matrix"]])){
+            h5createGroup(filename, paste(group, "sig.matrix", sep = "/"))
+            h5write(as.matrix(result.list[["sig.matrix"]]), filename, paste(group, "sig.matrix", "data", sep = "/"))
+            h5write(as.vector(rownames(result.list[["sig.matrix"]])), filename, paste(group, "sig.matrix", "geneids", sep = "/"))
+            h5write(as.vector(colnames(result.list[["sig.matrix"]])), filename, paste(group, "sig.matrix", "celltypeids", sep = "/"))
+        }
+        h5write(result.list[["name"]], filename, paste(group, "name", sep = "/"))
+        h5write(result.list[["times"]], filename, paste(group, "times", sep = "/"))
+    }
+}
+
+read_results <- function(filename) {
 }
