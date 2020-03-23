@@ -70,7 +70,7 @@ run_music <- function(exprs,
   # deconvolution
   est.prop.music <- try(music_prop(
     bulk.eset = bulks, sc.eset = sc.exprs, clusters = "cell_type",
-    samples = "sample.name", select.ct = include.in.x, verbose = FALSE
+    samples = "patientID", select.ct = include.in.x, verbose = FALSE
   ))
   if(class(est.prop.music) == "try-error"){
 	  return(list(est.props = NULL, sig.matrix = NULL))
