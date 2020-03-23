@@ -29,7 +29,7 @@ benchmark <- function(sc.counts,
 					  benchmark.name,
 					  grouping,
 					  input.algorithms = NULL, 
-					  simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE), 
+					  simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE, "subtypes" = TRUE), 
 					  genesets = NULL, 
 					  metric = "cor", 
 					  repeats = 3, 
@@ -159,13 +159,13 @@ benchmark <- function(sc.counts,
 		training.pheno <- training_set$sc.pheno
 		test.exprs <- validation_set$sc.counts
 		test.pheno <- validation_set$sc.pheno
-		sim.bulks <- list(bulks = validation_set$real.counts, props = validation_set$real.props)
+		sim.bulks <- list(bulks = validation_set$real.counts, props = validation_set$real.props, sub.props = validation_set$sub.props)
 	}else{
 		dir.create(paste(output.folder,"/input_data",sep=""), recursive = TRUE)
 	}
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
-	write_data(sc.counts, sc.pheno, real.counts, real.props, paste(output.folder,"input_data/raw.h5", sep = "/"))
+	write_data(sc.counts, sc.pheno, real.counts, real.props, filename = paste(output.folder,"input_data/raw.h5", sep = "/"))
 	write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))
 
 	# if any of the required data is missing preprocess input data for deconvolution
@@ -174,6 +174,21 @@ benchmark <- function(sc.counts,
 			sc.counts <- scale_to_count(sc.counts)
 			real.counts <- scale_to_count(real.counts)
 		}
+	  # create subtypes via tsne embedding
+	  if("subtypes" %in% simulations && simulations["subtypes"]){
+	    if(verbose) print("simulating subtypes")
+	    celltypes <- unique(sc.pheno$cell_type)
+	    if(any(exclude.from.bulks %in% celltypes)){
+	      celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
+	    }
+	    k <- list()
+	    for(ct in celltypes){
+	      # make this a parameter
+	      k[[ct]] <- 3
+	    }
+	    subtype.return <- assign_subtypes(sc.exprs, sc.pheno, k)
+	    sc.pheno <- subtype.return$sc.pheno
+	  }
 		# split (randomly at the moment) into test and validation set
 		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
 		training.exprs <- split.data$training$exprs
@@ -189,7 +204,7 @@ benchmark <- function(sc.counts,
 		sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
 		# save processed data for later use and repeated benchmarks
 		write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))
-		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
+		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
 	}
 	
 	# we have not agreed on whether data plots should be generated yet ...
@@ -234,7 +249,7 @@ benchmark <- function(sc.counts,
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
-	available.sims <- c("genes", "samples", "bulks")
+	available.sims <- c("genes", "samples", "bulks", "subtypes")
 	if(any(simulations) && verbose) print("Starting simulations")
 	for(s in names(simulations)){
 		if(!simulations[s] || ! s %in% available.sims) next
@@ -281,6 +296,10 @@ benchmark <- function(sc.counts,
 				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose)
 				benchmark.results <- sim.sample.benchmark
 			}
+		  if(s == "subtypes"){
+		    print("subtype simulation")
+		    sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, reapeats, exclude.from.signature)
+		  }
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
 		 		dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)
 			}

@@ -1,5 +1,5 @@
 # written by Tim Mirus
-write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, filename) {
+write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, sub.props = NULL, filename) {
     require(rhdf5)
     h5createFile(filename)
     # write singlecell stuff
@@ -29,6 +29,12 @@ write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bu
         h5write(as.vector(colnames(bulk.props)), filename, "proportions/sampleids")
         h5write(as.matrix(bulk.props), filename, "proportions/data")
     }
+    if(!is.null(sub.props)){
+        h5createGroup(filename, "fine_proportions")
+        h5write(as.vector(rownames(sub.props)), filename, "fine_proportions/celltypeids")
+        h5write(as.vector(colnames(sub.props)), filename, "fine_proportions/sampleids")
+        h5write(as.matrix(sub.props), filename, "fine_proportions/data")
+    }
 }
 
 read_data <- function(filename){
@@ -50,6 +56,13 @@ read_data <- function(filename){
         colnames(bulk.props) <- h5read(filename, "proportions/sampleids")
     }else{
         bulk.props <- NULL
+    }
+    if("fine_proportions" %in% content$name){
+        sub.props <- h5read(filename, "fine_proportions/data")
+        rownames(sub.props) <- h5read(filename, "fine_proportions/celltypeids")
+        colnames(sub.props) <- h5read(filename, "fine_proportions/sampleids")
+    }else{
+        sub.props <- NULL
     }
     if("singlecell" %in% content$name){
         sc.counts <- h5read(filename, "singlecell/data")

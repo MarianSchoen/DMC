@@ -53,6 +53,16 @@ create_bulks <- function(exprs, pheno, n.bulks = 500, include.in.bulks = NULL, f
     props <- matrix(0, nrow = length(unique(pheno[, "cell_type"])), ncol = n.bulks)
     rownames(props) <- unique(pheno[, "cell_type"])
     colnames(props) <- colnames(bulk.exprs)
+    
+    # if column subtypes exists create a matrix containing proportions of subtypes
+    if("subtype" %in% colnames(pheno)){
+        combined.type <- paste(pheno$cell_type, subtype, sep = ".")
+        sub.props <- matrix(0, length(unique(combined.type)), ncol = n.bulks)
+        rownames(sub.props) <- unique(combined.type)
+        colnames(sub.props) <- colnames(bulk.exprs)
+    }else{
+        sub.props <- NULL
+    }
 
     # create random bulks
     for (i in 1:ncol(bulk.exprs)) {
@@ -66,6 +76,11 @@ create_bulks <- function(exprs, pheno, n.bulks = 500, include.in.bulks = NULL, f
         for (t in rownames(props)) {
             props[t, i] <- sum(pheno[bulk.samples, "cell_type"] == t) / length(bulk.samples)
         }
+        if("subtype" %in% colnames(pheno)){
+            for(t in rownames(sub.props)){
+                sub.props[t, i] <- sum(combined.type[bulk.samples] == t) / length(bulk.samples)
+            }
+        }
     }
     if(any(duplicated(rownames(bulk.exprs)))){
         print("Found duplicate features in simulated bulks. Removing...")
@@ -78,5 +93,5 @@ create_bulks <- function(exprs, pheno, n.bulks = 500, include.in.bulks = NULL, f
         })
     }
 
-    return(list(bulks = bulk.exprs, props = props))
+    return(list(bulks = bulk.exprs, props = props, sub.props = sub.props))
 }
