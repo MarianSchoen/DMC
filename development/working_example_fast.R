@@ -39,6 +39,7 @@ benchmark(
   , repeats = 3
   , grouping = as.factor(grouping)
   , temp.dir = tmp.dir
+  , input.algorithms = list("DTD", "Least_Squares")
 )
 
 
