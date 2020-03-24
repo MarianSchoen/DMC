@@ -61,7 +61,6 @@ run_dtd <- function(exprs,
   } else {
     include.in.x <- unique(cell.types)
   }
-
   # create reference profiles
   sample.X <- DTD::sample_random_X(
     included.in.X = include.in.x,
@@ -88,13 +87,16 @@ run_dtd <- function(exprs,
     }
     samples.to.remove <- samples.to.remove[-samples.to.retain]
   }
-  exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
-  cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
+  if(any(colnames(exprs) %in% samples.to.remove)){
+    exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
+  }
+  if(any(names(cell.types) %in% samples.to.remove)){
+    cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
+  }
 
   # choose either max.genes genes per cell type or all available genes
   # but set maximum to 4000 due to runtime
   n.genes <- min(4000, nrow(exprs), length(unique(cell.types)) * max.genes)
-
   top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
   exprs <- exprs[top.features, ]
   sig.matrix <- sig.matrix[top.features, ]

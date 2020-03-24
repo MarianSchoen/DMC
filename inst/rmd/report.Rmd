@@ -167,6 +167,22 @@ if(dir.exists(paste(temp.dir, "/results/simulation/genes", sep=""))){
 	}
 	gene.plots <- create_lineplots(genes.df, metric = params$metric, genesets, rownames(training.exprs))
 }
+
+# subtype benchmark
+if(dir.exists(paste(temp.dir, "/results/simulation/subtypes", sep=""))){
+	results.lists <- list()
+	files <- list.files(paste(temp.dir, "/results/simulation/subtypes/", sep=""), full.names = T, pattern = "*.h5")
+	for(i in 1:length(files)){
+		results.lists[[i]] <- read_result_list(files[i])
+	}
+	subtypes.df <- data.frame()
+	for(i in 1:length(results.lists)){
+		subtypes.df <- rbind(subtypes.df, prepare_data(results.lists[[i]], params$metric))
+	}
+	score.plot.subtype <- evaluation_plot(subtypes.df, "deconvolution quality (simulated subtypes)", params$metric)
+	runtime.plot.subtype <- plot_runtime(subtypes.df)
+}
+
 ```
 
 ### Bulk simulations
@@ -200,5 +216,15 @@ if(exists("gene.plots")){
 	plot(gene.plots$runtime.plot)
 	for(p in gene.plots$cell.type.plots)
 		plot(p)
+}
+```
+
+### Subtype simulation
+```{r subtype_sim, fig.width = score.width, fig.height = score.height}
+if(exists("score.plot.subtype")){
+  plot(score.plot.subtype)
+}
+if(exists("runtime.plot.subtype")){
+  plot(runtime.plot.subtype)
 }
 ```

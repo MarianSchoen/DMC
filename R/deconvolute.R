@@ -45,7 +45,8 @@ deconvolute <- function(training.expr,
                         max.genes = 500,
                         n.bulks = 500,
                         bulks = NULL,
-                        n.repeats = 1) {
+                        n.repeats = 1,
+                        subtypes = FALSE) {
   # parameter checks
   if (n.repeats < 1) {
     n.repeats <- 1
@@ -132,6 +133,21 @@ deconvolute <- function(training.expr,
       })[3]
       results.list[[as.character(i)]][[f$name]]$name <- f$name
       results.list[[as.character(i)]][[f$name]]$times <- time
+      if(subtypes){
+        if(! "coarse_type" %in% colnames(training.pheno)){
+          stop("'subtypes' is TRUE, but column 'coarse_type' is missing from pheno data")
+        }
+        # change the est.props to coarse mode
+        temp.props <- matrix(0, nrow = length(unique(training.pheno$coarse_type)), ncol = ncol(results.list[[as.character(i)]][[f$name]]$est.props))
+        coarse.rnames <- sapply(strsplit(rownames(results.list[[as.character(i)]][[f$name]]$est.props), ".", fixed = TRUE), function(x){x[1]})
+        rownames(temp.props) <- unique(coarse.rnames)
+        colnames(temp.props) <- colnames(bulks.expr)
+        for(t in rownames(temp.props)){
+          idx <- which(coarse.rnames == t)
+          temp.props[t,] <- colSums(results.list[[as.character(i)]][[f$name]]$est.props[idx,])
+        }
+        results.list[[as.character(i)]][[f$name]]$est.props <- temp.props
+        }
     }
   }
   return(list(results.list = results.list, bulk.props = real.props))

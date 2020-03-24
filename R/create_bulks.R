@@ -56,7 +56,7 @@ create_bulks <- function(exprs, pheno, n.bulks = 500, include.in.bulks = NULL, f
     
     # if column subtypes exists create a matrix containing proportions of subtypes
     if("subtype" %in% colnames(pheno)){
-        combined.type <- paste(pheno$cell_type, subtype, sep = ".")
+        combined.type <- paste(pheno$cell_type, pheno$subtype, sep = ".")
         sub.props <- matrix(0, length(unique(combined.type)), ncol = n.bulks)
         rownames(sub.props) <- unique(combined.type)
         colnames(sub.props) <- colnames(bulk.exprs)

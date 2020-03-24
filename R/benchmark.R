@@ -175,7 +175,7 @@ benchmark <- function(sc.counts,
 			real.counts <- scale_to_count(real.counts)
 		}
 	  # create subtypes via tsne embedding
-	  if("subtypes" %in% simulations && simulations["subtypes"]){
+	  if("subtypes" %in% names(simulations) && simulations["subtypes"]){
 	    if(verbose) print("simulating subtypes")
 	    celltypes <- unique(sc.pheno$cell_type)
 	    if(any(exclude.from.bulks %in% celltypes)){
@@ -186,7 +186,7 @@ benchmark <- function(sc.counts,
 	      # make this a parameter
 	      k[[ct]] <- 3
 	    }
-	    subtype.return <- assign_subtypes(sc.exprs, sc.pheno, k)
+	    subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
 	    sc.pheno <- subtype.return$sc.pheno
 	  }
 		# split (randomly at the moment) into test and validation set
@@ -298,12 +298,13 @@ benchmark <- function(sc.counts,
 			}
 		  if(s == "subtypes"){
 		    print("subtype simulation")
-		    sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, reapeats, exclude.from.signature)
+		    sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature)
+		    benchmark.results <- sim.subtype.benchmark
 		  }
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
 		 		dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)
 			}
-			saveRDS(benchmark.results, paste(output.folder, "/results/simulation/",s,"/deconv_output_",res.no,".rds",sep=""))
+			#saveRDS(benchmark.results, paste(output.folder, "/results/simulation/",s,"/deconv_output_",res.no,".rds",sep=""))
 		  write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = ""))
 		}
 	}

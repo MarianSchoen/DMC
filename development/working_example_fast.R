@@ -35,11 +35,12 @@ benchmark(
   , benchmark.name = "fast_test_benchmark"
   , exclude.from.signature = c()
   , genesets = genesets
-  , simulation = c("genes" = FALSE, "samples" = TRUE, "bulks" = TRUE)
+  , simulation = c("genes" = FALSE, "samples" = TRUE, "bulks" = TRUE, "subtypes" = TRUE)
   , repeats = 3
   , grouping = as.factor(grouping)
   , temp.dir = tmp.dir
   , input.algorithms = list("DTD", "Least_Squares")
+  , verbose = FALSE
 )
 
 
