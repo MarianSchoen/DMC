@@ -1,26 +1,32 @@
-# written by Tim Mirus
-
 #' simulate bulk data by summing over single-cell data
 #'
-#' @param exprs expression matrix of the single cell data,
-#' one single cell per column
-#' @param pheno DataFrame, phenotype data containing
+#' @param exprs non-negative numeric, scRNA-seq profiles as columns, 
+#' features as rows
+#' @param pheno data.frame, phenotype data containing
 #' cell type labels for the expression matrix,
 #' label column must be named 'cell_type',
 #' ordering of cells must be the same as in exprs
 #' @param n.bulks integer, the number of bulks to be created, defaults to 500
-#' @param include.in.bulks list of cell types to be used for bulk simulation;
-#' if not supplied, all will be used
-#' @param fraction.per.bulk fraction of samples to be randomly
+#' @param include.in.bulks vector of strings, cell types to be used for bulk 
+#' simulation; if not supplied, all will be used
+#' @param fraction.per.bulk numeric < 1, fraction of samples to be randomly
 #' drawn for each bulk; default 0.1
-#' @param sum.to.count logical, should all bulks be normalized
+#' @param sum.to.count boolean, should all bulks be normalized
 #' to a fixed total count number? default TRUE
-#' @return list with two entries:
-#' 1) matrix containing bulk expression profiles (features x bulks)
-#' 2) matrix containing quantities (cell type x bulks)
+#' @return list with 
+#'    - "bulks": matrix containing bulk expression profiles (features x bulks)
+#'    - "props" matrix containing quantities (cell type x bulks)
+#'    - "sub.props": TODO
 #' @example create_bulks(training.exprs, training.pheno, n.bulks = 1000)
 
-create_bulks <- function(exprs, pheno, n.bulks = 500, include.in.bulks = NULL, fraction.per.bulk = 0.1, sum.to.count = TRUE) {
+create_bulks <- function(
+    exprs, 
+    pheno, 
+    n.bulks = 500, 
+    include.in.bulks = NULL, 
+    fraction.per.bulk = 0.1, 
+    sum.to.count = TRUE
+    ) {
     # error checking
     if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
