@@ -1,10 +1,31 @@
-assign_subtypes <- function(sc.exprs, sc.pheno, sub.list, celltypecol = "cell_type", ...){
+#' assign_subtypes
+#'
+#' @param sc.counts non-negative numeric matrix with features as rows, and 
+#' scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
+#' @param sc.pheno data frame with scRNA-Seq profiles as rows, and pheno entries
+#' in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)' 
+#' @param sub.list #TODO I don't understand
+#' @param celltypecol string, column name in 'sc.pheno' that holds the cell type
+#' per scRNA-Seq profile
+#' @param ... additional parameters that get passed to Rtsne()
+#'
+#' @return
+#' @export
+#'
+#' @examples
+assign_subtypes <- function(
+  sc.counts
+  , sc.pheno
+  , sub.list
+  , celltypecol = "cell_type"
+  , ...
+  ){
   require(Rtsne)
   # parameter checks
   if(!celltypecol %in% names(sc.pheno)) stop("celltype column not in data frame")
   if("subtype" %in% names(sc.pheno)) stop("subtype column already present")
-  if(ncol(sc.exprs) != nrow(sc.pheno)) stop("expression and pheno data do not match")
-  tsne.embed <- Rtsne(t(sc.exprs), ...)
+  if(ncol(sc.counts) != nrow(sc.pheno)) stop("expression and pheno data do not match")
+  tsne.embed <- Rtsne(t(sc.counts), ...)
   # add default subtype 1
   sc.pheno <- cbind(sc.pheno, subtype = rep(1, nrow(sc.pheno)))
   for(ct in names(sub.list)){
