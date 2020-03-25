@@ -1,27 +1,37 @@
 #' main function of the benchmark
 #'
-#' @param sc.counts numeric matrix with features as rows, and scRNA-Seq profiles
-#' as columns. 
-#' @param sc.pheno 
-#' @param real.counts 
-#' @param real.props 
-#' @param benchmark.name
-#' @param grouping
-#' @param input.algorithms 
-#' @param simulations 
-#' @param genesets 
-#' @param metric 
-#' @param repeats 
-#' @param temp.dir 
-#' @param exclude.from.bulks 
-#' @param exclude.from.signature
-#' @param n.bulks
-#' @param cpm
+#' @param sc.counts non-negative numeric matrix with features as rows, and 
+#' scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
+#' @param sc.pheno data frame with scRNA-Seq profiles as rows, and pheno entries
+#'  in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)'
+#' @param real.counts non-negative numeric matrix, with features as rows, and 
+#' bulk RNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 
+#' 'nrow(real.props)'
+#' @param real.props non-negative numeric matrix, with cell types as rows, 
+#' and bulk RNA-Seq profiles.
+#' @param benchmark.name string
+#' @param grouping factor with 2 levels, and 'length(grouping)' must be 
+#' 'ncol(sc.counts)'. Assigns each scRNA-Seq profile to either 
+#' test or train cohort. 
+#' @param input.algorithms named list, with deconvolution wrappers. 
+#' TODO: examples!!!
+#' @param simulations named boolean vector: 
+#' TODO: lets get a boolean parameter for each simulation? 
+#' e.g. simulation.bulks 
+#' @param genesets list of string vector, must match 'rownames(sc.counts)' 
+#' @param metric string, must match one of 'c("cor", "mad", "rmsd")' #TODO: keep this up to date
+#' @param repeats numeric > 0 
+#' @param temp.dir string, directory where data, and benchmarks get stored. 
+#' @param exclude.from.bulks vector of strings, cell types that should not be predicted
+#' by the algorithms
+#' @param exclude.from.signature 
+#' @param n.bulks numeric > 0 
+#' @param cpm boolean, should the sc profiles and bulks be scaled to counts per million
 #'
-#' @return
+#' @return NULL, results are stored via hdf5 to 'temp.dir'
 #' @export
 #'
-#' @examples
+#' @examples see either 'working_example.R', or 'working_example_fast.R'
 benchmark <- function(sc.counts, 
 					  sc.pheno, 
 					  real.counts, 
