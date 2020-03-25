@@ -19,36 +19,41 @@
 #' TODO: lets get a boolean parameter for each simulation? 
 #' e.g. simulation.bulks 
 #' @param genesets list of string vector, must match 'rownames(sc.counts)' 
-#' @param metric string, must match one of 'c("cor", "mad", "rmsd")' #TODO: keep this up to date
+#' @param metric string, must match one of 'c("cor", "mad", "rmsd")' 
+#' #TODO: keep this up to date
 #' @param repeats numeric > 0 
 #' @param temp.dir string, directory where data, and benchmarks get stored. 
-#' @param exclude.from.bulks vector of strings, cell types that should not be predicted
-#' by the algorithms
+#' @param exclude.from.bulks vector of strings, cell types that should not be 
+#' predicted by the algorithms
 #' @param exclude.from.signature 
 #' @param n.bulks numeric > 0 
-#' @param cpm boolean, should the sc profiles and bulks be scaled to counts per million
+#' @param cpm boolean, should the sc profiles and bulks be scaled to counts
+#' per million
+#' @param verbose boolean, should progress information be printed to the screen
 #'
 #' @return NULL, results are stored via hdf5 to 'temp.dir'
 #' @export
 #'
 #' @examples see either 'working_example.R', or 'working_example_fast.R'
-benchmark <- function(sc.counts, 
-					  sc.pheno, 
-					  real.counts, 
-					  real.props,  
-					  benchmark.name,
-					  grouping,
-					  input.algorithms = NULL, 
-					  simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE, "subtypes" = TRUE), 
-					  genesets = NULL, 
-					  metric = "cor", 
-					  repeats = 3, 
-					  temp.dir = NULL, 
-					  exclude.from.bulks = NULL, 
-					  exclude.from.signature = NULL, 
-					  n.bulks = 1000, 
-					  cpm = TRUE, 
-					  verbose = FALSE){
+benchmark <- function(
+  sc.counts, 
+  sc.pheno, 
+  real.counts, 
+  real.props,  
+  benchmark.name,
+  grouping,
+  input.algorithms = NULL, 
+  simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE, "subtypes" = TRUE), 
+  genesets = NULL, 
+  metric = "cor", 
+  repeats = 3, 
+  temp.dir = NULL, 
+  exclude.from.bulks = NULL, 
+  exclude.from.signature = NULL, 
+  n.bulks = 1000, 
+  cpm = TRUE, 
+  verbose = FALSE
+  ){
 	if(verbose) print("calculating checksum")
 	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm))
 	# check whether temporary directory is available and writeable
