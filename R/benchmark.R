@@ -188,6 +188,10 @@ benchmark <- function(sc.counts,
 	    }
 	    subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
 	    sc.pheno <- subtype.return$sc.pheno
+	    # exclude subtypes of cell types to exclude from reference matrix as well
+	    if(any(sc.pheno$cell_type %in% exclude.from.signature)){
+	    	exclude.from.signature <- c(exclude.from.signature, unique(sc.pheno$subtype[which(sc.pheno$cell_type %in% exclude.from.signature)]))
+	    }
 	  }
 		# split (randomly at the moment) into test and validation set
 		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)

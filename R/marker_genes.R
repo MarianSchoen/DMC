@@ -49,7 +49,12 @@ marker_genes <- function(exprs, pheno, sig.types = NULL){
   # for each cell type, take the intersect of the first criteria
   genes.per.celltype <- list()
   for(t in sig.types){
-    genes.per.celltype[[t]] <- rownames(exprs)[intersect(which(sums.above.threshold[,t]), which(factors.above.theshold[,t]))]
+    temp.genes <- rownames(exprs)[intersect(which(sums.above.threshold[,t]), which(factors.above.theshold[,t]))]
+    if(length(temp.genes) > 0){
+	    genes.per.celltype[[t]] <- temp.genes
+    }else{
+	    genes.per.celltype[t] <- list(NULL)
+  	}
   }
   
   # do a ks test for each of these genes for each group against all others combined?
@@ -59,10 +64,8 @@ marker_genes <- function(exprs, pheno, sig.types = NULL){
     if(length(genes)>0){
       p.vals <- apply(exprs[genes,,drop=FALSE], 1, function(x){ks.test(x[grouping], x[!grouping], alternative = "two.sided")$p.value})
       if(length(genes[p.vals < 10^(-5)]) > 0) genes.per.celltype[[t]] <- genes[p.vals < 10^(-5)]
-      else genes.per.celltype[[t]] <- NULL
-    }else{
-      genes.per.celltype[[t]] <- NULL
     }
   }
+  #print(str(genes.per.celltype))
   return(genes.per.celltype)
 }

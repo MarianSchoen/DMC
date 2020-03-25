@@ -224,6 +224,8 @@ if(exists("gene.plots")){
 if(exists("score.plot.subtype")){
   plot(score.plot.subtype)
 }
+```
+```{r, fig.width = 10, fig.height = 9}
 if(exists("runtime.plot.subtype")){
   plot(runtime.plot.subtype)
 }
