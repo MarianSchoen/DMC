@@ -1,25 +1,40 @@
-# written by Tim Mirus
-
 #' deconvolute given bulks with BSEQ-sc using single cell data
 #'
-#' @param exprs matrix containing single cell profiles as columns
-#' @param pheno phenotype data corresponding to the expression matrix.
+#' @param exprs non negative numeric matrix containing single cell profiles
+#'  as columns and features as rows
+#' @param pheno data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
 #' Has to contain single cell labels in a column named 'cell_type'
 #' @param bulks matrix containing bulk expression profiles as columns
-#' @param exclude.from.signature list of cell types not to be included in the signature matrix
-#' @param max.genes maximum number of genes that will be included in the signature for each celltype
-#' @param optimize logical, should the signature matrix be optimized by condition number? If FALSE, max.genes genes will be used
-#' @param split.data logical, should the training data be split for signature matrix creation? If TRUE, 10% of the data will be used to build
-#' the signature matrix and the rest will be used to estimate the optimal features
-#' @return list with one entry: est.props, matrix containing for each bulk the estimated fractions of the cell types contained
-#' @example run_deconrnaseq(training.exprs, training.pheno, bulks.exprs)
-run_bseqsc <- function(exprs,
-                       pheno,
-                       bulks,
-                       exclude.from.signature = NULL,
-                       max.genes = NULL,
-                       optimize = TRUE,
-                       split.data = TRUE) {
+#' @param exclude.from.signature vector of strings of cell types not to be
+#' included in the signature matrix
+#' @param max.genes numeric, maximum number of genes that will be included in 
+#' the signature for each celltype
+#' @param optimize boolean, should the signature matrix be optimized by
+#' condition number? If FALSE, max.genes genes will be used
+#' @param split.data boolean, should the training data be split for signature
+#' matrix creation? If TRUE, 10% of the data will be used to build
+#' the signature matrix and the rest will be used to estimate the optimal
+#' features
+#' @return list with one entry: est.props, matrix containing for each bulk the
+#' estimated fractions of the cell types contained
+#' @example 
+#' TODO: where to the 'training.exprs', 'training.pheno' and 
+#' 'bulks.exprs' come from? 
+#' 
+#' run_bseqsc(
+#'    training.exprs
+#'    , training.pheno
+#'    , bulks.exprs
+#'  )
+run_bseqsc <- function(
+  exprs,
+  pheno,
+  bulks,
+  exclude.from.signature = NULL,
+  max.genes = NULL,
+  optimize = TRUE,
+  split.data = TRUE
+  ) {
   if(!exists("verbose")) verbose <- FALSE
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
