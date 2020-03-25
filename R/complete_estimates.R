@@ -1,0 +1,10 @@
+complete_estimates <- function(est.props, include.in.x){
+  for(ct in include.in.x){
+    if(!ct %in% rownames(est.props)){
+      rnames <- rownames(est.props)
+      est.props <- rbind(est.props, rep(NA, ncol(est.props)))
+      rownames(est.props) <- c(rnames, ct)
+    }
+  }
+  return(est.props)
+}

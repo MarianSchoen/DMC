@@ -157,6 +157,9 @@ run_dtd <- function(exprs,
     rownames(est.props.rowscale) <- rownames(est.props.colscale)
     g_vec <- dtd.model$best.model$Tweak
     sig.mat.effective <- apply(sig.matrix, 2, function(x){x * g_vec})
+    if(!all(include.in.x %in% rownames(est.props))){
+      est.props <- complete_estimates(est.props, include.in.x)
+    }
   } else {
     est.props <- NULL
     g_vec <- NULL

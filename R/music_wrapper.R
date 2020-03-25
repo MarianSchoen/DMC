@@ -75,5 +75,8 @@ run_music <- function(exprs,
   }
 
   est.props <- as.matrix(t(est.prop.music$Est.prop.weighted))
+  if(!all(include.in.x %in% rownames(est.props))){
+    est.props <- complete_estimates(est.props, include.in.x)
+  }
   return(list(est.props = est.props, sig.matrix = NULL))
 }

@@ -37,7 +37,7 @@ prepare_data <- function(results.all, metric="cor") {
                     }
 		    
                     # if the deconvolution worked evaluate according to given metric
-                    if(!is.null(r$est.props) && !is.na(r$est.props)){
+                    if(!all(is.null(r$est.props)) && !all(is.na(r$est.props))){
                         # performance per cell type
                         for (t in intersect(rownames(r$est.props), rownames(real.props))) {
                             temp.score <- evaluate_deconvolution(r$est.props[t,], real.props[t,])[[metric]]
@@ -66,7 +66,7 @@ prepare_data <- function(results.all, metric="cor") {
                     }else{
                         cond.num <- NA
                     }
-                if(!is.null(r$est.props) && !is.na(r$est.props)){
+                if(!all(is.null(r$est.props)) && !all(is.na(r$est.props))){
                     for (t in intersect(rownames(r$est.props), rownames(real.props))) {
                         temp.score <- evaluate_deconvolution(r$est.props[t,], real.props[t,])[[metric]]
                         scores <- c(scores, temp.score)

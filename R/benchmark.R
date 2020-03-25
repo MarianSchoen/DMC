@@ -15,13 +15,13 @@
 #' test or train cohort. 
 #' @param input.algorithms named list, with deconvolution wrappers. 
 #' TODO: examples!!!
-#' @param sim.bulks boolean, should deconvolution of simulated bulks be
+#' @param simulation.bulks boolean, should deconvolution of simulated bulks be
 #' performed, default FALSE
-#' @param sim.genes boolean, should deconvolution of simulated bulks with 
+#' @param simulation.genes boolean, should deconvolution of simulated bulks with 
 #' be predefined genesets be performed, default FALSE
-#' @param sim.samples boolean, should deconvolution of simulated bulks with
+#' @param simulation.samples boolean, should deconvolution of simulated bulks with
 #' varying number of random training profiles be performed, default FALSE
-#' @param sim.subtypes boolean, should deconvolution of simulated bulks with
+#' @param simulation.subtypes boolean, should deconvolution of simulated bulks with
 #' artificial subtypes of given cell types be performed, default FALSE
 #' @param genesets list of string vector, must match 'rownames(sc.counts)' 
 #' @param metric string, must match one of 'c("cor", "mad", "rmsd")' 
@@ -48,10 +48,10 @@ benchmark <- function(
   benchmark.name,
   grouping,
   input.algorithms = NULL,
-  sim.bulks = FALSE,
-  sim.genes = FALSE,
-  sim.samples = FALSE,
-  sim.subtypes = FALSE,
+  simulation.bulks = FALSE,
+  simulation.genes = FALSE,
+  simulation.samples = FALSE,
+  simulation.subtypes = FALSE,
   genesets = NULL, 
   metric = "cor", 
   repeats = 3, 
@@ -198,7 +198,7 @@ benchmark <- function(
 			real.counts <- scale_to_count(real.counts)
 		}
 	  # create subtypes via tsne embedding
-	  if(sim.subtypes){
+	  if(simulation.subtypes){
 	    if(verbose) print("simulating subtypes")
 	    celltypes <- unique(sc.pheno$cell_type)
 	    if(any(exclude.from.bulks %in% celltypes)){
@@ -213,7 +213,7 @@ benchmark <- function(
 	    sc.pheno <- subtype.return$sc.pheno
 	    # exclude subtypes of cell types to exclude from reference matrix as well
 	    if(any(sc.pheno$cell_type %in% exclude.from.signature)){
-	    	exclude.from.signature <- c(exclude.from.signature, unique(sc.pheno$subtype[which(sc.pheno$cell_type %in% exclude.from.signature)]))
+	    	exclude.from.signature <- c(exclude.from.signature, unique(paste(sc.pheno$cell_type ,sc.pheno$subtype, sep = ".")[which(sc.pheno$cell_type %in% exclude.from.signature)]))
 	    }
 	  }
 		# split (randomly at the moment) into test and validation set
@@ -251,6 +251,7 @@ benchmark <- function(
 				f <- files[i]
 				previous.results[[i]] <- readRDS(f)
 			}
+		  
 		}
 	}else{
 		dir.create(paste(output.folder,"/results/real/",sep=""), recursive = T)
@@ -276,7 +277,8 @@ benchmark <- function(
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
-	available.sims <- c("genes" = sim.genes, "samples" = sim.samples, "bulks" = sim.bulks, "subtypes" = sim.subtypes)
+	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)
+	names(available.sims) <- c("genes", "samples", "bulks", "subtypes")
 	if(any(available.sims) && verbose) print("Starting simulations")
 	for(s in names(available.sims)){
 		if(!available.sims[s]) next

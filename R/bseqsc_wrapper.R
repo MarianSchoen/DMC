@@ -127,5 +127,10 @@ run_bseqsc <- function(
     warning("BSEQ-sc estimation failed")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
-  return(list(est.props = fit$coefficients, sig.matrix = B))
+  if(!all(names(deg.per.type) %in% rownames(fit$coefficients))){
+    est.props <- complete_estimates(fit$coefficients, names(deg.per.type))
+  }else{
+    est.props <- fit$coefficients
+  }
+  return(list(est.props = est.props, sig.matrix = B))
 }

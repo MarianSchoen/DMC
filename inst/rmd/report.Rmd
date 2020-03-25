@@ -225,6 +225,7 @@ if(exists("score.plot.subtype")){
   plot(score.plot.subtype)
 }
 ```
+\pagebreak
 ```{r, fig.width = 10, fig.height = 9}
 if(exists("runtime.plot.subtype")){
   plot(runtime.plot.subtype)

@@ -40,7 +40,10 @@ benchmark(
   , benchmark.name = "test_benchmark"
   , exclude.from.signature = c("unassigned", "not_annotated")
   , genesets = genesets
-  , simulation = c("genes" = T, "samples" = T, "bulks" = T)
+  , simulation.bulks = TRUE
+  , simulation.genes = TRUE
+  , simulation.samples = TRUE
+  , simulation.subtypes = TRUE
   , repeats = 3
   , grouping = as.factor(grouping)
   )

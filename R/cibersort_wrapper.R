@@ -76,7 +76,9 @@ run_cibersort <- function(exprs,
 
     # drop the additional information in the last 3 columns
     est.props <- t(result[1:ncol(bulks), -((ncol(result) - 2):ncol(result)), drop = FALSE])
-
+    if(!all(colnames(ref.profiles) %in% rownames(est.props))){
+        est.props <- complete_estimates(est.props, colnames(ref.profiles))
+    }
     # CIBERSORT automatically stores the results in a file,
     # but we do not need it
     file.remove("CIBERSORT-Results.txt")

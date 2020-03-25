@@ -35,7 +35,7 @@ benchmark(
   , benchmark.name = "fast_test_benchmark"
   , exclude.from.signature = c()
   , genesets = genesets
-  , simulation = c("genes" = FALSE, "samples" = TRUE, "bulks" = TRUE, "subtypes" = TRUE)
+  , simulation.bulks = TRUE
   , repeats = 3
   , grouping = as.factor(grouping)
   , temp.dir = tmp.dir

@@ -104,7 +104,9 @@ run_least_squares <- function(exprs,
     x / max(x)
   }))
   rownames(est.props.rowscale) <- rownames(est.props.colscale)
-
+  if(!all(include.in.x %in% rownames(est.props))){
+    est.props <- complete_estimates(est.props, include.in.x)
+  }
   return(list(
     est.props = est.props,
     est.props.rowscale = est.props.rowscale,
