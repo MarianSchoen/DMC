@@ -1,4 +1,3 @@
-# written by Tim Mirus
 create_boxplots <- function(results.df, metric = "cor") {
     require(ggplot2)
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]

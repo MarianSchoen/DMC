@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE) {
 sample.size.lists <- list()
 for(i in seq(1, 1 / step.size)){

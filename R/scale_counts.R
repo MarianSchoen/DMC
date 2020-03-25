@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 #' rescale expression profiles to sum to a fixed count number
 #'
 #' @param exprs expression matrix containing profiles in columns

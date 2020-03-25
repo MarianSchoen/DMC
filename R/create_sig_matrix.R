@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 #' create a signature matrix for usage with CIBERSORT or DeconRNASeq
 #' according to description in Newman et. al
 #'

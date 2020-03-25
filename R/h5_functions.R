@@ -1,4 +1,3 @@
-# written by Tim Mirus
 write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, sub.props = NULL, filename) {
     require(rhdf5)
     h5createFile(filename)

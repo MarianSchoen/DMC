@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 create_scatterplots <- function(results.list, real.props = NULL, training.pheno = NULL, real = FALSE) {
   require(ggplot2)
   real.props <- results.list$bulk.props

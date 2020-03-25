@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 #' deconvolute given bulks with CIBERSORT using single cell data
 #'
 #' @param exprs matrix containing single cell profiles as columns
@@ -84,7 +82,7 @@ run_cibersort <- function(exprs,
     file.remove("CIBERSORT-Results.txt")
     file.remove("CIBERSORT/signature_matrix.txt")
     file.remove("CIBERSORT/mixture.txt")
-    unlink("CIBERSORT/")
+    unlink("CIBERSORT", recursive = TRUE)
 
     return(list(est.props = est.props, sig.matrix = ref.profiles))
 }

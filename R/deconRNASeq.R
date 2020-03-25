@@ -1,5 +1,3 @@
-# written by Tim Mitus
-
 #' deconvolute given bulks with DeconRNASeq using single cell data
 #'
 #' @@param exprs matrix containing single cell profiles as columns

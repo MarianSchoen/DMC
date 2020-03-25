@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 split_dataset <- function(exprs, pheno, method = "random", prop = 0.25, grouping = NULL) {
     if(ncol(exprs) != nrow(pheno)){
         stop("expression and pheno data do not match")

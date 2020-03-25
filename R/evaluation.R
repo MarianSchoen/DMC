@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 #' evaluate deconvolution performance using different metrics
 #' 
 #' @param real matrix containing real quantities of cell types (cell type x proportion)

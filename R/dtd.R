@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 #' deconvolute given bulk with DTD using single-cell data
 #'
 #' @param exprs matrix containing single cell profiles as columns

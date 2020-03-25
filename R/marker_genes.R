@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 #' select marker genes according to Baron et al., 2016
 #' 
 #' @param exprs matrix containing single cell profiles as columns

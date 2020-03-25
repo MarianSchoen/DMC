@@ -1,4 +1,3 @@
-# written by Tim Mirus
 plot_cond_num <- function(results.df, metric = "cor"){
     require(ggplot2)
     # use only 'overall' rows

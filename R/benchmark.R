@@ -15,9 +15,14 @@
 #' test or train cohort. 
 #' @param input.algorithms named list, with deconvolution wrappers. 
 #' TODO: examples!!!
-#' @param simulations named boolean vector: 
-#' TODO: lets get a boolean parameter for each simulation? 
-#' e.g. simulation.bulks 
+#' @param sim.bulks boolean, should deconvolution of simulated bulks be
+#' performed, default FALSE
+#' @param sim.genes boolean, should deconvolution of simulated bulks with 
+#' be predefined genesets be performed, default FALSE
+#' @param sim.samples boolean, should deconvolution of simulated bulks with
+#' varying number of random training profiles be performed, default FALSE
+#' @param sim.subtypes boolean, should deconvolution of simulated bulks with
+#' artificial subtypes of given cell types be performed, default FALSE
 #' @param genesets list of string vector, must match 'rownames(sc.counts)' 
 #' @param metric string, must match one of 'c("cor", "mad", "rmsd")' 
 #' #TODO: keep this up to date
@@ -42,8 +47,11 @@ benchmark <- function(
   real.props,  
   benchmark.name,
   grouping,
-  input.algorithms = NULL, 
-  simulations=c("bulks"=TRUE, "genes"=TRUE, "samples"=TRUE, "subtypes" = TRUE), 
+  input.algorithms = NULL,
+  sim.bulks = FALSE,
+  sim.genes = FALSE,
+  sim.samples = FALSE,
+  sim.subtypes = FALSE,
   genesets = NULL, 
   metric = "cor", 
   repeats = 3, 
@@ -100,7 +108,7 @@ benchmark <- function(
 	}
 	if(is.null(genesets)){
 		warning("No gene sets provided skipping this benchmark")
-		simulations["genes"] <- F
+		sim.genes <- FALSE
 	}
 	if(!metric %in% c("cor", "mad", "rmsd")){
 		stop("metric must be one of 'cor', 'mad', 'rmsd'")
@@ -190,7 +198,7 @@ benchmark <- function(
 			real.counts <- scale_to_count(real.counts)
 		}
 	  # create subtypes via tsne embedding
-	  if("subtypes" %in% names(simulations) && simulations["subtypes"]){
+	  if(sim.subtypes){
 	    if(verbose) print("simulating subtypes")
 	    celltypes <- unique(sc.pheno$cell_type)
 	    if(any(exclude.from.bulks %in% celltypes)){
@@ -268,10 +276,10 @@ benchmark <- function(
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
-	available.sims <- c("genes", "samples", "bulks", "subtypes")
-	if(any(simulations) && verbose) print("Starting simulations")
-	for(s in names(simulations)){
-		if(!simulations[s] || ! s %in% available.sims) next
+	available.sims <- c("genes" = sim.genes, "samples" = sim.samples, "bulks" = sim.bulks, "subtypes" = sim.subtypes)
+	if(any(available.sims) && verbose) print("Starting simulations")
+	for(s in names(available.sims)){
+		if(!available.sims[s]) next
 		# read previous results and exclude present algorithms
 		previous.results <- list()
 		if(dir.exists(paste(output.folder, "/results/simulation/",s,"/", sep=""))){

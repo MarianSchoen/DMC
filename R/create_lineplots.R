@@ -1,4 +1,3 @@
-# written by Tim Mirus
 create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL) {
     require(ggplot2)
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]

@@ -1,5 +1,3 @@
-#written by Tim Mirus
-
 prepare_data <- function(results.all, metric="cor") {
     df <- c()
     # extract real proportions from lists

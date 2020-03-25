@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 plot_runtime <- function(results.df, title = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)) {

@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, genesets, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, verbose = FALSE){
   geneset.lists <- list()
   # deconvolute using each geneset

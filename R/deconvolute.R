@@ -1,5 +1,3 @@
-# written by Tim Mirus
-
 #' deconvolute given bulks with all supplied algorithms and training data, optionally plotting the results in a table plot
 #'
 #' @param training.expr matrix containing single-cell expression profiles (training set, one cell per column)
