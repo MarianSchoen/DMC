@@ -1,5 +1,14 @@
 create_boxplots <- function(results.df, metric = "cor") {
     require(ggplot2)
+    if(!is.data.frame(results.df)){
+        stop("results.df must be a data frame")
+    }
+    if(!all(c("overall", "score", "algorithm", "cell_type") %in% colnames(results.df))){
+        stop("required columns missing from results.df")
+    }
+    if(!metric %in% c("cor", "mad", "rmsd")){
+        stop("unknown metric. choose one of 'cor', 'mad', 'rmsd'")
+    }
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
     # order algorithms by performance
     performances <- tapply(overall.df$score, overall.df$algorithm, median)

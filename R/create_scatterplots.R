@@ -1,8 +1,17 @@
 create_scatterplots <- function(results.list, real.props = NULL, training.pheno = NULL, real = FALSE) {
   require(ggplot2)
-  real.props <- results.list$bulk.props
+  if(!is.list(results.list)){
+    stop("results.list must be a list as returned by deconvolute()")
+  }
+  if(is.null(real.props)){
+    if(!"bulk.props" %in% names(results.list)){
+      stop("results.list must contain an entry bulk.props; alternatively supply real.props")
+    }
+    real.props <- results.list$bulk.props
+  }
+  
     # create scatter plots of real vs estimate props
-    if (!is.null(real.props) && !is.null(training.pheno) && real) {
+    if (!is.null(real.props) && !is.null(training.pheno) && real && "patient" %in% colnames(training.pheno)) {
       bulk.shapes <- as.factor(ifelse(
         colnames(real.props) %in% training.pheno$patient,
         "training",

@@ -1,5 +1,24 @@
 create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL) {
     require(ggplot2)
+    if(!is.data.frame(results.df)){
+        stop("results.df must be a data frame")
+    }
+    if(!all(c("overall", "algorithm", "score", "metric", "geneset", "cell_type", "time") %in% colnames(results.df))){
+        stop("required columns missing from results.df")
+    }
+    if(!metric %in% c("cor", "mad", "rmsd")){
+        stop("unknown metric. choose one of 'cor', 'mad', 'rmsd'")
+    }
+    if(!is.null(genesets)){
+        if(!is.list(genesets)){
+            stop("genesets must be a named list of character vectors")
+        }
+    }
+    if(!is.null(available.features)){
+        if(!is.character(available.features)){
+            stop("available features must be a charcter vector")
+        }
+    }
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
     # order algorithms by performance
     performances <- tapply(overall.df$score, overall.df$algorithm, median)

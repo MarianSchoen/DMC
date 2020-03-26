@@ -4,7 +4,7 @@
 #' scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
 #' @param sc.pheno data frame with scRNA-Seq profiles as rows, and pheno entries
 #' in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)' 
-#' @param sub.list #TODO I don't understand
+#' @param sub.list named list containing the number of subtypes to be simulated for each cell type
 #' @param celltypecol string, column name in 'sc.pheno' that holds the cell type
 #' per scRNA-Seq profile
 #' @param ... additional parameters that get passed to Rtsne()
@@ -29,7 +29,7 @@ assign_subtypes <- function(
   # add default subtype 1
   sc.pheno <- cbind(sc.pheno, subtype = rep(1, nrow(sc.pheno)))
   for(ct in names(sub.list)){
-    if(!ct %in% sc.pheno[[celltypecol]]) {
+    if(!ct %in% sc.pheno[[celltypecol]] || sub.list[[ct]] < 2) {
       warning(paste(ct, ": No such cell type"))
       next
     }

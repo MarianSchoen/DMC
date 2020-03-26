@@ -1,5 +1,21 @@
 geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, genesets, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, verbose = FALSE){
   geneset.lists <- list()
+  if(!all(sapply(genesets, function(x){any(x %in% rownames(training.exprs))}))){
+    stop("one or more genesets do not contain any genes present in the expression data")
+  }
+  if(ncol(training.exprs) != nrow(training.pheno)){
+    stop("training.exprs and training.pheno do not match")
+  }
+  if(!is.null(test.exprs) || !is.null(test.pheno)){
+    if(ncol(test.exprs) != nrow(test.pheno)){
+      stop("test.exprs and test.pheno do not match")
+    }
+  }
+  if(!is.null(bulk.data)){
+    if(!is.list(bulk.data) || !c("bulks", "props") %in% names(bulk.data)){
+      stop("bulk.data has the wrong format")
+    }
+  }
   # deconvolute using each geneset
   for (i in 1:length(genesets)) {
     genes <- genesets[[i]]

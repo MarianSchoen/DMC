@@ -35,6 +35,7 @@
 #' @param cpm boolean, should the sc profiles and bulks be scaled to counts
 #' per million
 #' @param verbose boolean, should progress information be printed to the screen
+#' @param n.subtypes numeric > 0
 #'
 #' @return NULL, results are stored via hdf5 to 'temp.dir'
 #' @export
@@ -60,10 +61,11 @@ benchmark <- function(
   exclude.from.signature = NULL, 
   n.bulks = 1000, 
   cpm = TRUE, 
-  verbose = FALSE
+  verbose = FALSE,
+  n.subtypes = 3
   ){
 	if(verbose) print("calculating checksum")
-	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm))
+	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.subtypes, ))
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
@@ -174,7 +176,7 @@ benchmark <- function(
 
 	# load / process / store data
 	# if it exists load previously processed data from temp
-	if(file.exists(paste(output.folder,"/input_data/processed.rda",sep=""))){
+	if(file.exists(paste(output.folder,"/input_data/training_set.h5",sep="")) && file.exists(paste(output.folder,"/input_data/validation_set.h5",sep=""))){
 		if(verbose) print("Using data found in temp directory")
 		training_set <- read_data(paste(output.folder, "/input_data/training_set.h5", sep = ""))
 		validation_set <- read_data(paste(output.folder, "/input_data/validation_set.h5", sep=""))
@@ -197,25 +199,23 @@ benchmark <- function(
 			sc.counts <- scale_to_count(sc.counts)
 			real.counts <- scale_to_count(real.counts)
 		}
-	  # create subtypes via tsne embedding
-	  if(simulation.subtypes){
-	    if(verbose) print("simulating subtypes")
-	    celltypes <- unique(sc.pheno$cell_type)
-	    if(any(exclude.from.bulks %in% celltypes)){
-	      celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
-	    }
-	    k <- list()
-	    for(ct in celltypes){
-	      # make this a parameter
-	      k[[ct]] <- 3
-	    }
-	    subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
-	    sc.pheno <- subtype.return$sc.pheno
-	    # exclude subtypes of cell types to exclude from reference matrix as well
-	    if(any(sc.pheno$cell_type %in% exclude.from.signature)){
-	    	exclude.from.signature <- c(exclude.from.signature, unique(paste(sc.pheno$cell_type ,sc.pheno$subtype, sep = ".")[which(sc.pheno$cell_type %in% exclude.from.signature)]))
-	    }
-	  }
+	  # create subtypes via tsne embedding even if subtype benchmark is not TRUE
+	  # user might want to add it later on
+    if(verbose) print("simulating subtypes")
+    celltypes <- unique(sc.pheno$cell_type)
+    if(any(exclude.from.bulks %in% celltypes)){
+      celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
+    }
+    k <- list()
+    for(ct in celltypes){
+      k[[ct]] <- n.subtypes
+    }
+    subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
+    sc.pheno <- subtype.return$sc.pheno
+    # exclude subtypes of cell types to exclude from reference matrix as well
+    if(any(sc.pheno$cell_type %in% exclude.from.signature)){
+    	exclude.from.signature <- c(exclude.from.signature, unique(paste(sc.pheno$cell_type ,sc.pheno$subtype, sep = ".")[which(sc.pheno$cell_type %in% exclude.from.signature)]))
+    }
 		# split (randomly at the moment) into test and validation set
 		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
 		training.exprs <- split.data$training$exprs
