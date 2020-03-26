@@ -3,7 +3,7 @@ create_boxplots <- function(results.df, metric = "cor") {
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
     }
-    if(!all(c("overall", "score", "algorithm", "cell_type") %in% colnames(results.df))){
+    if(!all(c("score", "algorithm", "cell_type") %in% colnames(results.df))){
         stop("required columns missing from results.df")
     }
     if(!metric %in% c("cor", "mad", "rmsd")){

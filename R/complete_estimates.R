@@ -1,4 +1,10 @@
 complete_estimates <- function(est.props, include.in.x){
+  if(!is.matrix(est.props)){
+    stop("est.props must be a matrix")
+  }
+  if(!is.character(include.in.x)){
+    stop("include.in.x must be a character vector")
+  }
   for(ct in include.in.x){
     if(!ct %in% rownames(est.props)){
       rnames <- rownames(est.props)

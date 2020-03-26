@@ -1,6 +1,15 @@
-evaluation_plot <- function(results.df, title, metric = "cor", real.props = NULL) {
+evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props = NULL) {
+    if(!is.data.frame(results.df)){
+      stop("results.df must be a data frame")
+    }
+    if(!all(c("algorithm", "score", "cell_type", "metric") %in% colnames(results.df))){
+      stop("required columns missing from results.df")
+    }
     if (is.null(title)) {
         title <- "deconvolution quality"
+    }
+    if(!is.null(real.props) && !is.matrix(real.props)){
+      stop("real.props is not a matrix")
     }
     # reduce to one entry per cell type and algorithm by taking the mean
     quality.scores <- c()

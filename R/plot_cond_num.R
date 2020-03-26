@@ -1,5 +1,14 @@
 plot_cond_num <- function(results.df, metric = "cor"){
     require(ggplot2)
+    if(!is.data.frame(results.df)){
+        stop("results.df must be a data frame")
+    }
+    if(!all(c("score", "algorithm", "cell_type", "condition_number") %in% colnames(results.df))){
+        stop("required columns missing from results.df")
+    }
+    if(!metric %in% c("cor", "mad", "rmsd")){
+        stop("unknown metric. must be one of 'cor', 'mad', 'rmsd'")
+    }
     # use only 'overall' rows
     results.df <- results.df[which(results.df$cell_type == "overall"), ]
     overall.df <- c()

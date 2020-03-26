@@ -3,6 +3,9 @@ plot_runtime <- function(results.df, title = NULL) {
     if(!is.data.frame(results.df)) {
         stop("Invalid input: results.df has to be data frame as returned by prepare_data()")
     }
+    if(!all(c("algorithm", "time", "cell_type") %in% colnames(results.df))){
+        stop("required columns missing in results.df")
+    }
     if (is.null(title))
        title <- "runtime comparison"
     # reduce to the overall rows

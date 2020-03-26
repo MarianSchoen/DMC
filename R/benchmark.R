@@ -65,7 +65,7 @@ benchmark <- function(
   n.subtypes = 3
   ){
 	if(verbose) print("calculating checksum")
-	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.subtypes, ))
+	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.subtypes))
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){

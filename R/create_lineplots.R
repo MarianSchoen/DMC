@@ -3,7 +3,7 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
     }
-    if(!all(c("overall", "algorithm", "score", "metric", "geneset", "cell_type", "time") %in% colnames(results.df))){
+    if(!all(c("algorithm", "score", "metric", "geneset", "cell_type", "time") %in% colnames(results.df))){
         stop("required columns missing from results.df")
     }
     if(!metric %in% c("cor", "mad", "rmsd")){

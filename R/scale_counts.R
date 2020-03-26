@@ -6,6 +6,9 @@
 #' @return rescaled expression matrix
 
 scale_to_count <- function(exprs, count = NULL) {
+  if(!is.matrix(exprs)){
+    stop("exprs must be a matrix")
+  }
   if (is.null(count)) {
     exprs <- apply(exprs, 2, function(x) {
       (x / sum(x)) * length(x)
