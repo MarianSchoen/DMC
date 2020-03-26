@@ -1,21 +1,23 @@
 #' deconvolute given bulks with DeconRNASeq using single cell data
 #'
-#' @@param exprs matrix containing single cell profiles as columns
+#' @param exprs numeric matrix containing single cell profiles as columns
 #' @param pheno phenotype data corresponding to the expression matrix.
 #' Has to contain single cell labels in a column named 'cell_type'
 #' @param bulks matrix containing bulk expression profiles as columns
-#' @param exclude.from.signature list of cell types not to be included in the signature matrix
-#' @param max.genes maximum number of genes that will be included in the signature for each celltype
-#' @param optimize logical, should the signature matrix be optimized by condition number? If FALSE, max.genes genes will be used
-#' @param split.data logical, should the training data be split for signature matrix creation? If TRUE, 10% of the data will be used to build
+#' @param exclude.from.signature list of cell types not to be included in the
+#'  signature matrix
+#' @param max.genes maximum number of genes that will be included in the
+#'  signature for each celltype
+#' @param optimize boolean, should the signature matrix be optimized by
+#'  condition number? If FALSE, max.genes genes will be used
+#' @param split.data boolean, should the training data be split for signature
+#'  matrix creation? If TRUE, 10% of the data will be used to build
 #' the signature matrix and the rest will be used to estimate the optimal features
-#' @return list with one entry: est.props, matrix containing for each bulk the estimated fractions of the cell types contained
+#' @return list with one entry: est.props, matrix containing for each bulk the
+#' estimated fractions of the cell types contained
 #' @example run_deconrnaseq(training.exprs, training.pheno, bulk.exprs)
-
-
-suppressMessages(library(DeconRNASeq, quietly = TRUE))
-
 run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE) {
+  suppressMessages(library(DeconRNASeq, quietly = TRUE))
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
