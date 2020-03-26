@@ -1,6 +1,8 @@
 # no filthy workspace: 
 rm(list = ls())
 
+library(tictoc)
+
 # while developing, maybe devtools::load_all is better than library, 
 # as current changes get loaded, and must not be installed
 # library(DeconvolutionAlgorithmBenchmarking)
@@ -25,6 +27,8 @@ unlink(
   , recursive = TRUE
   )
 
+
+tic("fast benchmark")
 benchmark(
   sc.counts = data.list$sc.data
   , sc.pheno = data.frame(
@@ -42,6 +46,5 @@ benchmark(
   , input.algorithms = list("DTD", "Least_Squares")
   , verbose = FALSE
 )
-
-
+toc()
 

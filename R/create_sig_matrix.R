@@ -1,8 +1,8 @@
 #' create a signature matrix for usage with CIBERSORT or DeconRNASeq
 #' according to description in Newman et. al
 #'
-#' @param exprs expression matrix, columns correspond to cells
-#' @param pheno DataFrame, phenodata corresponding to
+#' @param exprs non-negative numeric matrix, 
+#' @param pheno data.frame, phenodata corresponding to
 #' expression data, same ordering of samples/cells; cell type
 #' label column must be named 'cell_type'
 #' @param exclude.celltypes character vector, defaults to
@@ -19,20 +19,21 @@
 #' If FALSE, for each cell type the top 'max.genes' genes will be taken.
 #' @param split.data logical, should the training data be split for
 #' reference profile creation and optimization? default: TRUE
-#' @return signature matrix (genes x cell types)
-
-suppressMessages(library(multtest, quietly = TRUE))
-suppressMessages(library(qvalue, quietly = TRUE))
-suppressMessages(library(ggplot2, quietly = TRUE))
-suppressMessages(library(DTD))
-
+#' @return numeric matrix, holding reference profiles in its column, 
+#' features in its rows
 create_sig_matrix <- function(
-                              exprs,
-                              pheno,
-                              exclude.celltypes = c("malignant", "not_annotated", "unassigned"),
-                              max.genes = NULL,
-                              optimize = TRUE,
-                              split.data = TRUE) {
+  exprs,
+  pheno,
+  exclude.celltypes = c("malignant", "not_annotated", "unassigned"),
+  max.genes = NULL,
+  optimize = TRUE,
+  split.data = TRUE
+  ) {
+  suppressMessages(library(multtest, quietly = TRUE))
+  suppressMessages(library(qvalue, quietly = TRUE))
+  suppressMessages(library(ggplot2, quietly = TRUE))
+  suppressMessages(library(DTD))
+  
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")

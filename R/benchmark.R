@@ -13,7 +13,8 @@
 #' @param grouping factor with 2 levels, and 'length(grouping)' must be 
 #' 'ncol(sc.counts)'. Assigns each scRNA-Seq profile to either 
 #' test or train cohort. 
-#' @param input.algorithms named list, with deconvolution wrappers. 
+#' @param input.algorithms list containing a list for each algorithm. 
+#' Each sublist contains 1) name  and 2) function
 #' TODO: examples!!!
 #' @param simulation.bulks boolean, should deconvolution of simulated bulks be
 #' performed, default FALSE

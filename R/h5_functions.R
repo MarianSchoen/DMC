@@ -1,5 +1,5 @@
 write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, sub.props = NULL, filename) {
-    require(rhdf5)
+    library(rhdf5)
     h5createFile(filename)
     # write singlecell stuff
     # assume that sc.counts and sc.pheno are never written independently...
@@ -37,7 +37,7 @@ write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bu
 }
 
 read_data <- function(filename){
-    require(rhdf5)
+    library(rhdf5)
     content <- h5ls(filename, recursive = T)
     # read data that was stored using write_data
     # assume that if a group is present, all expected subgroups etc are available
@@ -86,7 +86,7 @@ read_data <- function(filename){
 }
 
 write_misc_input <- function(genesets, algorithm.names, function.call, grouping, filename) {
-    require(rhdf5)
+    library(rhdf5)
     h5createFile(filename)
     if(!is.null(genesets)){
         h5createGroup(filename, "genesets")
@@ -122,7 +122,7 @@ read_misc_input <- function(filename){
 }
 
 write_result_list <- function(result.list, filename, group = NULL){
-    require(rhdf5)
+    library(rhdf5)
     if(!file.exists(filename)) h5createFile(filename)
     if(any(sapply(result.list, function(x){is.list(x)}))){
         for(name in names(result.list)){
@@ -160,8 +160,18 @@ write_result_list <- function(result.list, filename, group = NULL){
     }
 }
 
+#' read_result_list
+#'
+#' @param filename string
+#' @param content 
+#' @param groupname 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 read_result_list <- function(filename, content = NULL, groupname = NULL) {
-    require(rhdf5)
+    library(rhdf5)
     if(is.null(content)){
         content <- h5dump(filename)
     }
