@@ -5,7 +5,6 @@ params:
    tempdir: ""
    metric: "cor"
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 temp.dir <- params$tempdir
@@ -34,62 +33,69 @@ grouping <- input_params$grouping
 ## Deconvolution Benchmark
 
 ### Input data
-
+Parameters of the `benchmark` call:
 ```{r}
-print(function.call)
+function.call.list <- as.list(function.call)
+
+adjusted.names <- sapply(
+  X = names(function.call.list)
+  , FUN = function(x){if(x != ""){return(paste0(x, " ="))}else{return(x)}}
+  , USE.NAMES = FALSE
+  )
+print(paste(adjusted.names, function.call.list)) 
 ``` 
 
 Single-cell data contained `r nrow(sc.counts)` features for `r ncol(sc.counts)` cells.  
 
 
-Corresponding phenotype data contained labels for `r length(unique(sc.pheno$cell_type))` cell types: `r unique(sc.pheno$cell_type)`  
+Corresponding phenotype data contained labels for `r length(unique(sc.pheno$cell_type))` cell types: 
+```{r}
+  t <- table(sc.pheno$cell_type)
+  print(paste(names(t), t, sep = ": "))
+```
 
 
 Used algorithms: `r algorithm.names`   
 
 
-`r ncol(real.counts)` real bulk profiles were available.  
-
-
-Common features: `r length(intersect(rownames(real.counts), rownames(sc.counts)))`.  
+`r ncol(real.counts)` real bulk profiles were available, with `r length(intersect(rownames(real.counts), rownames(sc.counts)))` overlapping features
 
 Ground-truth cell type quantities were available for `r nrow(real.props)` cell types.  
 
 
-
 ```{r real_props, echo = FALSE}
-print(real.props)
+  print(t(apply(real.props, 1, summary)))
 ```
 \pagebreak
-## Deconvolution of real bulks
+## Deconvolution of real bulks  
 
 ```{r real_results, echo=FALSE}
-files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.h5")
-results.lists <- list()
-for(i in 1:length(files)) {
-  results.lists[[i]] <- read_result_list(files[i])
-}
-
-for(i in 1:length(results.lists)){
-	temp.df <- prepare_data(results.lists[[i]], params$metric)
-	if(!is.null(temp.df)){
-		if(!exists("real.df")){
-			real.df <- temp.df
-		}else{
-			real.df <- rbind(real.df, temp.df)
- 		}
-	}
-}
-
-score.plot <- evaluation_plot(real.df, "deconvolution quality",params$metric)
-runtime.plot <- plot_runtime(real.df)
-scatter.plots.list <- list()
-for(i in 1:length(results.lists)) {
-	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]])
-}
-cond.num.plots <- plot_cond_num(real.df, metric = params$metric)
-score.width <- 2 * length(unique(real.df$cell_type))
-score.height <- 2 * length(algorithm.names)
+  files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.h5")
+  results.lists <- list()
+  for(i in 1:length(files)) {
+    results.lists[[i]] <- read_result_list(files[i])
+  }
+  
+  for(i in 1:length(results.lists)){
+  	temp.df <- prepare_data(results.lists[[i]], params$metric)
+  	if(!is.null(temp.df)){
+  		if(!exists("real.df")){
+  			real.df <- temp.df
+  		}else{
+  			real.df <- rbind(real.df, temp.df)
+   		}
+  	}
+  }
+  
+  score.plot <- evaluation_plot(real.df, "deconvolution quality",params$metric)
+  runtime.plot <- plot_runtime(real.df)
+  scatter.plots.list <- list()
+  for(i in 1:length(results.lists)) {
+  	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]])
+  }
+  cond.num.plots <- plot_cond_num(real.df, metric = params$metric)
+  score.width <- 2 * length(unique(real.df$cell_type))
+  score.height <- 2 * length(algorithm.names)
 ```
 ```{r score_plot, echo = FALSE, fig.width = score.width, fig.height = score.height}
 plot(score.plot)
