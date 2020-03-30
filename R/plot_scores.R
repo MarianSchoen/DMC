@@ -93,7 +93,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
         ylab("algorithm") +
         ggtitle(title, subtitle = metric) +
         scale_size_continuous(
-          limits = c(0, 25),
+          limits = c(0, 1),
           range = c(min(quality.scores$value)*25, max(quality.scores$value) * 25),
           guide = "none"
         ) +
