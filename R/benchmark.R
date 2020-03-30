@@ -185,7 +185,7 @@ benchmark <- function(
 		training.pheno <- training_set$sc.pheno
 		test.exprs <- validation_set$sc.counts
 		test.pheno <- validation_set$sc.pheno
-		sim.bulks <- list(bulks = validation_set$real.counts, props = validation_set$real.props, sub.props = validation_set$sub.props)
+		sim.bulks <- list(bulks = validation_set$bulk.counts, props = validation_set$bulk.props, sub.props = validation_set$sub.props)
 	}else{
 		dir.create(paste(output.folder,"/input_data",sep=""), recursive = TRUE)
 	}

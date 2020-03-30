@@ -51,9 +51,12 @@ read_data <- function(filename){
       }
     }
     colnames(sc.pheno) <- pheno.names
+    if(any(pheno.names == "sample.name")){
+	    rownames(sc.pheno) <- sc.pheno[["sample.name"]]
+    }
   }else{
     sc.counts <- NULL
     sc.pheno <- NULL
   }
-  return(list(sc.counts = sc.counts, sc.pheno = sc.pheno, bulk.counts = bulk.counts, bulk.props = bulk.props))
+  return(list(sc.counts = sc.counts, sc.pheno = sc.pheno, bulk.counts = bulk.counts, bulk.props = bulk.props, sub.props = sub.props))
 }
