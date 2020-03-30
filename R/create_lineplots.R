@@ -74,10 +74,12 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     	colnames(sub.df) <- c("algorithm", "geneset", "score", "time", "sd")
     	sub.df$score <- as.numeric(as.character(sub.df$score))
     	sub.df$time <- as.numeric(as.character(sub.df$time))
+	sub.df$geneset <- factor(sub.df$geneset, levels = geneset.limits)
+	sub.df$sd <- as.numeric(as.character(sub.df$sd))
 
         cell.type.plots[[t]] <- ggplot(sub.df, aes(x=geneset, y = score, group = algorithm, col = algorithm)) +
             geom_line(size = 2) + geom_point() +
-            geom_errorbar(aes(x = geneset, ymin = score - sd, ymax = score + sd), position = "dodge") +
+            geom_errorbar(aes(x = geneset, ymin = score - sd, ymax = score + sd)) +
             xlab("gene set (increasing size)") +
             ylab(metric) +
             ggtitle(paste(
