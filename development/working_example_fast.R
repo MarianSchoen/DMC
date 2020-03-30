@@ -40,6 +40,8 @@ benchmark(
   , exclude.from.signature = c()
   , genesets = genesets
   , simulation.bulks = TRUE
+  , simulation.samples = TRUE
+  , simulation.subtypes = TRUE
   , repeats = 3
   , grouping = as.factor(grouping)
   , temp.dir = tmp.dir
