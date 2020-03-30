@@ -162,7 +162,7 @@ create_sig_matrix <- function(
 
   if (optimize) {
     cond.nums <- c()
-    for (g in 5:limit) {
+    for (g in 1:limit) {
       all.genes <- c()
       for (sub.genes in deg.per.type) {
         all.genes <- c(all.genes, sub.genes[1:min(length(sub.genes), g)])
@@ -175,9 +175,9 @@ create_sig_matrix <- function(
       }
 
       # estimate condition number of reduced matrix
-      cond.nums <- c(cond.nums, kappa(ref.profiles[all.genes, ], exact = FALSE))
+      cond.nums <- c(cond.nums, kappa(ref.profiles[all.genes, ,drop=F], exact = FALSE))
     }
-    optimal.g <- (5:limit)[which.min(cond.nums)]
+    optimal.g <- (1:limit)[which.min(cond.nums)]
     # cond.num.plot <- ggplot() +
     #   geom_point(aes(x = 5:limit, y = cond.nums), col = "red") +
     #   geom_line(aes(x = 5:limit, y = cond.nums), col = "black") +
