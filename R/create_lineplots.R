@@ -36,12 +36,19 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     # create display labels for gene sets and sort according to number of genes if possible
     metric <- results.df$metric[1]
     if(!is.null(genesets)) {
-        if(all(results.df$geneset %in% names(genesets))){
+        # for debugging purposes
+        print(str(genesets))
+        if(all(unique(results.df$geneset) %in% names(genesets))){
             geneset.labs <- paste(names(genesets), "\n(", as.numeric(sapply(genesets, function(x) length(which(x %in% available.features)))), " genes)", sep = "")
         }else{
             geneset.labs <- levels(results.df$geneset)
         }
-        geneset.limits <- names(sort(sapply(genesets, function(x) length(which(x %in% available.features)))))
+        geneset.sizes <- sapply(genesets, function(x) length(which(x %in% available.features)))
+        geneset.labs <- geneset.labs[order(geneset.sizes)]
+        geneset.limits <- names(sort(geneset.sizes))
+        # for debugging purposes
+        print(geneset.labs)
+        print(geneset.limits)
     }else{
         geneset.labs <- levels(results.df$geneset)
         geneset.limits <- levels(results.df$geneset)
@@ -53,29 +60,31 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
         sub.df <- results.df[which(results.df$cell_type == t), ]
         # create data frame containing score for each algorithm and gene set for this cell type
 	    temp.scores <- tapply(sub.df$score, list(sub.df$algorithm, sub.df$geneset), mean)
+	    temp.sds <- tapply(sub.df$score, list(sub.df$algorithm, sub.df$geneset), sd)
     	temp.times <- tapply(sub.df$time, list(sub.df$algorithm, sub.df$geneset), mean)
     	sub.df <- c()
     	for(i in 1:ncol(temp.scores)) {
             for(j in 1:nrow(temp.scores)) {
                 sub.df <- rbind(sub.df,
-                            c(rownames(temp.scores)[j], colnames(temp.scores)[i], temp.scores[j, i], temp.times[j,i])
+                            c(rownames(temp.scores)[j], colnames(temp.scores)[i], temp.scores[j, i], temp.times[j,i], temp.sds[j, i])
                 )
             }
     	}
     	sub.df <- as.data.frame(sub.df)
-    	colnames(sub.df) <- c("algorithm", "geneset", "score", "time")
+    	colnames(sub.df) <- c("algorithm", "geneset", "score", "time", "sd")
     	sub.df$score <- as.numeric(as.character(sub.df$score))
     	sub.df$time <- as.numeric(as.character(sub.df$time))
 
         cell.type.plots[[t]] <- ggplot(sub.df, aes(x=geneset, y = score, group = algorithm, col = algorithm)) +
             geom_line(size = 2) + geom_point() +
+            geom_errorbar(aes(x = geneset, ymin = score - sd, ymax = score + sd), position = "dodge") +
             xlab("gene set (increasing size)") +
             ylab(metric) +
             ggtitle(paste(
             "deconvolution quality using different gene sets (", t, ")",
             sep = ""
             )) +
-            scale_x_discrete(limits = geneset.limits) +
+            scale_x_discrete(limits = geneset.limits, labels = geneset.labs) +
             guides(linetype = guide_legend(override.aes = list(size = 2)))
             if(metric == "cor"){
                 cell.type.plots[[t]] <- cell.type.plots[[t]] + ylim(0,1)

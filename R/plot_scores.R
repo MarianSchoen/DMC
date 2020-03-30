@@ -62,12 +62,15 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
 
       # order by performance if ordering is not given
       ranking <- tapply(quality.scores$value, quality.scores$algorithm, mean)
+      sds <- tapply(quality.scores$value, quality.scores$algorithm, sd)
       if(is.null(algorithm.order)){
         quality.scores$algorithm <- factor(quality.scores$algorithm,
                                            levels = levels(quality.scores$algorithm)[order(ranking)])
+        sds <- sds[order(ranking)]
         ranking <- sort(ranking)
       }else{
         quality.scores$algorithm <- factor(quality.scores$algorithm, levels = algorithm.order)
+        sds <- sds[algorithm.order]
         ranking <- ranking[algorithm.order]
       }
       
@@ -90,7 +93,8 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
         ylab("algorithm") +
         ggtitle(title, subtitle = metric) +
         scale_size_continuous(
-          range = c(1, max(quality.scores$value) * 25),
+          limits = c(0, 25),
+          range = c(min(quality.scores$value)*25, max(quality.scores$value) * 25),
           guide = "none"
         ) +
         theme(
@@ -111,6 +115,8 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
             levels(quality.scores$algorithm),
             "\nr=",
             round(ranking, 2),
+            " +/- ",
+            round(sds, 2),
             sep = ""
           ),
           minor_breaks = seq(

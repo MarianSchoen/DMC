@@ -43,7 +43,8 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
 
     # plot condition numbers as barplot
     cond_num_plot <- ggplot(overall.df) +
-        geom_bar(aes(x = as.numeric(algorithm), y = condition_number, fill = algorithm), stat = "identity", position = "dodge") +
+        geom_bar(aes(x = algorithm, y = condition_number, fill = algorithm), stat = "identity", position = "dodge") +
+        geom_errorbar(aes(x = algorithm, ymin = condition_number - condition_variation, ymax = condition_number + condition_variation)) +
         ggtitle("average signature matrix condition number") +
         ylab("condition number") +
         xlab("algorithm")
