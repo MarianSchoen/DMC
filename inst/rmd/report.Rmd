@@ -30,9 +30,9 @@ function.call <- input_params$function.call
 grouping <- input_params$grouping
 ```
 
-## Deconvolution Benchmark
+# Deconvolution Benchmark
 
-### Input data
+## Input data
 Parameters of the `benchmark` call:
 ```{r}
 function.call.list <- as.list(function.call)
@@ -101,32 +101,50 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
   score.width <- 2 * length(unique(real.df$cell_type))
   score.height <- 2 * length(algorithm.names)
 ```
+
+### Score plot
 ```{r score_plot, echo = FALSE, fig.width = score.width, fig.height = score.height}
 plot(score.plot)
-```
+```  
+
+Deconvolution result for real bulks per algorithm and cell type. The value is the pearson correlation coefficient, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined correlations were set to 0. The overall column contains the average performance of the algorithm across all cell types.
+In case of multiple repetitions, the plotted scores are averages over all repetitions. The pearson r specified for each algorithm corresponds to the 'overall' column. Uncertainty (standard deviation) of the overall performance is specified for each algorithm as well.
 \pagebreak  
 
-
+### Runtime plot
 ```{r runtime_plot, echo = FALSE, fig.width = 16, fig.height = 9}
 plot(runtime.plot)
-```
+```  
+  
+Runtime per algorithm. Due to possible large differences in runtime the scale on the y-axis is transformed using the log10. In case of multiple repetitions, the plotted runtimes are averages over all repetitions.
 \pagebreak  
 
-
+### Scatter plots of quantities
 ```{r scatter_plots, echo = FALSE, fig.width = 18, fig.height = 5}
 for(l in scatter.plots.list){
 	for(p in l) {
 		plot(p)
 	}
 }
-```
+```  
+
+Comparison of the real cell type quantities and the estimated quantities per cell type for each algorithm. Only the results of the first repetition are shown.
 
 \pagebreak
+### Condition number plots
 ```{r condition_plots, fig.width = 16, fig.height = 9}
 plot(cond.num.plots$cond_num_plot)
 plot(cond.num.plots$cond_vs_score)
 plot(cond.num.plots$variation_plot)
-```
+```  
+
+1) Average condition numbers of the reference matrices produced by different algorithms (models).  
+  
+2) Dependency of score (average overall pearson correlation) on condition number of the model  
+  
+3) Standard deviation of the score (correlation) of the model across multiple repetitions depending on the variability of the model's condition number  
+  
+\pagebreak
 
 ## Simulations
 ```{r simulation_results, echo = FALSE}
@@ -203,11 +221,18 @@ if(dir.exists(paste(temp.dir, "/results/simulation/subtypes", sep=""))){
 ```
 
 ### Bulk simulations
+### Score plot
 ```{r bulk_sim_scores, fig.width = score.width, fig.height = score.height}
 if(exists("score.plot.sim"))
 	plot(score.plot.sim)
-```
+```  
+  
+Deconvolution result for simulated bulks per algorithm and cell type. The value is the pearson correlation coefficient, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined correlations were set to 0. The overall column contains the average performance of the algorithm across all cell types.
+In case of multiple repetitions, the plotted scores are averages over all repetitions. The pearson r specified for each algorithm corresponds to the 'overall' column. Uncertainty (standard deviation) of the overall performance is specified for each algorithm as well.  
+Bulks were simulated by adding up a fixed number of randomly sampled single-cell profiles.
+\pagebreak
 
+### Scatter plot of quantities
 ```{r bulk_sim_scatter, fig.width = 18, fig.height = 5}
 if(exists("scatter.plots.list.sim")){
 	for(l in scatter.plots.list.sim){
@@ -216,35 +241,64 @@ if(exists("scatter.plots.list.sim")){
 		}
 	}
 }
-```
+```  
+
+Comparison of the real cell type quantities (in the simulated bulks) and the estimated quantities per cell type for each algorithm. Only the results of the first repetition are shown.
 
 \pagebreak
 ### Training set size simulation
+### Score boxplots
 ```{r sample_sim, fig.width = 16, fig.height = 9}
 if(exists("sample.plots")){
 	for(p in sample.plots$cell.type.plots) plot(p)
 }
-```
+```  
+
+Variability of performance of algorithms using different amounts and selection of training data for learning and reference profile creation. The score is the average correlation across multiple repetitions (if number of repetitions greater than 1). Overall denotes the average correlation coefficient of all cell types. Bulks used for deconvolution were simulated by adding up a fixed number of randomly sampled expression profiles.
 
 \pagebreak
 ### Geneset simulation
-```{r geneset_sim, fig.width = 16, fig.height = 9}
+
+### Runtime lineplot
+```{r geneset_sim_time, fig.width = 16, fig.height = 9}
 if(exists("gene.plots")){
 	plot(gene.plots$runtime.plot)
+}
+```  
+  
+Runtime of algorithms depending on the gene set supplied for deconvolution. Each algorithm performed a separate feature selection on the gene set to obtain the features used in the model. Gene sets are ordered by the size of the intersect of features available in the gene set and the single-cell data.
+
+### Score lineplots
+```{r geneset_sim, fig.width = 16, fig.height = 9}
+if(exists("gene.plots")){
 	for(p in gene.plots$cell.type.plots)
 		plot(p)
 }
-```
+```  
+
+Performance of algorithms depending ont the gene set supplied for deconvolution. Each algorithm performed a separate feature selection on the gene set to obtain the features used in the model. Gene sets are ordered by the size of the intersect of features available in the gene set and the single-cell data. Score is the pearson correlation averaged of multiple repetitions. Errorbars show standard deviation of the score across repetitions.
+
+\pagebreak
 
 ### Subtype simulation
+### Score plot
 ```{r subtype_sim, fig.width = score.width, fig.height = score.height}
 if(exists("score.plot.subtype")){
   plot(score.plot.subtype)
 }
-```
+```  
+  
+Deconvolution result for simulated bulks per algorithm and cell type. The value is the pearson correlation coefficient, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined correlations were set to 0. The overall column contains the average performance of the algorithm across all cell types.
+In case of multiple repetitions, the plotted scores are averages over all repetitions. The pearson r specified for each algorithm corresponds to the 'overall' column. Uncertainty (standard deviation) of the overall performance is specified for each algorithm as well.  
+Bulks were simulated by adding up a fixed number of randomly sampled single-cell profiles.  
+For each cell type, a fixed number of subtypes was simulated based on t-SNE embedding and unsupervised clustering. Deconvoution was performed with a reference profile for each subtype and the estimated quantities of all subtypes of the same cell type were added to arrive at the final estimation for each cell type.
 \pagebreak
-```{r, fig.width = 10, fig.height = 9}
+### Runtime plot
+```{r, fig.width = 16, fig.height = 9}
 if(exists("runtime.plot.subtype")){
   plot(runtime.plot.subtype)
 }
-```
+```  
+  
+Runtime for the benchmark described above. Do the runtimes depend on the number of cell types to be estimated?  
+
