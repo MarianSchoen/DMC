@@ -1,4 +1,4 @@
-plot_cond_num <- function(results.df, metric = "cor"){
+plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     require(ggplot2)
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
@@ -37,6 +37,9 @@ plot_cond_num <- function(results.df, metric = "cor"){
     overall.df$condition_variation <- as.numeric(as.character(overall.df$condition_variation))
     overall.df$score <- as.numeric(as.character(overall.df$score))
     overall.df$score_variation <- as.numeric(as.character(overall.df$score_variation))
+    if(!is.null(algorithm.order)){
+        overall.df$algorithm <- factor(overall.df$algorithm, levels = algorithm.order)
+    }
 
     # plot condition numbers as barplot
     cond_num_plot <- ggplot(overall.df) +

@@ -1,4 +1,4 @@
-create_boxplots <- function(results.df, metric = "cor") {
+create_boxplots <- function(results.df, metric = "cor", celltype.order = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
@@ -10,15 +10,24 @@ create_boxplots <- function(results.df, metric = "cor") {
         stop("unknown metric. choose one of 'cor', 'mad', 'rmsd'")
     }
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
-    # order algorithms by performance
-    performances <- tapply(overall.df$score, overall.df$algorithm, median)
-    results.df$algorithm <- factor(results.df$algorithm, levels = levels(overall.df$algorithm)[order(performances)])
+    
+    # order algorithms by performance or by given vector
+    if(is.null(algorithm.order)){
+        performances <- tapply(overall.df$score, overall.df$algorithm, median)
+        results.df$algorithm <- factor(results.df$algorithm, levels = levels(overall.df$algorithm)[order(performances)])
+    }else{
+        results.df$algorithm <- factor(results.df$algorithm, levels = algorithm.order) 
+    }
+    if(!is.null(celltype.order)){
+        results.df$cell_type <- factor(results.df$cell_type, levels = celltype.order)
+    }
+    
     
     metric <- results.df$metric[1]
 
     # create boxplots for each cell type (including overall)
     cell.type.plots <- list()
-    for(t in unique(results.df$cell_type)) {
+    for(t in levels(results.df$cell_type)) {
         sub.df <- results.df[which(results.df$cell_type == t), ]
         cell.type.plots[[t]] <- ggplot(sub.df, aes(x = algorithm, y = score)) +
             geom_boxplot(aes(col = algorithm)) +

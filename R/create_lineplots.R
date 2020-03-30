@@ -1,4 +1,4 @@
-create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL) {
+create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL, celltype.order = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
@@ -20,13 +20,21 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
         }
     }
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
-    # order algorithms by performance
-    performances <- tapply(overall.df$score, overall.df$algorithm, median)
-    overall.df$algorithm <- factor(overall.df$algorithm, levels = levels(overall.df$algorithm)[order(performances)])
-    results.df$algorithm <- factor(results.df$algorithm, levels = levels(overall.df$algorithm)[order(performances)])
+    
+    # order algorithms by performance or given order
+    if(is.null(algorithm.order)){
+        performances <- tapply(overall.df$score, overall.df$algorithm, median)
+        results.df$algorithm <- factor(results.df$algorithm, levels = levels(overall.df$algorithm)[order(performances)])
+    }else{
+        results.df$algorithm <- factor(results.df$algorithm, levels = algorithm.order)
+    }
+    if(!is.null(celltype.order)){
+        results.df$cell_type <- factor(results.df$cell_type, levels = celltype.order)
+    }
+    
 
     # create display labels for gene sets and sort according to number of genes if possible
-    metric <- overall.df$metric[1]
+    metric <- results.df$metric[1]
     if(!is.null(genesets)) {
         if(all(results.df$geneset %in% names(genesets))){
             geneset.labs <- paste(names(genesets), "\n(", as.numeric(sapply(genesets, function(x) length(which(x %in% available.features)))), " genes)", sep = "")
@@ -39,9 +47,9 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
         geneset.limits <- levels(results.df$geneset)
     }
    
-    # create plot per cell type (oncluding overall)
+    # create plot per cell type (including overall)
     cell.type.plots <- list()
-    for(t in unique(results.df$cell_type)) {
+    for(t in levels(results.df$cell_type)) {
         sub.df <- results.df[which(results.df$cell_type == t), ]
         # create data frame containing score for each algorithm and gene set for this cell type
 	    temp.scores <- tapply(sub.df$score, list(sub.df$algorithm, sub.df$geneset), mean)

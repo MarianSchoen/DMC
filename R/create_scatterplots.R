@@ -1,4 +1,4 @@
-create_scatterplots <- function(results.list, real.props = NULL, training.pheno = NULL, real = FALSE) {
+create_scatterplots <- function(results.list, real.props = NULL, training.pheno = NULL, real = FALSE, celltype.order = NULL, algorithm.order = NULL) {
   require(ggplot2)
   if(!is.list(results.list)){
     stop("results.list must be a list as returned by deconvolute()")
@@ -40,6 +40,9 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
       colnames(df) <- c('real', 'estimate', 'type')
       df$real <- as.numeric(as.character(df$real))
       df$estimate <- as.numeric(as.character(df$estimate))
+      if(!is.null(celltype.order)){
+        df$type <- factor(df$type, levels = celltype.order)
+      }
       
       # add pearson r to cell type titles
       labs <- levels(df$type)
@@ -69,6 +72,11 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
           legend.text = element_text(size = 16)
         ) + ggtitle(res$name)
       scatter.plots[[res$name]] <- scatter.plot
+    }
+    if(!is.null(algorithm.order)){
+      if(all(algorithm.order %in% names(scatter.plots)) && length(scatter.plots) == length(algorithm.order)){
+        scatter.plots <- scatter.plots[algorithm.order]
+      }
     }
       return(scatter.plots)
 }

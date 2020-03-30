@@ -1,4 +1,4 @@
-plot_runtime <- function(results.df, title = NULL) {
+plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)) {
         stop("Invalid input: results.df has to be data frame as returned by prepare_data()")
@@ -16,6 +16,9 @@ plot_runtime <- function(results.df, title = NULL) {
 
     # create data frame and plot
     runtimes <- data.frame(algorithm = names(mean.times), runtime = mean.times, sd = sd.times)
+    if(!is.null(algorithm.order)){
+        runtimes$algorithm <- factor(runtimes$algorithm, levels = algorithm.order)
+    }
     runtime.plot <- ggplot(runtimes) +
     geom_bar(
         aes(

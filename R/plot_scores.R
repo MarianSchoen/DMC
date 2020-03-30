@@ -1,4 +1,4 @@
-evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props = NULL) {
+evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props = NULL, celltype.order = NULL, algorithm.order = NULL) {
     if(!is.data.frame(results.df)){
       stop("results.df must be a data frame")
     }
@@ -38,8 +38,12 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
                                     "measure")
       
       # create labels for cell types in table plots
-      labels <- levels(quality.scores$cell_type)
-      labels <- c("overall", labels[-which(labels == "overall")])
+      if(is.null(celltype.order)){
+        labels <- levels(quality.scores$cell_type)
+        labels <- c("overall", labels[-which(labels == "overall")])
+      }else{
+        labels <- celltype.order
+      }
       quality.scores$cell_type <- factor(quality.scores$cell_type, levels = labels)
       if(!is.null(real.props)) {
         for (i in 1:length(labels)) {
@@ -56,10 +60,17 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
       quality.scores$value[quality.scores$value < 0] <- 0
       quality.scores$value[is.na(quality.scores$value)] <- 0
 
-      # order by performance
+      # order by performance if ordering is not given
       ranking <- tapply(quality.scores$value, quality.scores$algorithm, mean)
-      quality.scores$algorithm <- factor(quality.scores$algorithm,
-                                         levels = levels(quality.scores$algorithm)[order(ranking)])
+      if(is.null(algorithm.order)){
+        quality.scores$algorithm <- factor(quality.scores$algorithm,
+                                           levels = levels(quality.scores$algorithm)[order(ranking)])
+        ranking <- sort(ranking)
+      }else{
+        quality.scores$algorithm <- factor(quality.scores$algorithm, levels = algorithm.order)
+        ranking <- ranking[algorithm.order]
+      }
+      
 
       # create table plot
       score.plot <- ggplot(quality.scores,
@@ -99,7 +110,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
           labels = paste(
             levels(quality.scores$algorithm),
             "\nr=",
-            round(ranking[order(ranking)], 2),
+            round(ranking, 2),
             sep = ""
           ),
           minor_breaks = seq(
@@ -134,5 +145,6 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
           high = "green",
           midpoint = 0.5
         )
-    return(score.plot)
+    # return the plot and the ordering of the axes
+    return(list(plot = score.plot, celltype.order = levels(quality.scores$cell_type), algorithm.order = levels(quality.scores$algorithm)))
 }
