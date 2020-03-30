@@ -66,7 +66,7 @@ benchmark <- function(
   n.subtypes = 3
   ){
 	if(verbose) print("calculating checksum")
-	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.subtypes))
+	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.subtypes, genesets))
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
@@ -191,11 +191,15 @@ benchmark <- function(
 	}
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
-	write_data(sc.counts, sc.pheno, real.counts, real.props, filename = paste(output.folder,"input_data/raw.h5", sep = "/"))
-	write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))
-
+	if(!file.exists(paste(output.folder, "input_data/raw.h5", sep = "/"))){
+		write_data(sc.counts, sc.pheno, real.counts, real.props, filename = paste(output.folder,"input_data/raw.h5", sep = "/"))
+	}
+	if(!file.exists(paste(output.folder, "input_data/params.h5", sep = "/"))){
+		write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))
+	}
 	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
+		print("processing data")
 		if(cpm){
 			sc.counts <- scale_to_count(sc.counts)
 			real.counts <- scale_to_count(real.counts)
@@ -246,11 +250,11 @@ benchmark <- function(
 	previous.results <- list()
 	# read available files for this benchmark
 	if(dir.exists(paste(output.folder,"/results/real/",sep=""))){
-		files <- list.files(paste(output.folder, "/results/real/", sep = ""), full.names = T, pattern = "*.rds")
+		files <- list.files(paste(output.folder, "/results/real/", sep = ""), full.names = T, pattern = "*.h5")
 		if(length(files) > 0){
 			for(i in 1:length(files)){
 				f <- files[i]
-				previous.results[[i]] <- readRDS(f)
+				previous.results[[i]] <- read_result_list(f)
 			}
 		  
 		}
@@ -271,7 +275,9 @@ benchmark <- function(
 	res.no <- length(previous.results) + 1
 
 	# deconvolute real bulks
+	print("real")
 	if(length(to.run)>0){
+		print(to.run)
 		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
 		#saveRDS(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".rds",sep=""))
 		write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))
@@ -286,11 +292,11 @@ benchmark <- function(
 		# read previous results and exclude present algorithms
 		previous.results <- list()
 		if(dir.exists(paste(output.folder, "/results/simulation/",s,"/", sep=""))){
-			files <- list.files(paste(output.folder, "/results/simulation/",s,"/",sep = ""), full.names = T, pattern = "*.rds")
+			files <- list.files(paste(output.folder, "/results/simulation/",s,"/",sep = ""), full.names = T, pattern = "*.h5")
 			if(length(files) > 0){
 			for(i in 1:length(files)) {
 				f <- files[i]
-				previous.results[[i]] <- readRDS(f)
+				previous.results[[i]] <- read_result_list(f)
 			}
 			}
 		}else{
