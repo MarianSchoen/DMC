@@ -37,7 +37,7 @@ prepare_data <- function(results.all, metric="cor") {
 
                     # calculate condition number if reference is available
                     if(!is.null(r$sig.matrix)) {
-                        cond.num <- kappa(r$sig.matrix, exact = F)
+                        cond.num <- kappa(r$sig.matrix, exact = T)
                     }else{
                         cond.num <- NA
                     }
@@ -68,7 +68,7 @@ prepare_data <- function(results.all, metric="cor") {
                 name <- r$name
                 time <- as.numeric(r$times)
                 if(!is.null(r$sig.matrix)) {
-                        cond.num <- kappa(r$sig.matrix, exact = F)
+                        cond.num <- kappa(r$sig.matrix, exact = T)
                     }else{
                         cond.num <- NA
                     }
