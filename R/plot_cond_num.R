@@ -44,14 +44,14 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     # plot condition numbers as barplot
     cond_num_plot <- ggplot(overall.df) +
         geom_bar(aes(x = algorithm, y = condition_number, fill = algorithm), stat = "identity", position = "dodge") +
-        geom_errorbar(aes(x = algorithm, ymin = condition_number - condition_variation, ymax = condition_number + condition_variation)) +
+        geom_errorbar(aes(x = algorithm, ymin = condition_number - condition_variation, ymax = condition_number + condition_variation), width = 0.2) +
         ggtitle("average signature matrix condition number") +
         ylab("condition number") +
         xlab("algorithm")
 
     # plot score vs condition number
     cond_vs_score <- ggplot(overall.df) +
-        geom_point(aes(x = condition_number, y = score, col = algorithm)) +
+        geom_point(aes(x = condition_number, y = score, col = algorithm), size = 3) +
         ggtitle("score vs condition number") +
         xlab("condition number") +
         ylab("score")
@@ -61,7 +61,7 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
 
     # plot sd of score vs sd of condition number
     variation_plot <- ggplot(overall.df) +
-        geom_point(aes(x = condition_variation, y = score_variation, col = algorithm)) +
+        geom_point(aes(x = condition_variation, y = score_variation, col = algorithm), size = 3) +
         ggtitle("SDs of score vs SDs of condition number") +
         xlab("condition number SD") +
         ylab("score SD")

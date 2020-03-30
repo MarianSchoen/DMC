@@ -36,8 +36,6 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     # create display labels for gene sets and sort according to number of genes if possible
     metric <- results.df$metric[1]
     if(!is.null(genesets)) {
-        # for debugging purposes
-        print(str(genesets))
         if(all(unique(results.df$geneset) %in% names(genesets))){
             geneset.labs <- paste(names(genesets), "\n(", as.numeric(sapply(genesets, function(x) length(which(x %in% available.features)))), " genes)", sep = "")
         }else{
@@ -46,9 +44,6 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
         geneset.sizes <- sapply(genesets, function(x) length(which(x %in% available.features)))
         geneset.labs <- geneset.labs[order(geneset.sizes)]
         geneset.limits <- names(sort(geneset.sizes))
-        # for debugging purposes
-        print(geneset.labs)
-        print(geneset.limits)
     }else{
         geneset.labs <- levels(results.df$geneset)
         geneset.limits <- levels(results.df$geneset)
@@ -79,7 +74,7 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
 
         cell.type.plots[[t]] <- ggplot(sub.df, aes(x=geneset, y = score, group = algorithm, col = algorithm)) +
             geom_line(size = 2) + geom_point() +
-            geom_errorbar(aes(x = geneset, ymin = score - sd, ymax = score + sd)) +
+            geom_errorbar(aes(x = geneset, ymin = score - sd, ymax = score + sd), width = 0.2) +
             xlab("gene set (increasing size)") +
             ylab(metric) +
             ggtitle(paste(
