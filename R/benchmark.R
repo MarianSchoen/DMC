@@ -199,7 +199,6 @@ benchmark <- function(
 	}
 	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
-		
 		if(cpm){
 			sc.counts <- scale_to_count(sc.counts)
 			real.counts <- scale_to_count(real.counts)
@@ -218,9 +217,6 @@ benchmark <- function(
     subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
     sc.pheno <- subtype.return$sc.pheno
     # exclude subtypes of cell types to exclude from reference matrix as well
-    if(any(sc.pheno$cell_type %in% exclude.from.signature)){
-    	exclude.from.signature <- c(exclude.from.signature, unique(paste(sc.pheno$cell_type ,sc.pheno$subtype, sep = ".")[which(sc.pheno$cell_type %in% exclude.from.signature)]))
-    }
 		# split (randomly at the moment) into test and validation set
 		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
 		training.exprs <- split.data$training$exprs
@@ -237,6 +233,9 @@ benchmark <- function(
 		# save processed data for later use and repeated benchmarks
 		write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))
 		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
+	}
+	if(any(sc.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(sc.pheno)){
+	  exclude.from.signature <- c(exclude.from.signature, unique(paste(sc.pheno$cell_type ,sc.pheno$subtype, sep = ".")[which(sc.pheno$cell_type %in% exclude.from.signature)]))
 	}
 	
 	# we have not agreed on whether data plots should be generated yet ...
