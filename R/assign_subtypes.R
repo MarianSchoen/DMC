@@ -23,8 +23,15 @@ assign_subtypes <- function(
   require(Rtsne)
   # parameter checks
   if(!celltypecol %in% names(sc.pheno)) stop("celltype column not in data frame")
-  if("subtype" %in% names(sc.pheno)) stop("subtype column already present")
-  if(ncol(sc.counts) != nrow(sc.pheno)) stop("expression and pheno data do not match")
+  if("subtype" %in% names(sc.pheno)) {
+    warning("subtype column already present. returning data frame unchanged")
+    return(list(sc.pheno = sc.pheno, tsne.embed = NULL))
+  }
+  if(ncol(sc.counts) != nrow(sc.pheno)) stop("number of columns in sc.counts and rows in sc.pheno do not match")
+  if(!is.list(sub.list)){
+    stop("sub.list must be a list")
+  }
+
   tsne.embed <- Rtsne(t(sc.counts), ...)
   # add default subtype 1
   sc.pheno <- cbind(sc.pheno, subtype = rep(1, nrow(sc.pheno)))

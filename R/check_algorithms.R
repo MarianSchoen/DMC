@@ -5,6 +5,9 @@
 #' @return
 #' @export
 check_algorithms <- function(algorithms){
+    if (!length(algorithms) > 0 || any(sapply(algorithms, length) != 2)) {
+    stop("Check algorithm list")
+  }
     # generate random scRNA-seq like data 
     random.data <- DTD::generate_random_data(
         n.types = 3,
@@ -45,8 +48,8 @@ check_algorithms <- function(algorithms){
     	
         if(!is.list(res) || !all(c("est.props", "sig.matrix") %in% names(res))){
             stop(
-                paste0(
-                    "Algorithm ", a$name, " did not return expected values. 
+                paste(
+                    "Algorithm ", a$name, " did not return expected values (est.props, sig.matrix). 
                     Please check implementation"
                     )
             )

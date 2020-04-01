@@ -22,7 +22,7 @@
 create_bulks <- function(
     exprs, 
     pheno, 
-    n.bulks = 500, 
+    n.bulks = 1000, 
     include.in.bulks = NULL, 
     fraction.per.bulk = 0.1, 
     sum.to.count = TRUE
@@ -31,7 +31,16 @@ create_bulks <- function(
     if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
     }
-
+    if(!is.numeric(n.bulks)){
+        stop("n.bulks must be numeric")
+    }
+    if(!is.numeric(fraction.per.bulk)){
+        stop("fraction.per.bulk must be numeric (0,1)")
+    }else{
+        if(fraction.per.bulk <= 0 || fraction.per.bulk >= 1){
+            stop("fraction.per.bulk must be numeric (0,1)")
+        }
+    }
     # keep only specified cell types
     if (is.null(include.in.bulks)) {
         include.in.bulks <- unique(pheno[, "cell_type"])

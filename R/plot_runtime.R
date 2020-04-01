@@ -1,3 +1,5 @@
+# create runtime plot from output of prepare_data()
+
 plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)) {
@@ -8,6 +10,14 @@ plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
     }
     if (is.null(title))
        title <- "runtime comparison"
+    if(!is.null(algorithm.order)){
+        if(!is.character(algorithm.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(algorithm.order %in% unique(results.df$algorithm)) || length(algorithm.order) != length(unique(results.df$algorithm))){
+            stop("algorithm.order does not fit the algorithm column of results.df")
+        }
+    }
     # reduce to the overall rows
     results.df <- results.df[which(results.df$cell_type == "overall"),]
     # average over all runs

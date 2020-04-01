@@ -1,3 +1,4 @@
+# this function adds empty rows for all missing cell types to the estimates returned by an algorithm
 complete_estimates <- function(est.props, include.in.x){
   if(!is.matrix(est.props)){
     stop("est.props must be a matrix")

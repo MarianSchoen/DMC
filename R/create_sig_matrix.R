@@ -24,7 +24,7 @@
 create_sig_matrix <- function(
   exprs,
   pheno,
-  exclude.celltypes = c("malignant", "not_annotated", "unassigned"),
+  exclude.celltypes = NULL,
   max.genes = NULL,
   optimize = TRUE,
   split.data = TRUE
@@ -38,6 +38,9 @@ create_sig_matrix <- function(
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }
+  if (!is.null(max.genes) && max.genes == 0) {
+        max.genes <- NULL
+    }
   # exclude specified cell types
   if (!is.null(exclude.celltypes)) {
     to.exclude <- which(pheno[, "cell_type"] %in% exclude.celltypes)
@@ -178,12 +181,6 @@ create_sig_matrix <- function(
       cond.nums <- c(cond.nums, kappa(ref.profiles[all.genes, ,drop=F], exact = FALSE))
     }
     optimal.g <- (1:limit)[which.min(cond.nums)]
-    # cond.num.plot <- ggplot() +
-    #   geom_point(aes(x = 5:limit, y = cond.nums), col = "red") +
-    #   geom_line(aes(x = 5:limit, y = cond.nums), col = "black") +
-    #   ylab("condition number") + xlab("number of genes") +
-    #   ggtitle("condition number optimization", subtitle = as.character(4 + which.min(cond.nums))) +
-    #   geom_point(aes(x = optimal.g, y = min(cond.nums)), col = "green", shape = 8, size = 10)
   } else {
     optimal.g <- limit
   }

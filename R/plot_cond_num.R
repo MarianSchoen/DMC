@@ -1,3 +1,4 @@
+# create condition number plots from output of prepare_data()
 plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     require(ggplot2)
     if(!is.data.frame(results.df)){
@@ -8,6 +9,14 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     }
     if(!metric %in% c("cor", "mad", "rmsd")){
         stop("unknown metric. must be one of 'cor', 'mad', 'rmsd'")
+    }
+    if(!is.null(algorithm.order)){
+        if(!is.character(algorithm.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(algorithm.order %in% unique(results.df$algorithm)) || length(algorithm.order) != length(unique(results.df$algorithm))){
+            stop("algorithm.order does not fit the algorithm column of results.df")
+        }
     }
     # use only 'overall' rows
     results.df <- results.df[which(results.df$cell_type == "overall"), ]

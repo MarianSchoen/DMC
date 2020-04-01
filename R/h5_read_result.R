@@ -7,6 +7,9 @@
 #' @return list
 read_result_list <- function(filename, content = NULL, groupname = NULL) {
   library(rhdf5)
+  if(!file.exists(filename)) {
+    stop(paste("Could not find file ", filename, sep = ""))
+  }
   if(is.null(content)){
     content <- h5dump(filename)
   }

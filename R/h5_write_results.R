@@ -7,6 +7,8 @@
 #' @return NULL, function saves into ‘filename‘
 write_result_list <- function(results.all, filename, group = NULL){
   library(rhdf5)
+  # not sure what kind of safety checks one could use here
+  # results.all is either output of deconvolute/simulation functions or function will fail somewhere
   if(!file.exists(filename)) h5createFile(filename)
   if(any(sapply(results.all, function(x){is.list(x)}))){
     for(name in names(results.all)){

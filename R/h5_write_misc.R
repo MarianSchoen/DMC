@@ -9,6 +9,19 @@
 #' @return NULL, function saves into ‘filename‘
 write_misc_input <- function(genesets, algorithm.names, function.call, grouping, filename) {
   library(rhdf5)
+  if(!is.character(algorithm.names)){
+    stop("Invalid algorithm.names. Must be character vector.")
+  }
+  if(!is.call(function.call)){
+    stop("function.call must be of class call")
+  }
+  if(!is.factor(grouping) || length(levels(grouping)) != 2){
+    stop("grouping is not valid. Must be factor with two levels")
+  }
+  if(!is.list(genesets) || !all(sapply(genesets, function(x) is.character(x)))){
+    stop("genesets must be a list of character vectors")
+  }
+  
   h5createFile(filename)
   if(!is.null(genesets)){
     h5createGroup(filename, "genesets")

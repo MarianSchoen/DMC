@@ -110,14 +110,48 @@ benchmark <- function(
 		stop("Number of bulks in real.counts and real.props do not match")
 	}
 	if(is.null(genesets)){
-		warning("No gene sets provided skipping this benchmark")
-		sim.genes <- FALSE
+		warning("No gene sets provided; skipping that benchmark")
+		simulation.genes <- FALSE
 	}
 	if(!metric %in% c("cor", "mad", "rmsd")){
 		stop("metric must be one of 'cor', 'mad', 'rmsd'")
 	}
 	if(!is.factor(grouping) || !length(levels(grouping)) == 2 || !length(grouping) == ncol(sc.counts)){
 		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts) with two levels indicating training and validation set")
+	}
+	if(!all(is.logical(c(simulation.bulks, simulation.genes, simulation.samples, simulation.subtypes)))){
+		stop("Invalid value for at least one benchmark indicator. Have to be logical.")
+	}
+	if(!is.numeric(repeats)){
+		stop("Invalid number of repeats. Must be numeric.")
+	}
+	if(!is.numeric(n.bulks)){
+		stop("Invalid input. n.bulks must be numeric.")
+	}
+	if(!is.numeric(n.subtypes)){
+		stop("Invalid input. n.subtypes must be numeric")
+	}
+	if(repeats < 1){
+		warning("Repeats must be greater than 0. Setting to 1.")
+		repeats <- 1
+	}
+	if(n.subtypes < 1){
+		warning("Number of subtypes must be greater than 0. Setting to 1")
+		n.subtypes <- 1
+	}
+	if(n.bulks < 1){
+		warning("Number of bulks must be greater than 0. Setting to default.")
+		n.bulks <- 1000
+	}
+	if(!is.null(exclude.from.bulks)){
+		if(!all(exclude.from.bulks %in% unique(sc.pheno$cell_type))){
+			stop("Unknown cell type(s) in exclude.from.bulks. Please select only cell types present in pheno data.")
+		}
+	}
+	if(!is.null(exclude.from.signature)){
+		if(!all(exclude.from.signature %in% unique(sc.pheno$cell_type))){
+			stop("Unknown cell types(s) in exclude.from.signature. Please select only cell types present in pheno data.")
+		}
 	}
 
 	# check and process algorithms input

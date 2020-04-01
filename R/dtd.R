@@ -24,7 +24,8 @@ run_dtd <- function(exprs,
                     exclude.from.signature = NULL,
                     max.genes = NULL,
                     optimize = TRUE,
-                    split.data = TRUE) {
+                    split.data = TRUE,
+                    verbose = FALSE) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -39,9 +40,6 @@ run_dtd <- function(exprs,
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-  if(!exists("verbose")) verbose <- F
-  if(!exists("dtd.learn.seeding")) dtd.learn.seeding <- F
-  if(!exists("seeding")) seeding <- F
 
   exprs <- scale_to_count(exprs)
 
@@ -114,8 +112,6 @@ run_dtd <- function(exprs,
   # set the starting parameters to 1
   start.tweak <- rep(1, n.genes)
   names(start.tweak) <- top.features
-
-  if (dtd.learn.seeding) set.seed(1234)
 
   suppressMessages(
   dtd.model <- try(train_deconvolution_model(

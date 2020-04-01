@@ -36,9 +36,9 @@ run_least_squares <- function(exprs,
       }
   }
   if(!is.null(max.genes)){
-  if (max.genes == 0) {
-      max.genes <- NULL
-  }
+    if (max.genes == 0) {
+        max.genes <- NULL
+    }
   }
 
   # prepare phenotype data and cell types to use

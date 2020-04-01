@@ -1,3 +1,4 @@
+# create score plot from output of prepare_data
 evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props = NULL, celltype.order = NULL, algorithm.order = NULL) {
     if(!is.data.frame(results.df)){
       stop("results.df must be a data frame")
@@ -8,8 +9,27 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
     if (is.null(title)) {
         title <- "deconvolution quality"
     }
+    if(!metric %in% c("cor", "mad", "rmsd")){
+      stop("Invalid metric. Must be one of 'cor', 'mad', 'rmsd'")
+    }
     if(!is.null(real.props) && !is.matrix(real.props)){
       stop("real.props is not a matrix")
+    }
+    if(!is.null(celltype.order)){
+        if(!is.character(celltype.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(celltype.order %in% unique(results.df$cell_type)) || length(celltype.order) != length(unique(results.df$cell_type))){
+            stop("celltype.order does not fit the cell_type column of results.df")
+        }
+    }
+    if(!is.null(algorithm.order)){
+        if(!is.character(algorithm.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(algorithm.order %in% unique(results.df$algorithm)) || length(algorithm.order) != length(unique(results.df$algorithm))){
+            stop("algorithm.order does not fit the algorithm column of results.df")
+        }
     }
     # reduce to one entry per cell type and algorithm by taking the mean
     quality.scores <- c()

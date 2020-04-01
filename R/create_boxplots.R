@@ -1,3 +1,4 @@
+# create boxplots from a data frame as returned by prepare_data()
 create_boxplots <- function(results.df, metric = "cor", celltype.order = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)){
@@ -9,6 +10,22 @@ create_boxplots <- function(results.df, metric = "cor", celltype.order = NULL, a
     if(!metric %in% c("cor", "mad", "rmsd")){
         stop("unknown metric. choose one of 'cor', 'mad', 'rmsd'")
     }
+    if(!is.null(celltype.order)){
+        if(!is.character(celltype.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(celltype.order %in% unique(results.df$cell_type)) || length(celltype.order) != length(unique(results.df$cell_type))){
+            stop("celltype.order does not fit the cell_type column of results.df")
+        }
+    }
+    if(!is.null(algorithm.order)){
+        if(!is.character(algorithm.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(algorithm.order %in% unique(results.df$algorithm)) || length(algorithm.order) != length(unique(results.df$algorithm))){
+            stop("algorithm.order does not fit the algorithm column of results.df")
+        }
+    }
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
     
     # order algorithms by performance or by given vector
@@ -18,6 +35,7 @@ create_boxplots <- function(results.df, metric = "cor", celltype.order = NULL, a
     }else{
         results.df$algorithm <- factor(results.df$algorithm, levels = algorithm.order) 
     }
+    # order cell types by supplied vector
     if(!is.null(celltype.order)){
         results.df$cell_type <- factor(results.df$cell_type, levels = celltype.order)
     }

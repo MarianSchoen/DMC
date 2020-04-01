@@ -33,9 +33,9 @@ run_bseqsc <- function(
   exclude.from.signature = NULL,
   max.genes = NULL,
   optimize = TRUE,
-  split.data = TRUE
+  split.data = TRUE,
+  verbose = FALSE
   ) {
-  if(!exists("verbose")) verbose <- FALSE
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")

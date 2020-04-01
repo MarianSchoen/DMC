@@ -58,7 +58,7 @@ deconvolute <- function(training.expr,
   	}
   }else{
 	  if(is.null(bulks)){
-		  stop("Have to supply either test data or pre-built bulks")
+		  stop("Need either test data or pre-built bulks")
 	  }
   }
   if (!is.null(max.genes) && max.genes == 0) {

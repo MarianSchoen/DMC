@@ -1,3 +1,4 @@
+# create lineplots from data frame as returned by prepare_data()
 create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL, celltype.order = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)){
@@ -17,6 +18,22 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     if(!is.null(available.features)){
         if(!is.character(available.features)){
             stop("available features must be a charcter vector")
+        }
+    }
+    if(!is.null(celltype.order)){
+        if(!is.character(celltype.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(celltype.order %in% unique(results.df$cell_type)) || length(celltype.order) != length(unique(results.df$cell_type))){
+            stop("celltype.order does not fit the cell_type column of results.df")
+        }
+    }
+    if(!is.null(algorithm.order)){
+        if(!is.character(algorithm.order)){
+            stop("celltype.order must be a charcter vector")
+        }
+        if(!all(algorithm.order %in% unique(results.df$algorithm)) || length(algorithm.order) != length(unique(results.df$algorithm))){
+            stop("algorithm.order does not fit the algorithm column of results.df")
         }
     }
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]

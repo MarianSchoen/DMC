@@ -5,6 +5,15 @@
 #'
 #' @return 
 prepare_data <- function(results.all, metric="cor") {
+    if(!metric %in% c("cor", "mad", "rmsd")){
+        stop("Invalid metric. Must be one of 'cor', 'mad', 'rmsd'")
+    }
+
+    # this test is by far not enough; not sure how to it though
+    if(!is.list(results.all)){
+        stop("results.all must be a list of lists that were returned by deconvolute or one of the simulation functions")
+    }
+    
     df <- c()
     # extract real proportions from lists
     real.props <- results.all$bulk.props

@@ -9,8 +9,12 @@
 #'  - bulk.counts: numeric matrix, features as rows, bulk measurements as 
 #'  columns\cr
 #'  - bulk.props: numeric matrix, cell types as columns, bulks as columns
-read_data <- function(filename){
+read_data <- function(filename, pheno.rowname.column = NULL){
   library(rhdf5)
+  if(!file.exists(filename)) {
+    stop(paste("Could not find file ", filename, sep = ""))
+  }
+
   content <- h5ls(filename, recursive = T)
   # read data that was stored using write_data
   # assume that if a group is present, all expected subgroups etc are available
@@ -51,8 +55,10 @@ read_data <- function(filename){
       }
     }
     colnames(sc.pheno) <- pheno.names
-    if(any(pheno.names == "sample.name")){
-	    rownames(sc.pheno) <- sc.pheno[["sample.name"]]
+    if(!is.null(pheno.rowname.column)){
+      if(any(pheno.names == pheno.rowname.column)){
+        rownames(sc.pheno) <- sc.pheno[[pheno.rowname.column]]
+      }
     }
   }else{
     sc.counts <- NULL

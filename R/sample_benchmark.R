@@ -1,5 +1,30 @@
+# training set size benchmark
 sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE) {
 # parameter checks
+if(ncol(training.exprs) != nrow(training.pheno)){
+    stop("training.exprs and training.pheno do not match")
+  }
+  if(!is.null(test.exprs) || !is.null(test.pheno)){
+    if(ncol(test.exprs) != nrow(test.pheno)){
+      stop("test.exprs and test.pheno do not match")
+    }
+  }
+  if(!is.null(bulk.data)){
+    if(!is.list(bulk.data) || !c("bulks", "props") %in% names(bulk.data)){
+      stop("bulk.data has the wrong format")
+    }
+  }
+  if(!is.numeric(n.repeats)){
+    stop("n.repeats has to be numeric")
+  }
+  if(n.repeats < 1){
+    warning("n.repeats has to be greater than 0. setting to 1")
+    n.repeats <- 1
+  }
+  if(!is.numeric(step.size) || step.size <= 0 || step.size >= 1){
+    stop("step.size must be numeric in (0,1)")
+  }
+
 sample.size.lists <- list()
 for(i in seq(1, 1 / step.size)){
   sample.size.lists[[as.character(i*step.size)]] <- list()
