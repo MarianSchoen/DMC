@@ -1,4 +1,4 @@
-geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, genesets, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, verbose = FALSE){
+geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, genesets, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, verbose = FALSE, split.data = FALSE){
   geneset.lists <- list()
   if(!all(sapply(genesets, function(x){any(x %in% rownames(training.exprs))}))){
     stop("one or more genesets do not contain any genes present in the expression data")
@@ -29,7 +29,7 @@ geneset_benchmark <- function(training.exprs, training.pheno, test.exprs, test.p
       test.pheno = test.pheno,
       algorithms = algorithms,
       verbose = verbose,
-      split.data = FALSE,
+      split.data = split.data,
       exclude.from.signature = exclude.from.signature,
       optimize = TRUE,
       max.genes = nrow(temp.exprs),

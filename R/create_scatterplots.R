@@ -29,7 +29,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
       dfs[[n]] <- data.frame()
     }
     # create scatter plots only for one repetition
-    for (j in 1:length(results.list)) {   
+    for (j in 1:length(results.list)) {
       for(res in results.list[[j]]){
         # only cell types that are in real props and estimates
         cts <- intersect(rownames(res$est.props), rownames(real.props))
@@ -49,25 +49,34 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
         dfs[[res$name]] <- rbind(dfs[[res$name]], df)
       }
     }
-    # plot here...
+
     for(name in names(dfs)){
       df <- dfs[[name]]
       if(!is.null(celltype.order)){
           df$type <- factor(df$type, levels = celltype.order)
         }
-      cors <- as.numeric(as.character(unique(df$cor)))
+      cors <- matrix(NA, nrow = length(unique(df$repetition)), ncol = length(levels(df$type)))
+      rownames(cors) <- 1:nrow(cors)
+      colnames(cors) <- levels(df$type)
+      for(r in unique(df$repetition)){
+        for(ct in unique(df$type)){
+          temp <- as.numeric(as.character(unique(df[which(df$repetition == r & df$type == ct),"cor"])))
+          if(!is.null(temp) && !is.na(temp)){
+            cors[r, ct] <- temp
+          }
+        }
+      }
       
       labs <- levels(df$type)
       temp <- rep("", length(labs))
       for(i in 1:length(labs)){
-        data.points <- which(df$type == labs[i])
-        temp[i] <- paste(labs[i], "\nr = ", round(mean(as.numeric(as.character(unique(df[data.points, "cor"])))), 2), " +/- ", round(sd(as.numeric(as.character(unique(df[data.points, "cor"])))), 2), sep = "")
+        temp[i] <- paste(labs[i], "\nr = ", round(mean(cors[,labs[i]]), 2), " +/- ", round(sd(cors[,labs[i]]), 2), sep = "")
       }
       names(temp) <- labs
       labs <- temp
 
-      scatter.plot <- ggplot(df) +
-        geom_point(aes(x = real, y = estimate, col = as.factor(repetition)), size = 2) +
+      scatter.plot <- ggplot(df, aes(x = real, y = estimate, col = as.factor(repetition))) +
+        geom_point(size = 2) +
         facet_grid(
           rows = NULL,
           cols = vars(type),
@@ -82,38 +91,9 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
             legend.title = element_text(size = 18),
             legend.text = element_text(size = 16)
         ) + 
-        ggtitle(res$name)
+        ggtitle(name)
         scatter.plots[[name]] <- scatter.plot
     }
-
-     # # add pearson r to cell type titles
-        # labs <- levels(df$type)
-        # temp <- rep("", length(labs))
-        # for (i in 1:length(labs)) {
-        #   data.points <- which(df$type == labs[i])
-        #   temp[i] <- paste(labs[i], "\nr = ", round(cor(df[data.points, 1], df[data.points, 2]), 2), sep = "")
-        # }
-        # names(temp) <- labs
-        # labs <- temp
-        
-        # # create scatter plots
-        # scatter.plot <- ggplot(df) +
-        #   geom_point(aes(x = real, y = estimate, col = type), size = 2) +
-        #   facet_grid(
-        #     rows = NULL,
-        #     cols = vars(type),
-        #     labeller = labeller(type = labs)
-        #   ) +
-        #   xlab("real") + ylab("estimate") +
-        #   labs(col = 'cell type') +
-        #   theme(
-        #     strip.text.x = element_text(size = 16),
-        #     axis.title.x = element_text(size = 18),
-        #     axis.title.y = element_text(size = 18),
-        #     legend.title = element_text(size = 18),
-        #     legend.text = element_text(size = 16)
-        #   ) + ggtitle(res$name)
-        # scatter.plots[[res$name]] <- scatter.plot
     if(!is.null(algorithm.order)){
       if(all(algorithm.order %in% names(scatter.plots)) && length(scatter.plots) == length(algorithm.order)){
         scatter.plots <- scatter.plots[algorithm.order]

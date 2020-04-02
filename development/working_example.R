@@ -32,13 +32,14 @@ test.samples <- which(patient.info == 6 | patient.info == 8)
 grouping <- rep(1, (length(training.samples)+length(test.samples)))
 grouping[test.samples] <- 2
 
+tic("working example")
 benchmark(
   sc.counts = cll.exprs
   , sc.pheno = cll.pheno
   , real.counts = bulks$bulks
   , real.props = bulks$props
   , benchmark.name = "test_benchmark"
-  , exclude.from.signature = c("unassigned", "not_annotated")
+  , exclude.from.signature = c("unassigned")
   , genesets = genesets
   , simulation.bulks = TRUE
   , simulation.genes = TRUE
@@ -47,3 +48,4 @@ benchmark(
   , repeats = 3
   , grouping = as.factor(grouping)
   )
+toc()

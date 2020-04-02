@@ -1,5 +1,5 @@
 # training set size benchmark
-sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE) {
+sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE, split.data = FALSE) {
 # parameter checks
 if(ncol(training.exprs) != nrow(training.pheno)){
     stop("training.exprs and training.pheno do not match")
@@ -74,7 +74,7 @@ for (rep in seq_len(n.repeats)) {
       test.pheno = test.pheno,
       algorithms = algorithms,
       verbose = verbose,
-      split.data = FALSE,
+      split.data = split.data,
       exclude.from.signature = exclude.from.signature,
       optimize = TRUE,
       max.genes = NULL,

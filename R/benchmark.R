@@ -213,8 +213,8 @@ benchmark <- function(
 	# if it exists load previously processed data from temp
 	if(file.exists(paste(output.folder,"/input_data/training_set.h5",sep="")) && file.exists(paste(output.folder,"/input_data/validation_set.h5",sep=""))){
 		if(verbose) print("Using data found in temp directory")
-		training_set <- read_data(paste(output.folder, "/input_data/training_set.h5", sep = ""))
-		validation_set <- read_data(paste(output.folder, "/input_data/validation_set.h5", sep=""))
+		training_set <- read_data(paste(output.folder, "/input_data/training_set.h5", sep = ""), "sample.name")
+		validation_set <- read_data(paste(output.folder, "/input_data/validation_set.h5", sep=""), "sample.name")
 		training.exprs <- training_set$sc.counts
 		training.pheno <- training_set$sc.pheno
 		test.exprs <- validation_set$sc.counts
@@ -268,9 +268,15 @@ benchmark <- function(
 		write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))
 		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
 	}
-	if(any(sc.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(sc.pheno)){
-	  exclude.from.signature <- c(exclude.from.signature, unique(paste(sc.pheno$cell_type ,sc.pheno$subtype, sep = ".")[which(sc.pheno$cell_type %in% exclude.from.signature)]))
+
+	# make sure subtypes of types in exclude.from.signature are also excluded
+	if(any(training.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(training.pheno)){
+	  exclude.from.signature <- c(exclude.from.signature, unique(paste(training.pheno$cell_type ,training.pheno$subtype, sep = ".")[which(training.pheno$cell_type %in% exclude.from.signature)]))
 	}
+	if(any(test.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(test.pheno)){
+	  exclude.from.signature <- c(exclude.from.signature, unique(paste(test.pheno$cell_type ,test.pheno$subtype, sep = ".")[which(test.pheno$cell_type %in% exclude.from.signature)]))
+	}
+	exclude.from.signature <- unique(exclude.from.signature)
 	
 	# we have not agreed on whether data plots should be generated yet ...
 	#
@@ -311,7 +317,7 @@ benchmark <- function(
 	print("real")
 	if(length(to.run)>0){
 		print(to.run)
-		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
+		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
 		#saveRDS(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".rds",sep=""))
 		write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))
 	}
@@ -352,22 +358,22 @@ benchmark <- function(
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				print("bulk simulation")
-				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats)
+				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats)
 				benchmark.results <- sim.bulk.benchmark
 			}
 			if(s == "genes"){
 				print("geneset simulation")
-				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose)
+				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = TRUE)
 				benchmark.results <- sim.genes.benchmark
 			}
 			if(s == "samples"){
 				print("sample simulation")
-				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose)
+				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = TRUE)
 				benchmark.results <- sim.sample.benchmark
 			}
 		  if(s == "subtypes"){
 		    print("subtype simulation")
-		    sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature)
+		    sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, split.data = TRUE)
 		    benchmark.results <- sim.subtype.benchmark
 		  }
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
