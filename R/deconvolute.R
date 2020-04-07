@@ -116,7 +116,7 @@ deconvolute <- function(training.expr,
       cat("Repetition ", i, "\n", sep = "")
     results.list[[as.character(i)]] <- list()
     for (f in algorithms) {
-      if (verbose)
+      #if (verbose)
         print(f$name)
       time <- system.time({
         results.list[[as.character(i)]][[f$name]] <- f$algorithm(

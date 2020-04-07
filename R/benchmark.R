@@ -24,6 +24,10 @@
 #' varying number of random training profiles be performed, default FALSE
 #' @param simulation.subtypes boolean, should deconvolution of simulated bulks with
 #' artificial subtypes of given cell types be performed, default FALSE
+#' @param missing.algorithm character specifying the algorithm for which a model
+#' with incomplete reference should be tested; default DTD
+#' @param missing.celltype character specifiying cell type; compare DTD model with
+#' reference matrix not containing this cell type to complete models
 #' @param genesets list of string vector, must match 'rownames(sc.counts)' 
 #' @param metric string, must match one of 'c("cor", "mad", "rmsd")' 
 #' #TODO: keep this up to date
@@ -213,8 +217,8 @@ benchmark <- function(
 	# if it exists load previously processed data from temp
 	if(file.exists(paste(output.folder,"/input_data/training_set.h5",sep="")) && file.exists(paste(output.folder,"/input_data/validation_set.h5",sep=""))){
 		if(verbose) print("Using data found in temp directory")
-		training_set <- read_data(paste(output.folder, "/input_data/training_set.h5", sep = ""), "sample.name")
-		validation_set <- read_data(paste(output.folder, "/input_data/validation_set.h5", sep=""), "sample.name")
+		training_set <- read_data(paste(output.folder, "/input_data/training_set.h5", sep = ""))
+		validation_set <- read_data(paste(output.folder, "/input_data/validation_set.h5", sep=""))
 		training.exprs <- training_set$sc.counts
 		training.pheno <- training_set$sc.pheno
 		test.exprs <- validation_set$sc.counts
@@ -268,6 +272,16 @@ benchmark <- function(
 		write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))
 		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
 	}
+	# assume that samples in expression and pheno data are in the correct order
+	# if names do not match, assign sample names from expression to pheno data
+	if(!identical(rownames(training.pheno), colnames(training.exprs))){
+		rownames(training.pheno) <- colnames(training.exprs)
+		colnames(training.exprs) <- rownames(training.pheno)
+	}
+	if(!identical(rownames(test.pheno), colnames(test.exprs))){
+		rownames(test.pheno) <- colnames(test.exprs)
+		colnames(test.exprs) <- rownames(test.pheno)
+	}
 
 	# make sure subtypes of types in exclude.from.signature are also excluded
 	if(any(training.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(training.pheno)){
@@ -316,9 +330,7 @@ benchmark <- function(
 	# deconvolute real bulks
 	print("real")
 	if(length(to.run)>0){
-		print(to.run)
 		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
-		#saveRDS(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".rds",sep=""))
 		write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))
 	}
 

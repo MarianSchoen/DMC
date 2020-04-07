@@ -32,7 +32,7 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-
+  rownames(pheno) <- colnames(exprs)
   # scale to counts and create signature
   exprs <- scale_to_count(exprs)
 

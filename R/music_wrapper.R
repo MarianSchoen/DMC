@@ -36,21 +36,26 @@ run_music <- function(exprs,
     }
   }
 
+
   # MuSiC uses all supplied genes
   n.genes <- nrow(exprs)
 
   # do not normalize profiles to counts
   # exprs <- scale_to_count(exprs)
+  # ExpressionSet does strange things to names...
 
+  rownames(exprs) <- make.names(rownames(exprs))
+  rownames(bulks) <- make.names(rownames(bulks))
   # create ExpressionSets from exprs, pheno and bulks
   sc.exprs <- ExpressionSet(
     assayData = exprs,
     phenoData = AnnotatedDataFrame(pheno)
   )
-  bulk.pheno <- data.frame(colnames(bulks))
-  rownames(bulk.pheno) <- colnames(bulks)
-  colnames(bulk.pheno) <- "sample"
+  bulk.pheno <- data.frame(sample = colnames(bulks))
 
+  # for some reason this is necessary, otherwise equality check of sample names will fail...
+  rownames(bulk.pheno) <- colnames(bulks)
+  colnames(bulks) <- rownames(bulk.pheno)
   bulks <- ExpressionSet(
     assayData = bulks,
     phenoData = AnnotatedDataFrame(bulk.pheno)
@@ -68,7 +73,7 @@ run_music <- function(exprs,
   # deconvolution
   est.prop.music <- try(music_prop(
     bulk.eset = bulks, sc.eset = sc.exprs, clusters = "cell_type",
-    samples = "patientID", select.ct = include.in.x, verbose = FALSE
+    samples = "patient", select.ct = include.in.x, verbose = FALSE
   ))
   if(class(est.prop.music) == "try-error"){
 	  return(list(est.props = NULL, sig.matrix = NULL))

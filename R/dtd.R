@@ -40,7 +40,6 @@ run_dtd <- function(exprs,
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-
   exprs <- scale_to_count(exprs)
 
   # prepare phenotype data and cell types to use

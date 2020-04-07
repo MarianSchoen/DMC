@@ -40,7 +40,6 @@ run_least_squares <- function(exprs,
         max.genes <- NULL
     }
   }
-
   # prepare phenotype data and cell types to use
   exprs <- scale_to_count(exprs)
   cell.types <- as.character(pheno[, "cell_type"])

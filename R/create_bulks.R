@@ -41,6 +41,8 @@ create_bulks <- function(
             stop("fraction.per.bulk must be numeric (0,1)")
         }
     }
+    rownames(pheno) <- colnames(exprs)
+    print("BSEQ-sc")
     # keep only specified cell types
     if (is.null(include.in.bulks)) {
         include.in.bulks <- unique(pheno[, "cell_type"])

@@ -122,14 +122,16 @@ Runtime per algorithm. Due to possible large differences in runtime the scale on
 ### Scatter plots of quantities
 ```{r scatter_plots, echo = FALSE, fig.width = 18, fig.height = 5}
 for(l in scatter.plots.list){
-	for(p in l) {
-		plot(p)
+	if(!is.null(l)){
+		for(p in l){
+			if(!is.null(p))
+				plot(p)
+			}
 	}
 }
 ```  
 
-Comparison of the real cell type quantities and the estimated quantities per cell type for each algorithm. Only the results of the first repetition are shown.
-
+Comparison of the real cell type quantities and the estimated quantities per cell type for each algorithm. 
 \pagebreak
 ### Condition number plots
 ```{r condition_plots, fig.width = 16, fig.height = 9}

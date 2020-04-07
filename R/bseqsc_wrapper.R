@@ -96,6 +96,9 @@ run_bseqsc <- function(
     return(list(est.props = NULL, sig.matrix = NULL))
   }
 
+  # ExpressionSet does strange things to names...
+  rownames(exprs) <- make.names(rownames(exprs))
+  rownames(bulks) <- make.names(rownames(bulks))
   # create single cell and bulk expression set
   sc.exprs <- ExpressionSet(
     assayData = exprs,
@@ -104,6 +107,7 @@ run_bseqsc <- function(
   bulk.pheno <- data.frame(colnames(bulks))
   rownames(bulk.pheno) <- colnames(bulks)
   colnames(bulk.pheno) <- "sample"
+  colnames(bulks) <- rownames(bulk.pheno)
   bulks <- ExpressionSet(
     assayData = bulks,
     phenoData = AnnotatedDataFrame(bulk.pheno)
@@ -111,7 +115,7 @@ run_bseqsc <- function(
 
   B <- try({
     bseqsc_basis(sc.exprs, deg.per.type,
-      clusters = "cell_type", samples = "sample.name",
+      clusters = "cell_type", samples = "patient",
       ct.scale = TRUE
     )
   })

@@ -16,7 +16,7 @@ marker_genes <- function(exprs, pheno, sig.types = NULL){
   if (!all(sig.types %in% pheno[, "cell_type"])) {
     stop("Not all cell types in 'sig.types' are present in pheno data.")
   }
-
+  rownames(pheno) <- colnames(exprs)
   exprs <- scale_to_count(exprs)
   if(is.null(sig.types)) sig.types <- unique(pheno[,"cell_type"])
   

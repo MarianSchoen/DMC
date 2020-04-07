@@ -41,8 +41,10 @@ assign_subtypes <- function(
       next
     }
     ct.indices <- which(sc.pheno[[celltypecol]] == ct)
-    km.clust <- kmeans(x = tsne.embed$Y[ct.indices, ], min(sub.list[[ct]], length(ct.indices)))
-    sc.pheno[ct.indices, "subtype"] <- km.clust$cluster
+    if(length(ct.indices) > 2){
+      km.clust <- kmeans(x = tsne.embed$Y[ct.indices, ,drop=F], min(sub.list[[ct]], length(ct.indices) - 1))
+      sc.pheno[ct.indices, "subtype"] <- km.clust$cluster
+    }
   }
   return(list(sc.pheno = sc.pheno, tsne.embed = tsne.embed))
 }

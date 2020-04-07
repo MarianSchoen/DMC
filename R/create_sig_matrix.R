@@ -41,6 +41,7 @@ create_sig_matrix <- function(
   if (!is.null(max.genes) && max.genes == 0) {
         max.genes <- NULL
     }
+  rownames(pheno) <- colnames(exprs)
   # exclude specified cell types
   if (!is.null(exclude.celltypes)) {
     to.exclude <- which(pheno[, "cell_type"] %in% exclude.celltypes)

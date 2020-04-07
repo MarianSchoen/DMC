@@ -49,9 +49,12 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
         dfs[[res$name]] <- rbind(dfs[[res$name]], df)
       }
     }
-
     for(name in names(dfs)){
       df <- dfs[[name]]
+      if(nrow(df) == 0) {
+        scatter.plots[[name]] <- NULL
+        next
+      }
       if(!is.null(celltype.order)){
           df$type <- factor(df$type, levels = celltype.order)
         }
