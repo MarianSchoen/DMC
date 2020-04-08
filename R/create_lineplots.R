@@ -99,7 +99,16 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
             sep = ""
             )) +
             scale_x_discrete(limits = geneset.limits, labels = geneset.labs) +
-            guides(linetype = guide_legend(override.aes = list(size = 2)))
+            guides(linetype = guide_legend(override.aes = list(size = 2))) +
+            theme(
+                legend.text = element_text(size = 20),
+                legend.title = element_text(size = 22),
+                title = element_text(size = 24),
+                axis.title.x = element_text(size = 22),
+                axis.text.x = element_text(size = 20),
+                axis.title.y = element_text(size = 22),
+                axis.text.y = element_text(size = 20)
+            )
             if(metric == "cor"){
                 cell.type.plots[[t]] <- cell.type.plots[[t]] + ylim(0,1)
             }

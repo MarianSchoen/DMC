@@ -77,22 +77,25 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
       }
       names(temp) <- labs
       labs <- temp
-
-      scatter.plot <- ggplot(df, aes(x = real, y = estimate, col = as.factor(repetition))) +
-        geom_point(size = 2) +
+      
+      scatter.plot <- ggplot(df, aes(x = real, y = estimate, col = as.factor(type), group = real)) +
+        geom_boxplot(position = "dodge", varwidth = T) +
+        geom_point(alpha = 0.1) +
         facet_grid(
           rows = NULL,
           cols = vars(type),
           labeller = labeller(type = labs)
         ) +
         xlab("real") + ylab("estimate") +
-        labs(col = 'repetition') +
+        labs(col = 'cell type') +
         theme(
-            strip.text.x = element_text(size = 16),
-            axis.title.x = element_text(size = 18),
-            axis.title.y = element_text(size = 18),
-            legend.title = element_text(size = 18),
-            legend.text = element_text(size = 16)
+          legend.text = element_text(size = 20),
+          legend.title = element_text(size = 22),
+          title = element_text(size = 24),
+          axis.title.x = element_text(size = 22),
+          axis.text.x = element_text(size = 20),
+          axis.title.y = element_text(size = 22),
+          axis.text.y = element_text(size = 20)
         ) + 
         ggtitle(name)
         scatter.plots[[name]] <- scatter.plot

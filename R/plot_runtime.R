@@ -29,6 +29,7 @@ plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
     if(!is.null(algorithm.order)){
         runtimes$algorithm <- factor(runtimes$algorithm, levels = algorithm.order)
     }
+    
     runtime.plot <- ggplot(runtimes) +
     geom_bar(
         aes(
@@ -39,7 +40,7 @@ plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
         stat = "identity",
         position = "dodge"
     ) +
-    xlab("algorithm") + ylab("time (logarithmic)") + ggtitle(title) +
+    xlab("algorithm") + ylab("time (s)") + ggtitle(title) +
     theme(
         legend.position = "None",
         title = element_text(size = 16),
@@ -47,6 +48,9 @@ plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
         axis.text.x = element_text(size = 12, angle = 90),
         axis.title.y = element_text(size = 14),
         axis.text.y = element_text(size = 12)
-    )
+    ) +
+        scale_y_continuous(
+            labels = function(x){round(10^as.numeric(x) - 1,0)}
+        )
     return(runtime.plot)
 }

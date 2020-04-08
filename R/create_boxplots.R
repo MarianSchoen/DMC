@@ -53,13 +53,13 @@ create_boxplots <- function(results.df, metric = "cor", celltype.order = NULL, a
             ylab(metric) +
             ggtitle("quality of deconvolution results", subtitle = t)+
             theme(
-                axis.text.x = element_text(size = 14),
-                axis.text.y = element_text(size = 16),
-                title = element_text(size = 22),
-                legend.text = element_text(size = 18),
-                legend.title = element_text(size = 20),
-                axis.title.x = element_text(size = 18),
-                axis.title.y = element_text(size = 18)
+                legend.text = element_text(size = 20),
+                legend.title = element_text(size = 22),
+                title = element_text(size = 24),
+                axis.title.x = element_text(size = 22),
+                axis.text.x = element_text(size = 20),
+                axis.title.y = element_text(size = 22),
+                axis.text.y = element_text(size = 20)
             ) + 
             scale_x_discrete(limits = levels(results.df$algorithm))
         if(metric == "cor"){

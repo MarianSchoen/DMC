@@ -76,7 +76,7 @@ create_sig_matrix <- function(
       included.in.X = unique(cell.types),
       pheno = cell.types,
       expr.data = exprs,
-      percentage.of.all.cells = 0.1,
+      percentage.of.all.cells = 0.5,
       normalize.to.count = TRUE
     )
     sig.matrix <- sample.X$X.matrix

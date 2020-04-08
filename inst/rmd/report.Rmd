@@ -132,13 +132,19 @@ for(l in scatter.plots.list){
 ```  
 
 Comparison of the real cell type quantities and the estimated quantities per cell type for each algorithm. 
-\pagebreak
+\pagebreak  
+
+  
+
 ### Condition number plots
 ```{r condition_plots, fig.width = 16, fig.height = 9}
-plot(cond.num.plots$cond_num_plot)
-plot(cond.num.plots$cond_vs_score)
+plot(cond.num.plots$cond_num_plot)  
+
+plot(cond.num.plots$cond_vs_score)  
+
 plot(cond.num.plots$variation_plot)
 ```  
+  
 
 1) Average condition numbers of the reference matrices produced by different algorithms (models).  
   

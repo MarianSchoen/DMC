@@ -61,7 +61,7 @@ run_dtd <- function(exprs,
     included.in.X = include.in.x,
     pheno = cell.types,
     expr.data = exprs,
-    percentage.of.all.cells = 0.1,
+    percentage.of.all.cells = 0.3,
     normalize.to.count = TRUE
   )
   sig.matrix <- sample.X$X.matrix

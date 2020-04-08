@@ -49,6 +49,13 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     if(!is.null(algorithm.order)){
         overall.df$algorithm <- factor(overall.df$algorithm, levels = algorithm.order)
     }
+    
+    cond_labs <- levels(overall.df$algorithm)
+    for(i in 1:length(cond_labs)){
+        if(is.na(overall.df[which(overall.df$algorithm == cond_labs[i]), "condition_number"])){
+            cond_labs[i] <- paste(cond_labs[i], "\n data missing", sep ="")
+        }
+    }
 
     # plot condition numbers as barplot
     cond_num_plot <- ggplot(overall.df) +
@@ -56,11 +63,12 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
         geom_errorbar(aes(x = algorithm, ymin = condition_number - condition_variation, ymax = condition_number + condition_variation), width = 0.2) +
         ggtitle("average signature matrix condition number") +
         ylab("condition number") +
-        xlab("algorithm")
+        xlab("algorithm") +
+        scale_x_discrete(limits = levels(overall.df$algorithm), labels = cond_labs)
 
     # plot score vs condition number
     cond_vs_score <- ggplot(overall.df) +
-        geom_point(aes(x = condition_number, y = score, col = algorithm), size = 3) +
+        geom_point(aes(x = condition_number, y = score, col = algorithm), size = 3, na.rm = T) +
         ggtitle("score vs condition number") +
         xlab("condition number") +
         ylab("score")
@@ -70,7 +78,7 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
 
     # plot sd of score vs sd of condition number
     variation_plot <- ggplot(overall.df) +
-        geom_point(aes(x = condition_variation, y = score_variation, col = algorithm), size = 3) +
+        geom_point(aes(x = condition_variation, y = score_variation, col = algorithm), size = 3, na.rm = T) +
         ggtitle("SDs of score vs SDs of condition number") +
         xlab("condition number SD") +
         ylab("score SD")
