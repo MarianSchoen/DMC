@@ -254,20 +254,42 @@ benchmark <- function(
     }
     subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
     sc.pheno <- subtype.return$sc.pheno
+    
+    if(simulation.subtypes && is.null(subtype.return$tsne.embed)){
+      simulation.subtypes <- FALSE
+      warning("subtype simulation failed. skipping this benchmark.")
+    }
     # exclude subtypes of cell types to exclude from reference matrix as well
 		# split (randomly at the moment) into test and validation set
-		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
-		training.exprs <- split.data$training$exprs
-		training.pheno <- split.data$training$pheno
-		test.exprs <- split.data$test$exprs
-		test.pheno <- split.data$test$pheno
+    if(length(unique(grouping)) > 1){
+  		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
+  		training.exprs <- split.data$training$exprs
+  		training.pheno <- split.data$training$pheno
+  		test.exprs <- split.data$test$exprs
+  		test.pheno <- split.data$test$pheno
+    }else{
+      message("Grouping vector contains only one group. Disabling all simulations.")
+      training.exprs <- sc.counts
+      training.pheno <- sc.pheno
+      test.exprs <- NULL
+      test.pheno <- NULL
+      simulation.bulks = FALSE
+      simulation.genes = FALSE
+      simulation.samples = FALSE
+      simulation.subtypes = FALSE
+    }
 		# exclude.from.bulks is a paramweter of benchmark(), create_bulks expects the opposite
 		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno$cell_type), exclude.from.bulks)) > 0){
 			include.in.bulks <- unique(test.pheno$cell_type)[-which(unique(test.pheno$cell_type %in% exclude.from.bulks))]
 		}else{
 			include.in.bulks <- NULL
 		}
-		sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
+    if(!is.null(test.exprs)){
+      sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
+    }else{
+      sim.bulks <- list(bulks = NULL, props = NULL, sub.props = NULL)
+    }
+		
 		# save processed data for later use and repeated benchmarks
 		write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))
 		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
@@ -278,10 +300,13 @@ benchmark <- function(
 		rownames(training.pheno) <- colnames(training.exprs)
 		colnames(training.exprs) <- rownames(training.pheno)
 	}
-	if(!identical(rownames(test.pheno), colnames(test.exprs))){
-		rownames(test.pheno) <- colnames(test.exprs)
-		colnames(test.exprs) <- rownames(test.pheno)
+	if(!is.null(test.exprs)){
+	  if(!identical(rownames(test.pheno), colnames(test.exprs))){
+	    rownames(test.pheno) <- colnames(test.exprs)
+	    colnames(test.exprs) <- rownames(test.pheno)
+	  }
 	}
+	
 
 	# make sure subtypes of types in exclude.from.signature are also excluded
 	if(any(training.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(training.pheno)){
