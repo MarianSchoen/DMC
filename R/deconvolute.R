@@ -44,7 +44,8 @@ deconvolute <- function(training.expr,
                         n.bulks = 500,
                         bulks = NULL,
                         n.repeats = 1,
-                        subtypes = FALSE) {
+                        subtypes = FALSE,
+                        algorithm.models = NULL) {
   # parameter checks
   if (n.repeats < 1) {
     n.repeats <- 1
@@ -66,6 +67,11 @@ deconvolute <- function(training.expr,
   }
   if (!length(algorithms) > 0 || any(sapply(algorithms, length) != 2)) {
     stop("Check algorithm list")
+  }
+  if(!is.null(algorithm.models)){
+    if(!is.list(algorithm.models) || length(algorithm.models) != length(algorithms)){
+      stop("Supplied model list must have same length as algorithm list.")
+    }
   }
   if (is.null(bulks)) {
     # create validation bulks with known proportions
@@ -116,8 +122,13 @@ deconvolute <- function(training.expr,
       cat("Repetition ", i, "\n", sep = "")
     results.list[[as.character(i)]] <- list()
     for (f in algorithms) {
-      #if (verbose)
+      if (verbose)
         print(f$name)
+      if(f$name %in% names(algorithm.models)){
+        model <- algorithm.models[[f$name]]
+      }else{
+        model <- NULL
+      }
       time <- system.time({
         results.list[[as.character(i)]][[f$name]] <- f$algorithm(
           training.expr,
@@ -126,7 +137,8 @@ deconvolute <- function(training.expr,
           exclude.from.signature,
           max.genes = max.genes,
           optimize = optimize,
-          split.data = split.data
+          split.data = split.data,
+          model = model
         )
       })[3]
       results.list[[as.character(i)]][[f$name]]$name <- f$name

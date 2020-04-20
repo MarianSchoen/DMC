@@ -317,10 +317,6 @@ benchmark <- function(
 	}
 	exclude.from.signature <- unique(exclude.from.signature)
 	
-	# we have not agreed on whether data plots should be generated yet ...
-	#
-	#
-	#
 	# begin deconvolution part
 
 	# select algorithms that have not been evaluated in a previous runs
@@ -357,6 +353,10 @@ benchmark <- function(
 	if(length(to.run)>0){
 		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
 		write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))
+		# bootstrapping of real bulks
+		print("bootstrapping")
+		bootstrap.real <- bootstrap_bulks(training.exprs, training.pheno, algorithms, verbose, split.data = TRUE, exclude.from.bulks = NULL, exclude.from.signature, TRUE, NULL, 0, bulks = list(bulks = real.counts, props = real.props))
+		saveRDS(bootstrap.real, file = paste(output.folder, "/results/real/bootstrap_bulks",res.no,".rds",sep=""))
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
