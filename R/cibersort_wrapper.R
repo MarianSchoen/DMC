@@ -19,7 +19,8 @@ run_cibersort <- function(exprs,
                           exclude.from.signature = NULL,
                           max.genes = 500,
                           optimize = TRUE,
-                          split.data = FALSE) {
+                          split.data = FALSE,
+                          model = NULL) {
     # error checking
     if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
@@ -38,14 +39,45 @@ run_cibersort <- function(exprs,
     # normalize cell profiles to fixed counts
     exprs <- scale_to_count(exprs)
     # create signature matrix
-    ref.profiles <- create_sig_matrix(
-	exprs,
-        pheno,
-        exclude.from.signature,
-        max.genes = max.genes,
-        optimize = optimize,
-        split.data = split.data
-    )
+    valid.model <- T
+    if(!is.null(model)){
+        if(all(c("ref.profiles", "g") %in% names(model))){
+            full.mat <- model$ref.profiles
+            g <- model$g
+            if(all(names(g) %in% rownames(full.mat)) && length(g) == nrow(full.mat)){
+                g <- g[rownames(full.mat)]
+                if(any(duplicated(rownames(full.mat)))){
+                    g <- g[-which(duplicated(rownames(full.mat)))]
+                    full.mat <- full.mat[-which(duplicated(rownames(full.mat))),]
+                }
+                ref.profiles <- apply(full.mat, 2, function(x){x*g})
+                if(any(rowSums(ref.profiles) == 0)){
+                    ref.profiles <- ref.profiles[-which(rowSums(ref.profiles) == 0),]
+                }
+            }else{
+                warning("reference profiles and g vector do not contain the same genes")
+                valid.model <- F
+            }
+        }else{
+            warning("passed model parameter does not contain entries 'ref.profiles' and 'g'")
+            valid.model <- F
+        }
+    }else{
+        valid.model <- F
+    }
+    if(!valid.model){
+        model <- create_sig_matrix(
+    	exprs,
+            pheno,
+            exclude.from.signature,
+            max.genes = max.genes,
+            optimize = optimize,
+            split.data = split.data
+        )
+        ref.profiles <- model$sig.matrix
+        full.mat <- model$full.matrix
+        g <- model$g
+    }
 
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
     df.sig <- cbind(df.sig, ref.profiles)
@@ -86,5 +118,5 @@ run_cibersort <- function(exprs,
     file.remove("CIBERSORT/mixture.txt")
     unlink("CIBERSORT", recursive = TRUE)
 
-    return(list(est.props = est.props, sig.matrix = ref.profiles))
+    return(list(est.props = est.props, sig.matrix = ref.profiles, ref.profiles = full.mat, g = g))
 }

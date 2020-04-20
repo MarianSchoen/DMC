@@ -194,12 +194,17 @@ create_sig_matrix <- function(
 
   if (split.data && !any(type.counts < 3)) {
     ref.mat <- sig.matrix[optimal.genes, ]
+    full.mat <- sig.matrix
   } else {
     ref.mat <- ref.profiles[optimal.genes, ]
+    full.mat <- ref.profiles
   }
   if(any(duplicated(rownames(ref.mat)))){
     print("Found duplicates in reference matrix")
     ref.mat <- ref.mat[-which(duplicated(rownames(ref.mat))),]
   }
-  return(ref.mat)
+  g <- rep(0, nrow(full.mat))
+  names(g) <- rownames(full.mat)
+  g[optimal.genes] <- 1
+  return(list(sig.matrix = ref.mat, full.matrix = full.mat, g = g))
 }

@@ -30,17 +30,25 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
           rownames(temp) <- content[["celltypeids"]]
           colnames(temp) <- content[["bulkids"]]
         }else{
-          if(groupname == "sig.matrix"){
+          if(groupname == "sig.matrix" || groupname == "ref.profiles"){
             rownames(temp) <- content[["geneids"]]
             colnames(temp) <- content[["celltypeids"]]
           }
         }
       }
       return(temp)
+    }else{
+      if(!is.null(groupname) && groupname == "g"){
+        temp <- content[["values"]]
+        names(temp) <- content[["geneids"]]
+        return(temp)
+      }
     }
     if(all(c("name", "times") %in% names(content))){
       content["est.props"] <- list(NULL)
       content["sig.matrix"] <- list(NULL)
+      content["ref.profiles"] <- list(NULL)
+      content["g"] <- list(NULL)
     }
   }
   return(content)

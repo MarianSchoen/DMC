@@ -34,7 +34,8 @@ run_bseqsc <- function(
   max.genes = NULL,
   optimize = TRUE,
   split.data = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  model = NULL
   ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
@@ -52,6 +53,18 @@ run_bseqsc <- function(
         max.genes <- NULL
     }
   }
+  # ExpressionSet does strange things to names...
+  rownames(exprs) <- make.names(rownames(exprs))
+  rownames(bulks) <- make.names(rownames(bulks))
+  
+  bulk.pheno <- data.frame(colnames(bulks))
+  rownames(bulk.pheno) <- colnames(bulks)
+  colnames(bulk.pheno) <- "sample"
+  colnames(bulks) <- rownames(bulk.pheno)
+  bulks <- ExpressionSet(
+    assayData = bulks,
+    phenoData = AnnotatedDataFrame(bulk.pheno)
+  )
 
   # do not normalize to counts for BSEQ-sc
   # exprs <- scale_to_count(exprs)
@@ -64,77 +77,103 @@ run_bseqsc <- function(
     }
   }
 
-  # use all supplied genes
-  n.genes <- nrow(exprs)
-  if (verbose) print("creating marker gene lists...")
-  if (split.data) {
-    learning.cells <- c()
-    for (t in unique(pheno[, "cell_type"])) {
-      learning.cells <- c(
-        learning.cells,
-        sample(
-          which(pheno[, "cell_type"] == t),
-          floor(0.9 * length(which(pheno[, "cell_type"] == t))),
-          replace = FALSE
-        )
-      )
+  valid.model <- T
+  if(!is.null(model)){
+    if(all(c("ref.profiles", "g") %in% names(model))){
+      full.mat <- model$ref.profiles
+      g <- model$g
+      if(all(names(g) %in% rownames(full.mat)) && length(g) == nrow(full.mat)){
+        g <- g[rownames(full.mat)]
+        B <- apply(full.mat, 2, function(x){x*g})
+        # remove genes with g == 0 from reference
+        if(any(rowSums(B) == 0)){
+          B <- B[-which(rowSums(B) == 0),]
+        }
+      }else{
+        warning("reference profiles and g vector do not contain the same genes")
+        valid.model <- F
+      }
+    }else{
+      warning("passed model parameter does not contain entries 'ref.profiles' and 'g'")
+      valid.model <- F
     }
-
-    deg.per.type <- try(marker_genes(exprs[, learning.cells, drop = F], pheno[learning.cells, , drop = F], NULL))
-    exprs <- exprs[, -learning.cells, drop = F]
-    pheno <- pheno[-learning.cells, , drop = F]
-  } else {
-    deg.per.type <- try(marker_genes(exprs, pheno, NULL))
+  }else{
+    valid.model <- F
   }
-  if (class(deg.per.type) == "try-error") {
-    warning("Error while trying to find marker genes")
-    return(list(est.props = NULL, sig.matrix = NULL))
-  }
-
-  if (length(deg.per.type) == 0) {
-    warning("No genes passed the BSEQ-sc criteria")
-    return(list(est.props = NULL, sig.matrix = NULL))
-  }
-
-  # ExpressionSet does strange things to names...
-  rownames(exprs) <- make.names(rownames(exprs))
-  rownames(bulks) <- make.names(rownames(bulks))
-  # create single cell and bulk expression set
-  sc.exprs <- ExpressionSet(
-    assayData = exprs,
-    phenoData = AnnotatedDataFrame(pheno)
-  )
-  bulk.pheno <- data.frame(colnames(bulks))
-  rownames(bulk.pheno) <- colnames(bulks)
-  colnames(bulk.pheno) <- "sample"
-  colnames(bulks) <- rownames(bulk.pheno)
-  bulks <- ExpressionSet(
-    assayData = bulks,
-    phenoData = AnnotatedDataFrame(bulk.pheno)
-  )
-
-  B <- try({
-    bseqsc_basis(sc.exprs, deg.per.type,
-      clusters = "cell_type", samples = "patient",
-      ct.scale = TRUE
+  if(!valid.model){
+    # use all supplied genes
+    n.genes <- nrow(exprs)
+    if (verbose) print("creating marker gene lists...")
+    if (split.data) {
+      learning.cells <- c()
+      for (t in unique(pheno[, "cell_type"])) {
+        learning.cells <- c(
+          learning.cells,
+          sample(
+            which(pheno[, "cell_type"] == t),
+            floor(0.9 * length(which(pheno[, "cell_type"] == t))),
+            replace = FALSE
+          )
+        )
+      }
+  
+      deg.per.type <- try(marker_genes(exprs[, learning.cells, drop = F], pheno[learning.cells, , drop = F], NULL))
+      exprs <- exprs[, -learning.cells, drop = F]
+      pheno <- pheno[-learning.cells, , drop = F]
+    } else {
+      deg.per.type <- try(marker_genes(exprs, pheno, NULL))
+    }
+    if (class(deg.per.type) == "try-error") {
+      warning("Error while trying to find marker genes")
+      return(list(est.props = NULL, sig.matrix = NULL, ref.profiles = NULL, g = NULL))
+    }
+  
+    if (length(deg.per.type) == 0) {
+      warning("No genes passed the BSEQ-sc criteria")
+      return(list(est.props = NULL, sig.matrix = NULL, ref.profiles = NULL, g = NULL))
+    }
+  
+    
+    # create single cell and bulk expression set
+    sc.exprs <- ExpressionSet(
+      assayData = exprs,
+      phenoData = AnnotatedDataFrame(pheno)
     )
-  })
-  if (class(B) == "try-error") {
-    warning("BSEQ-sc signature matrix creation failed")
-    # save information in case of error
-    save(sc.exprs, deg.per.type, file = paste("../bseqsc-error_", Sys.time(), sep = ""))
-    return(list(est.props = NULL, sig.matrix = NULL))
+  
+    B <- try({
+      bseqsc_basis(sc.exprs, deg.per.type,
+        clusters = "cell_type", samples = "patient",
+        ct.scale = TRUE
+      )
+    })
+    
+    all.per.type <- deg.per.type
+    for(ct in names(all.per.type)){
+      all.per.type[[ct]] <- rownames(exprs)
+    }
+    full.mat <- try({bseqsc_basis(sc.exprs, all.per.type,
+                             clusters = "cell_type", samples = "patient",
+                             ct.scale = TRUE)}
+    )
+    if (class(B) == "try-error") {
+      warning("BSEQ-sc signature matrix creation failed")
+      # save information in case of error
+      save(sc.exprs, deg.per.type, file = paste("../bseqsc-error_", Sys.time(), sep = ""))
+      return(list(est.props = NULL, sig.matrix = NULL, ref.profiles = NULL, g = NULL))
+    }
+    g <- rep(0, nrow(full.mat))
+    names(g) <- rownames(full.mat)
+    g[rownames(B)] <- 1
   }
-
   fit <- try(bseqsc_proportions(bulks, B, log = F, verbose = verbose))
   if (class(fit) == "try-error") {
     warning("BSEQ-sc estimation failed")
-    return(list(est.props = NULL, sig.matrix = NULL))
+    return(list(est.props = NULL, sig.matrix = NULL, ref.profiles = NULL, g = NULL))
   }
-  if(!all(names(deg.per.type) %in% rownames(fit$coefficients))){
-    est.props <- complete_estimates(fit$coefficients, names(deg.per.type))
+  if(!all(unique(pheno$cell_type) %in% rownames(fit$coefficients))){
+    est.props <- complete_estimates(fit$coefficients, unique(pheno$cell_type))
   }else{
     est.props <- fit$coefficients
   }
-  return(list(est.props = est.props, sig.matrix = B))
+  return(list(est.props = est.props, sig.matrix = B, ref.profiles = full.mat, g = g))
 }

@@ -18,7 +18,8 @@ run_music <- function(exprs,
                       exclude.from.signature = NULL,
                       max.genes = NULL,
                       optimize = TRUE,
-                      split.data = TRUE) {
+                      split.data = TRUE,
+                      model = NULL) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -76,12 +77,15 @@ run_music <- function(exprs,
     samples = "patient", select.ct = include.in.x, verbose = FALSE
   ))
   if(class(est.prop.music) == "try-error"){
-	  return(list(est.props = NULL, sig.matrix = NULL))
+	  return(list(est.props = NULL, sig.matrix = NULL, ref.profiles = NULL, g = NULL))
   }
 
   est.props <- as.matrix(t(est.prop.music$Est.prop.weighted))
   if(!all(include.in.x %in% rownames(est.props))){
     est.props <- complete_estimates(est.props, include.in.x)
   }
-  return(list(est.props = est.props, sig.matrix = NULL))
+  full.mat <- NULL
+  g <- NULL
+  
+  return(list(est.props = est.props, sig.matrix = NULL, ref.profiles = full.mat, g = g))
 }

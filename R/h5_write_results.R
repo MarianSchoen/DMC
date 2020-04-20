@@ -41,6 +41,17 @@ write_result_list <- function(results.all, filename, group = NULL){
       h5write(as.vector(rownames(results.all[["sig.matrix"]])), filename, paste(group, "sig.matrix", "geneids", sep = "/"))
       h5write(as.vector(colnames(results.all[["sig.matrix"]])), filename, paste(group, "sig.matrix", "celltypeids", sep = "/"))
     }
+    if(!is.null(results.all[["ref.profiles"]])){
+      h5createGroup(filename, paste(group, "ref.profiles", sep = "/"))
+      h5write(as.matrix(results.all[["ref.profiles"]]), filename, paste(group, "ref.profiles", "data", sep = "/"))
+      h5write(as.vector(rownames(results.all[["ref.profiles"]])), filename, paste(group, "ref.profiles", "geneids", sep = "/"))
+      h5write(as.vector(colnames(results.all[["ref.profiles"]])), filename, paste(group, "ref.profiles", "celltypeids", sep = "/"))
+    }
+    if(!is.null(results.all[["g"]])){
+      h5createGroup(filename, paste(group, "g", sep = "/"))
+      h5write(as.vector(results.all[["g"]]), filename, paste(group, "g", "values", sep = "/"))
+      h5write(as.vector(names(results.all[["g"]])), filename, paste(group, "g", "geneids", sep = "/"))
+    }
     h5write(results.all[["name"]], filename, paste(group, "name", sep = "/"))
     h5write(results.all[["times"]], filename, paste(group, "times", sep = "/"))
   }

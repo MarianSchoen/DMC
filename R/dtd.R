@@ -25,7 +25,8 @@ run_dtd <- function(exprs,
                     max.genes = NULL,
                     optimize = TRUE,
                     split.data = TRUE,
-                    verbose = FALSE) {
+                    verbose = FALSE,
+                    model = NULL) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -56,110 +57,146 @@ run_dtd <- function(exprs,
   } else {
     include.in.x <- unique(cell.types)
   }
-  # create reference profiles
-  sample.X <- DTD::sample_random_X(
-    included.in.X = include.in.x,
-    pheno = cell.types,
-    expr.data = exprs,
-    percentage.of.all.cells = 0.3,
-    normalize.to.count = TRUE
-  )
-  sig.matrix <- sample.X$X.matrix
-
-  # remove used samples from expression matrix and pheno data
-  samples.to.remove <- sample.X$samples.to.remove
-
-  # remove samples only if there is more than one of this cell type
-  if (any(table(cell.types) == 1)) {
-    samples.to.retain <- c()
-    for (t in include.in.x) {
-      if (table(cell.types[samples.to.remove])[t] == 1) {
-        samples.to.retain <- c(
-          samples.to.retain,
-          which(cell.types[samples.to.remove] == t)
-        )
+  
+  valid.model <- T
+  if(!is.null(model)){
+    if(all(c("ref.profiles", "g") %in% names(model))){
+      full.mat <- model$ref.profiles
+      g <- model$g
+      if(all(names(g) %in% rownames(full.mat)) && length(g) == nrow(full.mat)){
+        g <- g[rownames(full.mat)]
+        if(any(rowSums(full.mat) == 0)){
+          dtd.model <- g[-which(rowSums(full.mat) == 0)]
+          sig.matrix <- full.mat[-which(rowSums(full.mat) == 0),]
+        }
+      }else{
+        message("reference profiles and g vector do not contain the same genes")
+        valid.model <- F
       }
+    }else{
+      message("passed model parameter does not contain entries 'ref.profiles' and 'g'")
+      valid.model <- F
     }
-    samples.to.remove <- samples.to.remove[-samples.to.retain]
+  }else{
+    valid.model <- F
   }
-  if(any(colnames(exprs) %in% samples.to.remove)){
-    exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
+  if(!valid.model){
+    # create reference profiles
+    sample.X <- DTD::sample_random_X(
+      included.in.X = include.in.x,
+      pheno = cell.types,
+      expr.data = exprs,
+      percentage.of.all.cells = 0.3,
+      normalize.to.count = TRUE
+    )
+    sig.matrix <- sample.X$X.matrix
+    full.mat <- sig.matrix
+  
+    # remove used samples from expression matrix and pheno data
+    samples.to.remove <- sample.X$samples.to.remove
+  
+    # remove samples only if there is more than one of this cell type
+    if (any(table(cell.types) == 1)) {
+      samples.to.retain <- c()
+      for (t in include.in.x) {
+        if (table(cell.types[samples.to.remove])[t] == 1) {
+          samples.to.retain <- c(
+            samples.to.retain,
+            which(cell.types[samples.to.remove] == t)
+          )
+        }
+      }
+      samples.to.remove <- samples.to.remove[-samples.to.retain]
+    }
+    if(any(colnames(exprs) %in% samples.to.remove)){
+      exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
+    }
+    if(any(names(cell.types) %in% samples.to.remove)){
+      cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
+    }
+  
+    # choose either max.genes genes per cell type or all available genes
+    # but set maximum to 4000 due to runtime
+    n.genes <- min(4000, nrow(exprs), length(unique(cell.types)) * max.genes)
+    top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
+    exprs <- exprs[top.features, ]
+    sig.matrix <- sig.matrix[top.features, ]
+  
+    n.per.mixture <- floor(0.1 * ncol(exprs))
+    n.samples <- max(n.genes, 50)
+  
+    training.bulks <- mix_samples(
+      expr.data = exprs,
+      pheno = cell.types,
+      included.in.X = include.in.x,
+      n.samples = n.samples,
+      n.per.mixture = n.per.mixture,
+      verbose = FALSE
+    )
+  
+    # set the starting parameters to 1
+    start.tweak <- rep(1, n.genes)
+    names(start.tweak) <- top.features
+  
+    suppressMessages(
+    dtd.model <- try(train_deconvolution_model(
+      tweak = start.tweak,
+      X.matrix = sig.matrix,
+      train.data.list = training.bulks,
+      estimate.c.type = "direct",
+      verbose = FALSE,
+      NORM.FUN = "identity",
+      learning.rate = 1,
+      cv.verbose = FALSE
+    ))
+    )
+
+  # est.props.colscale <- NULL
+  # est.props.rowscale <- NULL
   }
-  if(any(names(cell.types) %in% samples.to.remove)){
-    cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
-  }
-
-  # choose either max.genes genes per cell type or all available genes
-  # but set maximum to 4000 due to runtime
-  n.genes <- min(4000, nrow(exprs), length(unique(cell.types)) * max.genes)
-  top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
-  exprs <- exprs[top.features, ]
-  sig.matrix <- sig.matrix[top.features, ]
-
-  n.per.mixture <- floor(0.1 * ncol(exprs))
-  n.samples <- max(n.genes, 50)
-
-  training.bulks <- mix_samples(
-    expr.data = exprs,
-    pheno = cell.types,
-    included.in.X = include.in.x,
-    n.samples = n.samples,
-    n.per.mixture = n.per.mixture,
-    verbose = FALSE
-  )
-
-  # set the starting parameters to 1
-  start.tweak <- rep(1, n.genes)
-  names(start.tweak) <- top.features
-
-  suppressMessages(
-  dtd.model <- try(train_deconvolution_model(
-    tweak = start.tweak,
-    X.matrix = sig.matrix,
-    train.data.list = training.bulks,
-    estimate.c.type = "direct",
-    verbose = FALSE,
-    NORM.FUN = "identity",
-    learning.rate = 1,
-    cv.verbose = FALSE
-  ))
-  )
-
-  est.props.colscale <- NULL
-  est.props.rowscale <- NULL
 
   if (!class(dtd.model) == "try-error") {
     # use the model to estimate the composition of the supplied bulks
     est.props <- estimate_c(
       X.matrix = sig.matrix,
-      new.data = bulks[top.features, , drop = FALSE],
-      DTD.model = dtd.model
+      new.data = bulks[rownames(sig.matrix), , drop = F],
+      DTD.model = dtd.model,
+      estimate.c.type = "direct"
     )
 
     # rescale by column and by row in order to determine how this changes results
-    est.props.colscale <- est.props
-    est.props.rowscale <- est.props
-    if (any(est.props < 0)) {
-      est.props.rowscale[est.props.rowscale < 0] <- 0
-      est.props.colscale[est.props.colscale < 0] <- 0
+    # est.props.colscale <- est.props
+    # est.props.rowscale <- est.props
+    # if (any(est.props < 0)) {
+    #   est.props.rowscale[est.props.rowscale < 0] <- 0
+    #   est.props.colscale[est.props.colscale < 0] <- 0
+    # }
+    # est.props.colscale <- apply(est.props.colscale, 2, function(x) {
+    #   x / sum(x)
+    # })
+    # est.props.rowscale <- t(apply(est.props.rowscale, 1, function(x) {
+    #   x / max(x)
+    # }))
+    # rownames(est.props.rowscale) <- rownames(est.props.colscale)
+    
+    if(is.list(dtd.model)){
+      g_vec <- dtd.model$best.model$Tweak
+    }else{
+      g_vec <- dtd.model
     }
-    est.props.colscale <- apply(est.props.colscale, 2, function(x) {
-      x / sum(x)
-    })
-    est.props.rowscale <- t(apply(est.props.rowscale, 1, function(x) {
-      x / max(x)
-    }))
-    rownames(est.props.rowscale) <- rownames(est.props.colscale)
-    g_vec <- dtd.model$best.model$Tweak
+    
     sig.mat.effective <- apply(sig.matrix, 2, function(x){x * g_vec})
     if(!all(include.in.x %in% rownames(est.props))){
       est.props <- complete_estimates(est.props, include.in.x)
     }
+    g <- rep(0, nrow(full.mat))
+    names(g) <- rownames(full.mat)
+    g[names(g_vec)] <- g_vec
   } else {
     est.props <- NULL
-    g_vec <- NULL
+    g <- NULL
     sig.mat.effective <- NULL
   }
-  return(list(est.props = est.props, est.props.colscale = est.props.colscale, est.props.rowscale = est.props.rowscale, g = g_vec,
-          sig.matrix = sig.mat.effective))
+  return(list(est.props = est.props, g = g,
+          sig.matrix = sig.mat.effective, ref.profiles = full.mat))
 }
