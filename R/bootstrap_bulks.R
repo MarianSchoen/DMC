@@ -22,11 +22,11 @@ bootstrap_bulks <- function(training.exprs,
       training.pheno, 
       NULL, NULL, 
       algorithms, 
-      TRUE, TRUE, NULL, 
+      verbose, TRUE, NULL, 
       exclude.from.signature, 
       TRUE, NULL, 0,
       bootstrap.bulks,
-      1,
+      n.repeats = 1,
       algorithm.models = models
     )
     #print(str(deconv.results))
@@ -39,7 +39,7 @@ bootstrap_bulks <- function(training.exprs,
       }
     }
     deconv.results <- prepare_data(results.all = deconv.results, metric = "cor")
-    bootstrap.results <- rbind(bootstrap.results, deconv.results)
+    bootstrap.results <- rbind(bootstrap.results, deconv.results[which(deconv.results$cell_type == "overall"),])
   }
   colnames(bootstrap.results) <- colnames(deconv.results)
   bootstrap.lst <- list()

@@ -87,6 +87,23 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
   	}
   }
   
+  files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.rds")
+  if(length(files) > 0){
+    bootstrap.data <- c()
+    for(f in files) {
+      temp <- readRDS(f)
+      for(n in names(temp)){
+        for(i in 1:length(temp[[n]])){
+          bootstrap.data <- rbind(bootstrap.data, c(n, temp[[n]][i]))
+        }
+      }
+    }
+    colnames(bootstrap.data) <- c("algorithm", "score")
+  }
+  bootstrap.data <- as.data.frame(bootstrap.data)
+  bootstrap.data$score <- as.numeric(as.character(bootstrap.data$score))
+
+  
   score.plot.list <- evaluation_plot(real.df, "deconvolution quality",params$metric)
   score.plot <- score.plot.list$plot
   celltypes.ordered <- score.plot.list$celltype.order
@@ -151,6 +168,11 @@ plot(cond.num.plots$variation_plot)
 2) Dependency of score (average overall pearson correlation) on condition number of the model  
   
 3) Standard deviation of the score (correlation) of the model across multiple repetitions depending on the variability of the model's condition number  
+
+### Bootstrapped Bulks
+```{r bootstrap_plots, fig.width = 16, fig.height = 9}
+ggplot2::ggplot(bootstrap.data, aes(x = algorithm, y = score, col = algorithm)) + geom_boxplot()
+```
   
 \pagebreak
 
