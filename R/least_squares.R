@@ -68,7 +68,9 @@ run_least_squares <- function(exprs,
         if(any(rowSums(sig.matrix) == 0)){
           start.tweak <- g[-which(rowSums(sig.matrix) == 0)]
           sig.matrix <- sig.matrix[-which(rowSums(sig.matrix) == 0),]
-        }
+        }else{
+		start.tweak <- g
+	}
       }else{
         warning("reference profiles and g vector do not contain the same genes")
         valid.model <- F

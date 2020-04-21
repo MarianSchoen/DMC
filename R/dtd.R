@@ -68,7 +68,10 @@ run_dtd <- function(exprs,
         if(any(rowSums(full.mat) == 0)){
           dtd.model <- g[-which(rowSums(full.mat) == 0)]
           sig.matrix <- full.mat[-which(rowSums(full.mat) == 0),]
-        }
+        }else{
+		dtd.model <- g
+		sig.matrix <- full.mat
+	}
       }else{
         message("reference profiles and g vector do not contain the same genes")
         valid.model <- F
