@@ -15,7 +15,8 @@
 #' test or train cohort. 
 #' @param input.algorithms list containing a list for each algorithm. 
 #' Each sublist contains 1) name  and 2) function
-#' TODO: examples!!!
+#' For predefined algorithms it is sufficient to supply only the name instead of the sublist
+#' #TODO: examples!!!
 #' @param simulation.bulks boolean, should deconvolution of simulated bulks be
 #' performed, default FALSE
 #' @param simulation.genes boolean, should deconvolution of simulated bulks with 
@@ -24,6 +25,8 @@
 #' varying number of random training profiles be performed, default FALSE
 #' @param simulation.subtypes boolean, should deconvolution of simulated bulks with
 #' artificial subtypes of given cell types be performed, default FALSE
+#' @param bootstrap boolean, should bootstrapping be performed on the real bulks
+#' to estimate the error on the deconvolution result? default TRUE
 #' @param missing.algorithm character specifying the algorithm for which a model
 #' with incomplete reference should be tested; default DTD
 #' @param missing.celltype character specifiying cell type; compare DTD model with
@@ -58,6 +61,7 @@ benchmark <- function(
   simulation.genes = FALSE,
   simulation.samples = FALSE,
   simulation.subtypes = FALSE,
+  bootstrap = TRUE,
   genesets = NULL, 
   metric = "cor", 
   repeats = 3, 
@@ -230,10 +234,10 @@ benchmark <- function(
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
 	if(!file.exists(paste(output.folder, "input_data/raw.h5", sep = "/"))){
-		write_data(sc.counts, sc.pheno, real.counts, real.props, filename = paste(output.folder,"input_data/raw.h5", sep = "/"))
+	  suppressWarnings(write_data(sc.counts, sc.pheno, real.counts, real.props, filename = paste(output.folder,"input_data/raw.h5", sep = "/")))
 	}
 	if(!file.exists(paste(output.folder, "input_data/params.h5", sep = "/"))){
-		write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))
+	  suppressWarnings(write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/")))
 	}
 	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
@@ -261,13 +265,13 @@ benchmark <- function(
     }
     # exclude subtypes of cell types to exclude from reference matrix as well
 		# split (randomly at the moment) into test and validation set
-    if(length(unique(grouping)) > 1){
+    if(length(unique(grouping)) == 2){
   		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
   		training.exprs <- split.data$training$exprs
   		training.pheno <- split.data$training$pheno
   		test.exprs <- split.data$test$exprs
   		test.pheno <- split.data$test$pheno
-    }else{
+    }else if(length(unique(grouping)) == 2){
       message("Grouping vector contains only one group. Disabling all simulations.")
       training.exprs <- sc.counts
       training.pheno <- sc.pheno
@@ -277,6 +281,8 @@ benchmark <- function(
       simulation.genes = FALSE
       simulation.samples = FALSE
       simulation.subtypes = FALSE
+    }else{
+      stop("Invalid grouping vector")
     }
 		# exclude.from.bulks is a paramweter of benchmark(), create_bulks expects the opposite
 		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno$cell_type), exclude.from.bulks)) > 0){
@@ -291,8 +297,8 @@ benchmark <- function(
     }
 		
 		# save processed data for later use and repeated benchmarks
-		write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))
-		write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))	
+    suppressWarnings(write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = "")))
+		suppressWarnings(write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep="")))	
 	}
 	# assume that samples in expression and pheno data are in the correct order
 	# if names do not match, assign sample names from expression to pheno data
@@ -349,14 +355,16 @@ benchmark <- function(
 	res.no <- length(previous.results) + 1
 
 	# deconvolute real bulks
-	print("real")
+	print("real bulk benchmark")
 	if(length(to.run)>0){
 		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
-		write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))
+		suppressWarnings(write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep="")))
 		# bootstrapping of real bulks
-		print("bootstrapping")
-		bootstrap.real <- bootstrap_bulks(training.exprs, training.pheno, algorithms, verbose, split.data = TRUE, exclude.from.bulks = NULL, exclude.from.signature, TRUE, NULL, 0, bulks = list(bulks = real.counts, props = real.props))
-		saveRDS(bootstrap.real, file = paste(output.folder, "/results/real/bootstrap_bulks",res.no,".rds",sep=""))
+		if(bootstrap){
+		  print("bootstrapping")
+		  bootstrap.real <- bootstrap_bulks(training.exprs, training.pheno, algorithms, verbose, split.data = TRUE, exclude.from.bulks = NULL, exclude.from.signature, TRUE, NULL, bulks = list(bulks = real.counts, props = real.props))
+		  saveRDS(bootstrap.real, file = paste(output.folder, "/results/real/bootstrap_bulks",res.no,".rds",sep=""))
+		}
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
@@ -370,10 +378,10 @@ benchmark <- function(
 		if(dir.exists(paste(output.folder, "/results/simulation/",s,"/", sep=""))){
 			files <- list.files(paste(output.folder, "/results/simulation/",s,"/",sep = ""), full.names = T, pattern = "*.h5")
 			if(length(files) > 0){
-			for(i in 1:length(files)) {
-				f <- files[i]
-				previous.results[[i]] <- read_result_list(f)
-			}
+  			for(i in 1:length(files)) {
+  				f <- files[i]
+  				previous.results[[i]] <- read_result_list(f)
+  			}
 			}
 		}else{
 			dir.create(paste(output.folder,"/results/simulation/",s,"/",sep=""), recursive = T)
@@ -417,7 +425,7 @@ benchmark <- function(
 		 		dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)
 			}
 			#saveRDS(benchmark.results, paste(output.folder, "/results/simulation/",s,"/deconv_output_",res.no,".rds",sep=""))
-		  write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = ""))
+		  suppressWarnings(write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = "")))
 		}
 	}
 

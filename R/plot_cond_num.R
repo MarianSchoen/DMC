@@ -1,4 +1,13 @@
-# create condition number plots from output of prepare_data()
+#' create condition number plots for deconvolution results
+#' 
+#' @param results.df data frame containing results as returned by prepare_data
+#' @param metric character string specifying the metric to be used, default 'cor'
+#' @param algorithm.order character vector of algorithm names specifying the plotting order
+#' @return list containing 3 plots:
+#' 1) cond_num_plot - barplot of average condition numbers
+#' 2) cond_vs_score - scatter plot of average condition number vs. score for each algorithm
+#' 3) variation_plot - standard deviation of score vs. standard deviation of condition number
+
 plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     require(ggplot2)
     if(!is.data.frame(results.df)){
@@ -83,5 +92,5 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
         xlab("condition number SD") +
         ylab("score SD")
 
-    return(list(cond_num_plot = cond_num_plot, cond_vs_score = cond_vs_score, variation_plot=variation_plot))
+    return(list(cond_num_plot = cond_num_plot, cond_vs_score = cond_vs_score, variation_plot = variation_plot))
 }

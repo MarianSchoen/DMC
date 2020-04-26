@@ -1,3 +1,9 @@
+#' render markdown report
+#' 
+#' @param temp.dir directory containing the benchmark data
+#' @param metric character specifying the metric, default 'cor'
+#' @return NULL
+
 render_results <- function(temp.dir, metric = "cor"){
 	if(!dir.exists(temp.dir)){
 		stop("Invalid temp directory")

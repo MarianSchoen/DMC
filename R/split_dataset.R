@@ -1,3 +1,23 @@
+#' split dataset in training and test set either by grouping vector or randomly
+#' 
+#' @param exprs non-negative numeric matrix with features as rows, and 
+#' scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
+#' @param pheno data frame with scRNA-Seq profiles as rows, and pheno entries
+#'  in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)'
+#' @param method string specifying method of splitting; either of 'random' (default) or 'predefined'
+#' @param prop numerical, fraction of profiles to be used as test set
+#' @param grouping factor with 2 levels, and 'length(grouping)' must be 
+#' 'ncol(sc.counts)'. Assigns each scRNA-Seq profile to either 
+#' test or train cohort. 
+#' @return list containing two lists:
+#' 1) training
+#' 2) test
+#' both lists contain two entries:
+#' 1) exprs - non-negative numeric matrix with features as rows, and 
+#' scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
+#' 2) pheno - data frame with scRNA-Seq profiles as rows, and pheno entries
+#'  in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)'
+
 split_dataset <- function(exprs, pheno, method = "random", prop = 0.25, grouping = NULL) {
     if(ncol(exprs) != nrow(pheno)){
         stop("expression and pheno data do not match")

@@ -15,10 +15,20 @@
 #' matrix creation? If TRUE, 10% of the data will be used to build
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
-#' @return list with one entry: est.props, matrix containing for each bulk the
+#' @param verbose boolean
+#' @param model list containing two entries:
+#' 1) ref.profiles - matrix containing reference profiles for all cell types in its columns
+#' 2) g - weight vector for genes. For algorithms that do not assign weights to features,
+#' this will consist of ones and zeroes, depending on wether a feature is included in the model or not
+#' @return list with four entries: 
+#' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
+#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types); can be calculated from ref.profiles and g
+#' 3) ref.profiles - complete reference matrix (features x cell type); contains all genes unweighted
+#' 4) g - named weight vector g; specifies for all genes, whether they are used in the effective signature (0,1) and
+#' optionally assigns a weight to each gene (e.g. for DTD)
 #' @example 
-#' TODO: where to the 'training.exprs', 'training.pheno' and 
+#' TODO: where do the 'training.exprs', 'training.pheno' and 
 #' 'bulks.exprs' come from? 
 #' 
 #' run_bseqsc(
@@ -158,7 +168,7 @@ run_bseqsc <- function(
     if (class(B) == "try-error") {
       warning("BSEQ-sc signature matrix creation failed")
       # save information in case of error
-      save(sc.exprs, deg.per.type, file = paste("../bseqsc-error_", Sys.time(), sep = ""))
+      #save(sc.exprs, deg.per.type, file = paste("../bseqsc-error_", Sys.time(), sep = ""))
       return(list(est.props = NULL, sig.matrix = NULL, ref.profiles = NULL, g = NULL))
     }
     g <- rep(0, nrow(full.mat))

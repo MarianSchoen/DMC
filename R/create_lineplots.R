@@ -1,4 +1,14 @@
-# create lineplots from data frame as returned by prepare_data()
+#' create lineplots of deconvolution results for different gene sets
+#' @param results.df data frame as returned by prepare_data
+#' @param metric character string specifying the evaluation metric; default 'cor'
+#' @param genesets list of gene sets (character vectors)
+#' @param available.features character vector containing names of available features
+#' @param celltype.order character vector of cell types specifying the plotting order
+#' @param algorithm.order character vector of algorithm names specifying the plotting order
+#' @return list containing two elements:
+#' 1) runtime.plot
+#' 2) list containing lineplot of scores for each celltypes
+
 create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL, celltype.order = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)){

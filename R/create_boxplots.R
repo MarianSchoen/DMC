@@ -1,4 +1,10 @@
-# create boxplots from a data frame as returned by prepare_data()
+#' create boxplots of deconvolution results for each algorithm
+#' @param results.df data frame as returned by prepare_data
+#' @param metric character string specifying the evaluation metric; default 'cor'
+#' @param celltype.order character vector of cell types specifying the plotting order
+#' @param algorithm.order character vector of algorithm names specifying the plotting order (left to right)
+#' @return list of ggplot objects (plots), ordered by celltype.order (if supplied)
+
 create_boxplots <- function(results.df, metric = "cor", celltype.order = NULL, algorithm.order = NULL) {
     require(ggplot2)
     if(!is.data.frame(results.df)){

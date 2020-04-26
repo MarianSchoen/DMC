@@ -1,18 +1,32 @@
 #' deconvolute given bulk with DTD using single-cell data without loss function learning
 #' 
-#' @param exprs matrix containing single cell profiles as columns
-#' @param pheno phenotype data corresponding to the expression matrix.
+#' @param exprs non negative numeric matrix containing single cell profiles
+#'  as columns and features as rows
+#' @param pheno data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
 #' Has to contain single cell labels in a column named 'cell_type'
 #' @param bulks matrix containing bulk expression profiles as columns
-#' @param exclude.from.signature list of cell types not to be included in the signature matrix
-#' @param max.genes maximum number of genes that will be included in the signature for each celltype
-#' @param optimize logical, should the signature matrix be optimized by condition number? If FALSE, max.genes genes will be used
-#' @param split.data logical, should the training data be split for signature matrix creation? If TRUE, 10% of the data will be used to build
-#' the signature matrix and the rest will be used to estimate the optimal features
-#' @return list containing 3 elements:
-#' 1) est.props - matrix containing the estimated proportions of all cell types in each bulk as returned by dtd (cell type x bulk)
-#' 2) est.props.colscake - est.props with columns rescaled to sum up to 1
-#' 3) est.props.rowscale - est.props with rows rescaled so that maximum in each row is 1
+#' @param exclude.from.signature vector of strings of cell types not to be
+#' included in the signature matrix
+#' @param max.genes numeric, maximum number of genes that will be included in 
+#' the signature for each celltype
+#' @param optimize boolean, should the signature matrix be optimized by
+#' condition number? If FALSE, max.genes genes will be used
+#' @param split.data boolean, should the training data be split for signature
+#' matrix creation? If TRUE, 10% of the data will be used to build
+#' the signature matrix and the rest will be used to estimate the optimal
+#' features
+#' @param verbose boolean
+#' @param model list containing two entries:
+#' 1) ref.profiles - matrix containing reference profiles for all cell types in its columns
+#' 2) g - weight vector for genes. For algorithms that do not assign weights to features,
+#' this will consist of ones and zeroes, depending on wether a feature is included in the model or not
+#' @return list with four entries: 
+#' 1) est.props - matrix containing for each bulk the
+#' estimated fractions of the cell types contained
+#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types); can be calculated from ref.profiles and g
+#' 3) ref.profiles - complete reference matrix (features x cell type); contains all genes unweighted
+#' 4) g - named weight vector g; specifies for all genes, whether they are used in the effective signature (0,1) and
+#' optionally assigns a weight to each gene (e.g. for DTD)
 #' @example run_dtd_baseline(training.exprs, training.pheno, bulks)
 
 suppressMessages(library(DTD))

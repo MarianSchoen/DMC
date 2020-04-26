@@ -4,8 +4,8 @@
 #'
 #' @return list with: 
 #'    - 'genesets': list of string vectors
-#'    - 'algorithms': 
-#'    - 'grouping': vector
+#'    - 'algorithms': vector containing algorithm names
+#'    - 'grouping': numeric vector grouping samples in test and training set
 #'    - 'function.call': call object
 #'    
 read_misc_input <- function(filename){

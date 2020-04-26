@@ -1,4 +1,9 @@
-# create runtime plot from output of prepare_data()
+#' create runtime plot
+#' 
+#' @param results.df data frame containing deconvolution results as returned by prepare_data
+#' @param title character, plot title
+#' @param algorithm.order character vector of algorithm names specifying the plotting order
+#' @return runtime plot
 
 plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
     require(ggplot2)

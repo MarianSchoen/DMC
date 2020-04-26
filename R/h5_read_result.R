@@ -1,10 +1,10 @@
 #' read_result_list
 #'
 #' @param filename string, which file should be read in?
-#' @param content 
-#' @param groupname 
-#'
+#' @param content h5 file content; used instead of filename in case of recursive function call
+#' @param groupname name of the current group
 #' @return list
+#' 
 read_result_list <- function(filename, content = NULL, groupname = NULL) {
   library(rhdf5)
   if(!file.exists(filename)) {

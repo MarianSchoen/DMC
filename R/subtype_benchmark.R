@@ -1,4 +1,31 @@
-subtype_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, verbose = F, split.data = FALSE){
+#' perform deconvolution benchmark on simulated bulks with simulated subtypes
+#' 
+#' @param training.exprs matrix containing single-cell expression profiles (training set, one cell per column)
+#' @param training.pheno data frame containing phenotype data of the single-cell training set. Has to contain column "cell_type"
+#' @param test.exprs matrix containing single-cell expression profiles (test set, one cell per column)
+#' @param test.pheno data frame containing phenotype data of the single-cell test set. Has to contain column "cell_type"
+#' @param algorithms List containing a list for each algorithm. Each sublist contains 1) name  and 2) function
+#' @param bulk.data list with two entries:
+#' 1) bulks - matrix containing expression data of the bulks (one bulk per column)
+#' 2) props - matrix containing the true fractions of cell types within the bulks (cell type x bulk)
+#' @param n.repeats integer determining the number of times deconvolution should be repeated for each algorithm
+#' @param exclude.from.signature character vector containing cell types to be excluded from the signature matrix.
+#' If not specified, all will be used.
+#' @param verbose logical, default FALSE
+#' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
+#' the rest for feature selection/optimization
+#' @return list containing deconvolution results
+
+subtype_benchmark <- function(training.exprs, 
+                              training.pheno, 
+                              test.exprs, 
+                              test.pheno, 
+                              algorithms, 
+                              bulk.data, 
+                              n.repeats, 
+                              exclude.from.signature = NULL, 
+                              verbose = F, 
+                              split.data = FALSE){
   # parameter checks
   if(ncol(training.exprs) != nrow(training.pheno)){
     stop("training.exprs and training.pheno do not match")

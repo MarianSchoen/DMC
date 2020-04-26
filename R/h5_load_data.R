@@ -8,7 +8,9 @@
 #'   columns \cr
 #'  - bulk.counts: numeric matrix, features as rows, bulk measurements as 
 #'  columns\cr
-#'  - bulk.props: numeric matrix, cell types as columns, bulks as columns
+#'  - bulk.props: numeric matrix, cell types as rows, bulks as columns
+#'  - sub.props: numeric matrix, cell types (subtypes) as rows, bulks as columns
+#'  - bulk.pheno: dataframe containing pheno data for bulks in columns, bulks as rows
 read_data <- function(filename){
   library(rhdf5)
   if(!file.exists(filename)) {

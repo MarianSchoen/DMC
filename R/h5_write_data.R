@@ -8,12 +8,12 @@
 #'  as columns
 #' @param bulk.props numeric matrix cell type proportions, cell types as rows, 
 #' bulks as columns
-#' @param sub.props ???
+#' @param sub.props numeric matrix cell type proportions of simulated subtypes, cell types as rows, 
+#' bulks as columns
 #' @param filename string, where should the data be stored?
 #'
 #' @return NULL, function saves into ‘filename‘
-#' another line
-#' and another one
+
 write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, sub.props = NULL, filename) {
   library(rhdf5)
   h5createFile(filename)

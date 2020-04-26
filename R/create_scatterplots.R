@@ -1,3 +1,13 @@
+#' create scatterplots of deconvolution results for all algorithms and cell types in the dataset
+#' 
+#' @param results.list list of results as returned by deconvolute
+#' @param real.props matrix containing real proportions for each cell type (cell type x bulk); optional
+#' @param training.pheno pheno data for the single-cell training set; optional
+#' @param real boolean; are the deconvoluted bulks real or artificial
+#' @param celltype.order character vector of cell types specifying the plotting order
+#' @param algorithm.order character vector of algorithm names specifying the plotting order
+#' @return list containing one plot per algorithm
+
 create_scatterplots <- function(results.list, real.props = NULL, training.pheno = NULL, real = FALSE, celltype.order = NULL, algorithm.order = NULL) {
   require(ggplot2)
   if(!is.list(results.list)){

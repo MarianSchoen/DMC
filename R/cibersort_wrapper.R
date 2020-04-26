@@ -1,15 +1,32 @@
 #' deconvolute given bulks with CIBERSORT using single cell data
 #'
-#' @param exprs matrix containing single cell profiles as columns
-#' @param pheno phenotype data corresponding to the expression matrix.
+#' @param exprs non negative numeric matrix containing single cell profiles
+#'  as columns and features as rows
+#' @param pheno data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
 #' Has to contain single cell labels in a column named 'cell_type'
 #' @param bulks matrix containing bulk expression profiles as columns
-#' @param exclude.from.signature list of cell types not to be included in the signature matrix
-#' @param max.genes maximum number of genes that will be included in the signature for each celltype
-#' @param optimize logical, should the signature matrix be optimized by condition number? If FALSE, max.genes genes will be used
-#' @param split.data logical, should the training data be split for signature matrix creation? If TRUE, 10% of the data will be used to build
-#' the signature matrix and the rest will be used to estimate the optimal features
-#' @return list with one entry: est.props, matrix containing for each bulk the estimated fractions of the cell types contained
+#' @param exclude.from.signature vector of strings of cell types not to be
+#' included in the signature matrix
+#' @param max.genes numeric, maximum number of genes that will be included in 
+#' the signature for each celltype
+#' @param optimize boolean, should the signature matrix be optimized by
+#' condition number? If FALSE, max.genes genes will be used
+#' @param split.data boolean, should the training data be split for signature
+#' matrix creation? If TRUE, 10% of the data will be used to build
+#' the signature matrix and the rest will be used to estimate the optimal
+#' features
+#' @param verbose boolean
+#' @param model list containing two entries:
+#' 1) ref.profiles - matrix containing reference profiles for all cell types in its columns
+#' 2) g - weight vector for genes. For algorithms that do not assign weights to features,
+#' this will consist of ones and zeroes, depending on wether a feature is included in the model or not
+#' @return list with four entries: 
+#' 1) est.props - matrix containing for each bulk the
+#' estimated fractions of the cell types contained
+#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types); can be calculated from ref.profiles and g
+#' 3) ref.profiles - complete reference matrix (features x cell type); contains all genes unweighted
+#' 4) g - named weight vector g; specifies for all genes, whether they are used in the effective signature (0,1) and
+#' optionally assigns a weight to each gene (e.g. for DTD)
 #' @example run_cibersort(training.exprs, training.pheno, bulk.exprs)
 
 # source the CIBERSORT function (not available as package)

@@ -1,12 +1,13 @@
 #' write misc input
 #'
 #' @param genesets list of string vectors
-#' @param algorithm.names 
+#' @param algorithm.names cahracter vector; names of the deconvolution algorithms used
 #' @param function.call call object
-#' @param grouping vector
+#' @param grouping numeric vector grouping samples in test and training set
 #' @param filename string, where should the data be stored?
 #'
 #' @return NULL, function saves into ‘filename‘
+
 write_misc_input <- function(genesets, algorithm.names, function.call, grouping, filename) {
   library(rhdf5)
   if(!is.character(algorithm.names)){

@@ -1,4 +1,17 @@
-# create score plot from output of prepare_data
+#' create score plot
+#' 
+#' @param results.df data frame as returned by prepare_data
+#' @param title character, plot title
+#' @param metric character string specifying the evaluation metric; default 'cor'
+#' @param real.props non-negative numeric matrix, with cell types as rows, 
+#' and bulk RNA-Seq profiles.
+#' @param celltype.order character vector of cell types specifying the plotting order
+#' @param algorithm.order character vector of algorithm names specifying the plotting order (left to right)
+#' @result list with 3 entries:
+#' 1) plot - table plot of deconvolution results
+#' 2) celltype.order - character vector containing cell types in plotting order
+#' 3) algorithm.order - character vector containing algorithms in plotting order
+
 evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props = NULL, celltype.order = NULL, algorithm.order = NULL) {
     if(!is.data.frame(results.df)){
       stop("results.df must be a data frame")
