@@ -206,5 +206,5 @@ create_sig_matrix <- function(
   g <- rep(0, nrow(full.mat))
   names(g) <- rownames(full.mat)
   g[optimal.genes] <- 1
-  return(list(sig.matrix = ref.mat, full.matrix = full.mat, g = g))
+  return(sig.matrix = ref.mat)
 }

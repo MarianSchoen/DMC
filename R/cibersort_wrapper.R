@@ -16,17 +16,10 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
-#' @param model list containing two entries:
-#' 1) ref.profiles - matrix containing reference profiles for all cell types in its columns
-#' 2) g - weight vector for genes. For algorithms that do not assign weights to features,
-#' this will consist of ones and zeroes, depending on wether a feature is included in the model or not
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
-#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types); can be calculated from ref.profiles and g
-#' 3) ref.profiles - complete reference matrix (features x cell type); contains all genes unweighted
-#' 4) g - named weight vector g; specifies for all genes, whether they are used in the effective signature (0,1) and
-#' optionally assigns a weight to each gene (e.g. for DTD)
+#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_cibersort(training.exprs, training.pheno, bulk.exprs)
 
 # source the CIBERSORT function (not available as package)
@@ -36,8 +29,8 @@ run_cibersort <- function(exprs,
                           exclude.from.signature = NULL,
                           max.genes = 500,
                           optimize = TRUE,
-                          split.data = FALSE,
-                          model = NULL) {
+                          split.data = FALSE
+                          ) {
     # error checking
     if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
@@ -56,45 +49,15 @@ run_cibersort <- function(exprs,
     # normalize cell profiles to fixed counts
     exprs <- scale_to_count(exprs)
     # create signature matrix
-    valid.model <- T
-    if(!is.null(model)){
-        if(all(c("ref.profiles", "g") %in% names(model))){
-            full.mat <- model$ref.profiles
-            g <- model$g
-            if(all(names(g) %in% rownames(full.mat)) && length(g) == nrow(full.mat)){
-                g <- g[rownames(full.mat)]
-                if(any(duplicated(rownames(full.mat)))){
-                    g <- g[-which(duplicated(rownames(full.mat)))]
-                    full.mat <- full.mat[-which(duplicated(rownames(full.mat))),]
-                }
-                ref.profiles <- apply(full.mat, 2, function(x){x*g})
-                if(any(rowSums(ref.profiles) == 0)){
-                    ref.profiles <- ref.profiles[-which(rowSums(ref.profiles) == 0),]
-                }
-            }else{
-                warning("reference profiles and g vector do not contain the same genes")
-                valid.model <- F
-            }
-        }else{
-            warning("passed model parameter does not contain entries 'ref.profiles' and 'g'")
-            valid.model <- F
-        }
-    }else{
-        valid.model <- F
-    }
-    if(!valid.model){
-        model <- create_sig_matrix(
-    	exprs,
-            pheno,
-            exclude.from.signature,
-            max.genes = max.genes,
-            optimize = optimize,
-            split.data = split.data
-        )
-        ref.profiles <- model$sig.matrix
-        full.mat <- model$full.matrix
-        g <- model$g
-    }
+    
+    ref.profiles <- create_sig_matrix(
+	exprs,
+        pheno,
+        exclude.from.signature,
+        max.genes = max.genes,
+        optimize = optimize,
+        split.data = split.data
+    )
 
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
     df.sig <- cbind(df.sig, ref.profiles)
@@ -135,5 +98,5 @@ run_cibersort <- function(exprs,
     file.remove("CIBERSORT/mixture.txt")
     unlink("CIBERSORT", recursive = TRUE)
 
-    return(list(est.props = est.props, sig.matrix = ref.profiles, ref.profiles = full.mat, g = g))
+    return(list(est.props = est.props, sig.matrix = ref.profiles))
 }

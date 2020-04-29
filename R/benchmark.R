@@ -25,8 +25,6 @@
 #' varying number of random training profiles be performed, default FALSE
 #' @param simulation.subtypes boolean, should deconvolution of simulated bulks with
 #' artificial subtypes of given cell types be performed, default FALSE
-#' @param bootstrap boolean, should bootstrapping be performed on the real bulks
-#' to estimate the error on the deconvolution result? default TRUE
 #' @param missing.algorithm character specifying the algorithm for which a model
 #' with incomplete reference should be tested; default DTD
 #' @param missing.celltype character specifiying cell type; compare DTD model with
@@ -61,7 +59,6 @@ benchmark <- function(
   simulation.genes = FALSE,
   simulation.samples = FALSE,
   simulation.subtypes = FALSE,
-  bootstrap = TRUE,
   genesets = NULL, 
   metric = "cor", 
   repeats = 3, 
@@ -360,12 +357,16 @@ benchmark <- function(
 		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
 		suppressWarnings(write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep="")))
 		# bootstrapping of real bulks
-		if(bootstrap){
-		  print("bootstrapping")
-		  bootstrap.real <- bootstrap_bulks(training.exprs, training.pheno, algorithms, verbose, split.data = TRUE, exclude.from.bulks = NULL, exclude.from.signature, TRUE, NULL, bulks = list(bulks = real.counts, props = real.props))
-		  saveRDS(bootstrap.real, file = paste(output.folder, "/results/real/bootstrap_bulks",res.no,".rds",sep=""))
-		}
 	}
+	real.benchmark <- read_result_list(paste(output.folder, "/results/real/deconv_output_1.h5",sep=""))
+	print("bootstrapping")
+	estimates <- list()
+	for(a in algorithms){
+	  estimates[[a$name]] <- real.benchmark$results.list[["1"]][[a$name]]$est.props
+	}
+	props <- list(real = real.props, est = estimates)
+	bootstrap.real <- bootstrap_bulks(training.exprs, training.pheno, algorithms[to.run], verbose, split.data = TRUE, exclude.from.bulks = NULL, exclude.from.signature, TRUE, NULL, bulks = list(bulks = real.counts, props = real.props), props)
+	saveRDS(bootstrap.real, file = paste(output.folder, "/results/real/bootstrap_bulks",res.no,".rds",sep=""))
 
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)

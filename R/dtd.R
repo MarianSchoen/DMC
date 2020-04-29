@@ -16,17 +16,10 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
-#' @param model list containing two entries:
-#' 1) ref.profiles - matrix containing reference profiles for all cell types in its columns
-#' 2) g - weight vector for genes. For algorithms that do not assign weights to features,
-#' this will consist of ones and zeroes, depending on wether a feature is included in the model or not
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
-#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types); can be calculated from ref.profiles and g
-#' 3) ref.profiles - complete reference matrix (features x cell type); contains all genes unweighted
-#' 4) g - named weight vector g; specifies for all genes, whether they are used in the effective signature (0,1) and
-#' optionally assigns a weight to each gene (e.g. for DTD)
+#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_dtd(training.exprs, training.pheno, bulks)
 
 suppressMessages(library(DTD))
@@ -38,8 +31,8 @@ run_dtd <- function(exprs,
                     max.genes = NULL,
                     optimize = TRUE,
                     split.data = TRUE,
-                    verbose = FALSE,
-                    model = NULL) {
+                    verbose = FALSE
+                    ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -71,105 +64,79 @@ run_dtd <- function(exprs,
     include.in.x <- unique(cell.types)
   }
   
-  valid.model <- T
-  if(!is.null(model)){
-    if(all(c("ref.profiles", "g") %in% names(model))){
-      full.mat <- model$ref.profiles
-      g <- model$g
-      if(all(names(g) %in% rownames(full.mat)) && length(g) == nrow(full.mat)){
-        g <- g[rownames(full.mat)]
-        if(any(rowSums(full.mat) == 0)){
-          dtd.model <- g[-which(rowSums(full.mat) == 0)]
-          sig.matrix <- full.mat[-which(rowSums(full.mat) == 0),]
-        }else{
-		dtd.model <- g
-		sig.matrix <- full.mat
-	}
-      }else{
-        message("reference profiles and g vector do not contain the same genes")
-        valid.model <- F
+
+  # create reference profiles
+  sample.X <- DTD::sample_random_X(
+    included.in.X = include.in.x,
+    pheno = cell.types,
+    expr.data = exprs,
+    percentage.of.all.cells = 0.3,
+    normalize.to.count = TRUE
+  )
+  sig.matrix <- sample.X$X.matrix
+  full.mat <- sig.matrix
+
+  # remove used samples from expression matrix and pheno data
+  samples.to.remove <- sample.X$samples.to.remove
+
+  # remove samples only if there is more than one of this cell type
+  if (any(table(cell.types) == 1)) {
+    samples.to.retain <- c()
+    for (t in include.in.x) {
+      if (table(cell.types[samples.to.remove])[t] == 1) {
+        samples.to.retain <- c(
+          samples.to.retain,
+          which(cell.types[samples.to.remove] == t)
+        )
       }
-    }else{
-      message("passed model parameter does not contain entries 'ref.profiles' and 'g'")
-      valid.model <- F
     }
-  }else{
-    valid.model <- F
+    samples.to.remove <- samples.to.remove[-samples.to.retain]
   }
-  if(!valid.model){
-    # create reference profiles
-    sample.X <- DTD::sample_random_X(
-      included.in.X = include.in.x,
-      pheno = cell.types,
-      expr.data = exprs,
-      percentage.of.all.cells = 0.3,
-      normalize.to.count = TRUE
-    )
-    sig.matrix <- sample.X$X.matrix
-    full.mat <- sig.matrix
-  
-    # remove used samples from expression matrix and pheno data
-    samples.to.remove <- sample.X$samples.to.remove
-  
-    # remove samples only if there is more than one of this cell type
-    if (any(table(cell.types) == 1)) {
-      samples.to.retain <- c()
-      for (t in include.in.x) {
-        if (table(cell.types[samples.to.remove])[t] == 1) {
-          samples.to.retain <- c(
-            samples.to.retain,
-            which(cell.types[samples.to.remove] == t)
-          )
-        }
-      }
-      samples.to.remove <- samples.to.remove[-samples.to.retain]
-    }
-    if(any(colnames(exprs) %in% samples.to.remove)){
-      exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
-    }
-    if(any(names(cell.types) %in% samples.to.remove)){
-      cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
-    }
-  
-    # choose either max.genes genes per cell type or all available genes
-    # but set maximum to 4000 due to runtime
-    n.genes <- min(4000, nrow(exprs), length(unique(cell.types)) * max.genes)
-    top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
-    exprs <- exprs[top.features, ]
-    sig.matrix <- sig.matrix[top.features, ]
-  
-    n.per.mixture <- floor(0.1 * ncol(exprs))
-    n.samples <- max(n.genes, 50)
-  
-    training.bulks <- mix_samples(
-      expr.data = exprs,
-      pheno = cell.types,
-      included.in.X = include.in.x,
-      n.samples = n.samples,
-      n.per.mixture = n.per.mixture,
-      verbose = FALSE
-    )
-  
-    # set the starting parameters to 1
-    start.tweak <- rep(1, n.genes)
-    names(start.tweak) <- top.features
-  
-    suppressMessages(
-    dtd.model <- try(train_deconvolution_model(
-      tweak = start.tweak,
-      X.matrix = sig.matrix,
-      train.data.list = training.bulks,
-      estimate.c.type = "direct",
-      verbose = FALSE,
-      NORM.FUN = "identity",
-      learning.rate = 1,
-      cv.verbose = FALSE
-    ))
-    )
+  if(any(colnames(exprs) %in% samples.to.remove)){
+    exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
+  }
+  if(any(names(cell.types) %in% samples.to.remove)){
+    cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
+  }
+
+  # choose either max.genes genes per cell type or all available genes
+  # but set maximum to 4000 due to runtime
+  n.genes <- min(4000, nrow(exprs), length(unique(cell.types)) * max.genes)
+  top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
+  exprs <- exprs[top.features, ]
+  sig.matrix <- sig.matrix[top.features, ]
+
+  n.per.mixture <- floor(0.1 * ncol(exprs))
+  n.samples <- max(n.genes, 50)
+
+  training.bulks <- mix_samples(
+    expr.data = exprs,
+    pheno = cell.types,
+    included.in.X = include.in.x,
+    n.samples = n.samples,
+    n.per.mixture = n.per.mixture,
+    verbose = FALSE
+  )
+
+  # set the starting parameters to 1
+  start.tweak <- rep(1, n.genes)
+  names(start.tweak) <- top.features
+
+  suppressMessages(
+  dtd.model <- try(train_deconvolution_model(
+    tweak = start.tweak,
+    X.matrix = sig.matrix,
+    train.data.list = training.bulks,
+    estimate.c.type = "direct",
+    verbose = FALSE,
+    NORM.FUN = "identity",
+    learning.rate = 1,
+    cv.verbose = FALSE
+  ))
+  )
 
   # est.props.colscale <- NULL
   # est.props.rowscale <- NULL
-  }
 
   if (!class(dtd.model) == "try-error") {
     # use the model to estimate the composition of the supplied bulks
@@ -213,6 +180,6 @@ run_dtd <- function(exprs,
     g <- NULL
     sig.mat.effective <- NULL
   }
-  return(list(est.props = est.props, g = g,
-          sig.matrix = sig.mat.effective, ref.profiles = full.mat))
+  return(list(est.props = est.props,
+          sig.matrix = sig.mat.effective))
 }

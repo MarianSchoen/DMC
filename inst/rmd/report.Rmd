@@ -92,18 +92,15 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
     bootstrap.data <- c()
     for(f in files) {
       temp <- readRDS(f)
-      for(n in names(temp)){
-        for(i in 1:length(temp[[n]])){
-          bootstrap.data <- rbind(bootstrap.data, c(n, temp[[n]][i]))
-        }
-      }
+      bootstrap.data <- rbind(bootstrap.data, temp)
     }
-    colnames(bootstrap.data) <- c("algorithm", "score")
+    bootstrap.data <- as.data.frame(bootstrap.data)
+    bootstrap.data$score <- as.numeric(as.character(bootstrap.data$score))
+    
+    bootstrap.plot.height <- length(unique(bootstrap.data$algorithm)) * 3
+    bootstrap.plot.width <- length(unique(bootstrap.data$cell_type)) * 2
   }
-  bootstrap.data <- as.data.frame(bootstrap.data)
-  bootstrap.data$score <- as.numeric(as.character(bootstrap.data$score))
 
-  
   score.plot.list <- evaluation_plot(real.df, "deconvolution quality",params$metric)
   score.plot <- score.plot.list$plot
   celltypes.ordered <- score.plot.list$celltype.order
@@ -170,8 +167,9 @@ plot(cond.num.plots$variation_plot)
 3) Standard deviation of the score (correlation) of the model across multiple repetitions depending on the variability of the model's condition number  
 
 ### Bootstrapped Bulks
-```{r bootstrap_plots, fig.width = 16, fig.height = 9}
-ggplot2::ggplot(bootstrap.data, aes(x = algorithm, y = score, col = algorithm)) + geom_boxplot()
+```{r bootstrap_plots, fig.width = bootstrap.plot.width, fig.height = bootstrap.plot.height}
+if(exists("bootstrap.data"))
+  ggplot2::ggplot(bootstrap.data, aes(x = algorithm, y = score, col = algorithm)) + facet_grid(rows = vars(cell_type)) + geom_boxplot()
 ```
   
 \pagebreak

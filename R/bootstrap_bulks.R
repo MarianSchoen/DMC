@@ -28,45 +28,37 @@ bootstrap_bulks <- function(training.exprs,
                             exclude.from.signature = NULL, 
                             optimize = TRUE, 
                             max.genes = NULL,
-                            bulks) {
+                            bulks,
+                            props) {
   n.bulks <- ncol(bulks$bulks)
-  bootstrap.results <- data.frame()
-  models = NULL
-  for(i in 1:50){
-    if(verbose) cat(i, " ", sep = "")
+  estimates <- props$est
+  real.props <- props$real
+  
+  cts <- intersect(rownames(estimates[[1]]), rownames(real.props))
+
+  bootstrap.df <- c()
+  for(i in 1:20){
     bootstrap.samples <- sample(1:n.bulks, n.bulks, replace = T)
-    bootstrap.bulks <- list(bulks = bulks$bulks[, bootstrap.samples], props = bulks$props[,bootstrap.samples])
-    colnames(bootstrap.bulks$bulks) <- 1:n.bulks
-    colnames(bootstrap.bulks$props) <- 1:n.bulks
-    deconv.results <- deconvolute(
-      training.exprs, 
-      training.pheno, 
-      NULL, NULL, 
-      algorithms, 
-      verbose, TRUE, NULL, 
-      exclude.from.signature, 
-      TRUE, NULL, 0,
-      bootstrap.bulks,
-      n.repeats = 1,
-      algorithm.models = models
-    )
-    #print(str(deconv.results))
-    if(i == 1){
-      models <- list()
-      for(a in algorithms){
-        ref.profiles <- deconv.results$results.list[["1"]][[a$name]]$ref.profiles
-        g <- deconv.results$results.list[["1"]][[a$name]]$g
-        models[[a$name]] <- list(ref.profiles = ref.profiles, g = g)
-      }
+    bootstrap.estimates <- list()
+    for(a in names(estimates)){
+      bootstrap.estimates[[a]] <- estimates[[a]][, bootstrap.samples]
     }
-    deconv.results <- prepare_data(results.all = deconv.results, metric = "cor")
-    bootstrap.results <- rbind(bootstrap.results, deconv.results[which(deconv.results$cell_type == "overall"),])
+    bootstrap.real <- real.props[, bootstrap.samples]
+    
+    for(a in names(estimates)){
+      cors <- c()
+      for(t in cts){
+        temp.cor <- cor(bootstrap.estimates[[a]][t,], bootstrap.real[t,])
+        if(is.na(temp.cor) | temp.cor < 0){
+          temp.cor <- 0
+        }
+        bootstrap.df <- rbind(bootstrap.df, c(a, t, temp.cor))
+        cors <- c(cors, temp.cor)
+      }
+      score <- mean(cors)
+      bootstrap.df <- rbind(bootstrap.df, c(a, 'overall', score))
+    }
   }
-  cat("\n")
-  colnames(bootstrap.results) <- colnames(deconv.results)
-  bootstrap.lst <- list()
-  for(a in unique(bootstrap.results$algorithm)){
-    bootstrap.lst[[a]] <- bootstrap.results[which(bootstrap.results$algorithm == a), "score"]
-  }
-  return(bootstrap.lst)
+  colnames(bootstrap.df) <- c("algorithm", "cell_type", "score")
+  return(bootstrap.df)
 }

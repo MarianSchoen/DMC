@@ -16,17 +16,10 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
-#' @param model list containing two entries:
-#' 1) ref.profiles - matrix containing reference profiles for all cell types in its columns
-#' 2) g - weight vector for genes. For algorithms that do not assign weights to features,
-#' this will consist of ones and zeroes, depending on wether a feature is included in the model or not
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
-#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types); can be calculated from ref.profiles and g
-#' 3) ref.profiles - complete reference matrix (features x cell type); contains all genes unweighted
-#' 4) g - named weight vector g; specifies for all genes, whether they are used in the effective signature (0,1) and
-#' optionally assigns a weight to each gene (e.g. for DTD)
+#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_music(training.exprs, training.pheno, bulks[,1:5])
 #'
 run_music <- function(exprs,
@@ -35,8 +28,8 @@ run_music <- function(exprs,
                       exclude.from.signature = NULL,
                       max.genes = NULL,
                       optimize = TRUE,
-                      split.data = TRUE,
-                      model = NULL) {
+                      split.data = TRUE
+                      ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -94,7 +87,7 @@ run_music <- function(exprs,
     samples = "patient", select.ct = include.in.x, verbose = FALSE
   ))
   if(class(est.prop.music) == "try-error"){
-	  return(list(est.props = NULL, sig.matrix = NULL, ref.profiles = NULL, g = NULL))
+	  return(list(est.props = NULL, sig.matrix = NULL))
   }
 
   est.props <- as.matrix(t(est.prop.music$Est.prop.weighted))
@@ -104,5 +97,5 @@ run_music <- function(exprs,
   full.mat <- NULL
   g <- NULL
   
-  return(list(est.props = est.props, sig.matrix = NULL, ref.profiles = full.mat, g = g))
+  return(list(est.props = est.props, sig.matrix = NULL))
 }

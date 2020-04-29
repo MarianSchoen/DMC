@@ -16,20 +16,12 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
-#' @param model list containing two entries:
-#' 1) ref.profiles - matrix containing reference profiles for all cell types in its columns
-#' 2) g - weight vector for genes. For algorithms that do not assign weights to features,
-#' this will consist of ones and zeroes, depending on wether a feature is included in the model or not
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
-#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types); can be calculated from ref.profiles and g
-#' 3) ref.profiles - complete reference matrix (features x cell type); contains all genes unweighted
-#' 4) g - named weight vector g; specifies for all genes, whether they are used in the effective signature (0,1) and
-#' optionally assigns a weight to each gene (e.g. for DTD)
+#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_deconrnaseq(training.exprs, training.pheno, bulk.exprs)
-run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE,
-                            model = NULL) {
+run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE) {
   suppressMessages(library(DeconRNASeq, quietly = TRUE))
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
@@ -49,46 +41,15 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   # scale to counts and create signature
   exprs <- scale_to_count(exprs)
   
-  valid.model <- T
-  if(!is.null(model)){
-    if(all(c("ref.profiles", "g") %in% names(model))){
-      full.mat <- model$ref.profiles
-      g <- model$g
-      if(all(names(g) %in% rownames(full.mat)) && length(g) == nrow(full.mat)){
-        g <- g[rownames(full.mat)]
-        if(any(duplicated(rownames(full.mat)))){
-          g <- g[-which(duplicated(rownames(full.mat)))]
-          full.mat <- full.mat[-which(duplicated(rownames(full.mat))),]
-        }
-        ref.profiles <- apply(full.mat, 2, function(x){x*g})
-        if(any(rowSums(ref.profiles) == 0)){
-          ref.profiles <- ref.profiles[-which(rowSums(ref.profiles) == 0),]
-        }
-        ref.profiles <- as.data.frame(ref.profiles)
-      }else{
-        warning("reference profiles and g vector do not contain the same genes")
-        valid.model <- F
-      }
-    }else{
-      warning("passed model parameter does not contain entries 'ref.profiles' and 'g'")
-      valid.model <- F
-    }
-  }else{
-    valid.model <- F
-  }
-  if(!valid.model){
-    model <- create_sig_matrix(exprs,
-        pheno,
-        exclude.from.signature,
-        max.genes = max.genes,
-        optimize = optimize,
-        split.data = split.data
-      )
-    
-    ref.profiles <- as.data.frame(model$sig.matrix)
-    full.mat <- model$full.matrix
-    g <- model$g
-  }
+  ref.profiles <- as.data.frame(create_sig_matrix(exprs,
+      pheno,
+      exclude.from.signature,
+      max.genes = max.genes,
+      optimize = optimize,
+      split.data = split.data
+    )
+  )
+
   # DeconRNASeq requires data frame as input
   df.mix <- as.data.frame(bulks)
   rownames(df.mix) <- rownames(bulks)
@@ -103,8 +64,8 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
     if(!all(colnames(ref.profiles) %in% rownames(result))){
       result <- complete_estimates(result, colnames(ref.profiles))
     }
-    return(list(est.props = result, sig.matrix = as.matrix(ref.profiles), ref.profiles = full.mat, g = g))
+    return(list(est.props = result, sig.matrix = as.matrix(ref.profiles)))
   } else {
-    return(list(est.props = NULL, sig.matrix = as.matrix(ref.profiles), ref.profiles = full.mat, g = g))
+    return(list(est.props = NULL, sig.matrix = as.matrix(ref.profiles)))
   }
 }
