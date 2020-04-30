@@ -172,12 +172,9 @@ run_dtd <- function(exprs,
     if(!all(include.in.x %in% rownames(est.props))){
       est.props <- complete_estimates(est.props, include.in.x)
     }
-    g <- rep(0, nrow(full.mat))
-    names(g) <- rownames(full.mat)
-    g[names(g_vec)] <- g_vec
+
   } else {
     est.props <- NULL
-    g <- NULL
     sig.mat.effective <- NULL
   }
   return(list(est.props = est.props,
