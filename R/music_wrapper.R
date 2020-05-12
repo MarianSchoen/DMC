@@ -51,12 +51,10 @@ run_music <- function(exprs,
   # MuSiC uses all supplied genes
   n.genes <- nrow(exprs)
 
-  # do not normalize profiles to counts
-  # exprs <- scale_to_count(exprs)
-  # ExpressionSet does strange things to names...
-
+  # ExpressionSet creation may fail without this...
   rownames(exprs) <- make.names(rownames(exprs))
   rownames(bulks) <- make.names(rownames(bulks))
+
   # create ExpressionSets from exprs, pheno and bulks
   sc.exprs <- ExpressionSet(
     assayData = exprs,
@@ -64,13 +62,15 @@ run_music <- function(exprs,
   )
   bulk.pheno <- data.frame(sample = colnames(bulks))
 
-  # for some reason this is necessary, otherwise equality check of sample names will fail...
+  # equality check of sample names may fail due to different attributes
   rownames(bulk.pheno) <- colnames(bulks)
   colnames(bulks) <- rownames(bulk.pheno)
   bulks <- ExpressionSet(
     assayData = bulks,
     phenoData = AnnotatedDataFrame(bulk.pheno)
   )
+
+  # exclude samples of types contained in exclude.from.signature
   if (!is.null(exclude.from.signature)) {
     if (length(which(unique(pheno[, "cell_type"]) %in% exclude.from.signature)) > 0) {
       include.in.x <- unique(pheno[, "cell_type"])[-which(unique(pheno[, "cell_type"]) %in% exclude.from.signature)]
@@ -91,11 +91,11 @@ run_music <- function(exprs,
   }
 
   est.props <- as.matrix(t(est.prop.music$Est.prop.weighted))
+
+  # complete the estimation matrix in case of cell type dropouts
   if(!all(include.in.x %in% rownames(est.props))){
     est.props <- complete_estimates(est.props, include.in.x)
   }
-  full.mat <- NULL
-  g <- NULL
   
   return(list(est.props = est.props, sig.matrix = NULL))
 }

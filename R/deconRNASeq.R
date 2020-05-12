@@ -37,10 +37,11 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-  rownames(pheno) <- colnames(exprs)
-  # scale to counts and create signature
+
+  # scale to counts
   exprs <- scale_to_count(exprs)
   
+  # create signature matrix (DeconRNASeq needs data frames)
   ref.profiles <- as.data.frame(create_sig_matrix(exprs,
       pheno,
       exclude.from.signature,
@@ -50,17 +51,20 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
     )
   )
 
-  # DeconRNASeq requires data frame as input
+  # create bulk data frame
   df.mix <- as.data.frame(bulks)
   rownames(df.mix) <- rownames(bulks)
 
-  # there is no option to switch the output of this function off...
-  sink("/dev/null")
-  result <- try(DeconRNASeq::DeconRNASeq(df.mix, ref.profiles))
-  sink()
+  # there is no option to switch the output of this function off
+  # deconvolute
+  invisible(result <- try(DeconRNASeq::DeconRNASeq(df.mix, ref.profiles), silent = TRUE))
+
   if (!class(result) == "try-error") {
+    # select the interesting rows and rotate to be compatible with other algorithms' outputs
     result <- t(result$out.all[1:ncol(bulks), , drop = FALSE])
     colnames(result) <- colnames(bulks)
+
+    # complete estimation matrix in case of droput cell types
     if(!all(colnames(ref.profiles) %in% rownames(result))){
       result <- complete_estimates(result, colnames(ref.profiles))
     }

@@ -54,6 +54,7 @@ run_least_squares <- function(exprs,
   cell.types <- as.character(pheno[, "cell_type"])
   names(cell.types) <- colnames(exprs)
 
+  # exclude samples of types contained in exclude.from.signature
   if (!is.null(exclude.from.signature)) {
     if (length(which(cell.types %in% exclude.from.signature)) > 0) {
       include.in.x <- unique(cell.types[-which(cell.types %in% exclude.from.signature)])
@@ -80,46 +81,29 @@ run_least_squares <- function(exprs,
   exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
   cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
 
+  # use a maximum of 4000 genes
   n.genes <- min(4000, nrow(exprs))
+  # use the top n.genes most variable genes
   top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
   exprs <- exprs[top.features, ]
   sig.matrix <- sig.matrix[top.features, ]
-
-  n.per.mixture <- floor(0.1 * ncol(exprs))
-  n.samples <- max(n.genes, 50)
 
   # set the model without learning
   start.tweak <- rep(1, n.genes)
   names(start.tweak) <- top.features
     
-  # use the model to estimate the composition of the supplied bulks
+  # use the untrained model to estimate the composition of the supplied bulks
   est.props <- estimate_c(
     X.matrix = sig.matrix,
     new.data = bulks[rownames(sig.matrix), , drop = FALSE],
     DTD.model = start.tweak,
     estimate.c.type = "direct"
   )
-  # rescale by column and by row in order to determine how this changes results
-  # est.props.colscale <- est.props
-  # est.props.rowscale <- est.props
-  # if (any(est.props < 0)) {
-  #   est.props.rowscale[est.props.rowscale < 0] <- 0
-  #   est.props.colscale[est.props.colscale < 0] <- 0
-  # }
-  # est.props.colscale <- apply(est.props.colscale, 2, function(x) {
-  #   x / sum(x)
-  # })
-  # est.props.rowscale <- t(apply(est.props.rowscale, 1, function(x) {
-  #   x / max(x)
-  # }))
-  # rownames(est.props.rowscale) <- rownames(est.props.colscale)
-  # if(!all(include.in.x %in% rownames(est.props))){
-  #   est.props <- complete_estimates(est.props, include.in.x)
-  # }
-  
-  g <- rep(0, nrow(full.mat))
-  names(g) <- rownames(full.mat)
-  g[rownames(sig.matrix)] <- 1
+
+  # if any cell types dropped out during estimation complete the matrix
+  if(!all(include.in.x %in% rownames(est.props))){
+    est.props <- complete_estimates(est.props, include.in.x)
+  }
   
   return(list(
     est.props = est.props,

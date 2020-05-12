@@ -48,8 +48,8 @@ run_cibersort <- function(exprs,
 
     # normalize cell profiles to fixed counts
     exprs <- scale_to_count(exprs)
-    # create signature matrix
     
+    # create signature matrix
     ref.profiles <- create_sig_matrix(
 	exprs,
         pheno,
@@ -58,7 +58,6 @@ run_cibersort <- function(exprs,
         optimize = optimize,
         split.data = split.data
     )
-
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
     df.sig <- cbind(df.sig, ref.profiles)
 
@@ -69,17 +68,16 @@ run_cibersort <- function(exprs,
         sep = "\t"
     )
 
-
+    # create data frame containing bulks
     df.mix <- data.frame(GeneSymbol = rownames(bulks))
     df.mix <- cbind(df.mix, bulks)
-
     write.table(df.mix,
         file = "CIBERSORT/mixture.txt", quote = FALSE, row.names = FALSE,
         sep = "\t"
     )
 
     # call CIBERSORT; quantile normalization is recommended by the authors
-    # switch off permutation, as I am not interested in p-values
+    # switch off permutation, as we are not interested in p-values
     result <- CIBERSORT(
         sig_matrix = "CIBERSORT/signature_matrix.txt",
         mixture_file = "CIBERSORT/mixture.txt",
@@ -88,6 +86,8 @@ run_cibersort <- function(exprs,
 
     # drop the additional information in the last 3 columns
     est.props <- t(result[1:ncol(bulks), -((ncol(result) - 2):ncol(result)), drop = FALSE])
+
+    # complete the estimation matrix in case of cell type dropouts
     if(!all(colnames(ref.profiles) %in% rownames(est.props))){
         est.props <- complete_estimates(est.props, colnames(ref.profiles))
     }

@@ -29,6 +29,7 @@
 #'    , training.pheno
 #'    , bulks.exprs
 #'  )
+
 run_bseqsc <- function(
   exprs,
   pheno,
@@ -55,22 +56,21 @@ run_bseqsc <- function(
         max.genes <- NULL
     }
   }
-  # ExpressionSet does strange things to names...
+
+  # ExpressionSet creation may fail in some cases without this
   rownames(exprs) <- make.names(rownames(exprs))
   rownames(bulks) <- make.names(rownames(bulks))
   
   bulk.pheno <- data.frame(colnames(bulks))
   rownames(bulk.pheno) <- colnames(bulks)
   colnames(bulk.pheno) <- "sample"
-  colnames(bulks) <- rownames(bulk.pheno)
+  colnames(bulks) <- rownames(bulk.pheno)   # ExpressionSet creation may fail due to differences in attributes
   bulks <- ExpressionSet(
     assayData = bulks,
     phenoData = AnnotatedDataFrame(bulk.pheno)
   )
 
-  # do not normalize to counts for BSEQ-sc
-  # exprs <- scale_to_count(exprs)
-
+  # exclude cells of types contained in exclude.from.signature
   if (!is.null(exclude.from.signature)) {
     to.exclude <- which(pheno[, "cell_type"] %in% exclude.from.signature)
     if  (length(to.exclude) > 0)  {
@@ -82,6 +82,8 @@ run_bseqsc <- function(
   # use all supplied genes
   n.genes <- nrow(exprs)
   if (verbose) print("creating marker gene lists...")
+  # sample cells to use for gene selection in case of split training data and
+  # find informative genes for each cell type
   if (split.data) {
     learning.cells <- c()
     for (t in unique(pheno[, "cell_type"])) {
@@ -101,8 +103,10 @@ run_bseqsc <- function(
   } else {
     deg.per.type <- try(marker_genes(exprs, pheno, NULL))
   }
+
+  # BSEQ-sc marker selection produces errors sometimes
   if (class(deg.per.type) == "try-error") {
-    warning("Error while trying to find marker genes")
+    warning("Error while trying to find marker genes for BSEQ-sc")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
 
@@ -111,13 +115,13 @@ run_bseqsc <- function(
     return(list(est.props = NULL, sig.matrix = NULL))
   }
 
-  
   # create single cell and bulk expression set
   sc.exprs <- ExpressionSet(
     assayData = exprs,
     phenoData = AnnotatedDataFrame(pheno)
   )
 
+  # create reference matrix based on single cell data and DEGs
   B <- try({
     bseqsc_basis(sc.exprs, deg.per.type,
       clusters = "cell_type", samples = "patient",
@@ -125,29 +129,20 @@ run_bseqsc <- function(
     )
   })
   
-  all.per.type <- deg.per.type
-  for(ct in names(all.per.type)){
-    all.per.type[[ct]] <- rownames(exprs)
-  }
-  full.mat <- try({bseqsc_basis(sc.exprs, all.per.type,
-                           clusters = "cell_type", samples = "patient",
-                           ct.scale = TRUE)}
-  )
   if (class(B) == "try-error") {
     warning("BSEQ-sc signature matrix creation failed")
-    # save information in case of error
-    #save(sc.exprs, deg.per.type, file = paste("../bseqsc-error_", Sys.time(), sep = ""))
     return(list(est.props = NULL, sig.matrix = NULL))
   }
-  g <- rep(0, nrow(full.mat))
-  names(g) <- rownames(full.mat)
-  g[rownames(B)] <- 1
 
+  # deconvolute bulks using reference matrix B
   fit <- try(bseqsc_proportions(bulks, B, log = F, verbose = verbose))
+
   if (class(fit) == "try-error") {
     warning("BSEQ-sc estimation failed")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
+
+  # complete the estimation matrix in case of dropout cell types
   if(!all(unique(pheno$cell_type) %in% rownames(fit$coefficients))){
     est.props <- complete_estimates(fit$coefficients, unique(pheno$cell_type))
   }else{
