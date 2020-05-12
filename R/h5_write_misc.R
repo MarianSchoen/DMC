@@ -1,4 +1,4 @@
-#' write misc input
+#' write some input data of the benchmark to hdf5
 #'
 #' @param genesets list of string vectors
 #' @param algorithm.names cahracter vector; names of the deconvolution algorithms used
@@ -9,7 +9,7 @@
 #' @return NULL, function saves into ‘filename‘
 
 write_misc_input <- function(genesets, algorithm.names, function.call, grouping, filename) {
-  library(rhdf5)
+  # parameter checks
   if(!is.character(algorithm.names)){
     stop("Invalid algorithm.names. Must be character vector.")
   }

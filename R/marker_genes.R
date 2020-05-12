@@ -1,4 +1,4 @@
-#' select marker genes according to Baron et al., 2016
+#' select marker genes following description in Baron et al., 2016
 #' 
 #' @param exprs matrix containing single cell profiles as columns
 #' @param pheno phenotype data corresponding to the expression matrix.
@@ -9,33 +9,37 @@
 #' @example marker_genes(sc.exprs, sc.pheno)
 
 marker_genes <- function(exprs, pheno, sig.types = NULL){
-  # error checking
+  # parameter checks
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }
   if (!all(sig.types %in% pheno[, "cell_type"])) {
     stop("Not all cell types in 'sig.types' are present in pheno data.")
   }
-  rownames(pheno) <- colnames(exprs)
-  exprs <- scale_to_count(exprs)
   if(is.null(sig.types)) sig.types <- unique(pheno[,"cell_type"])
+  rownames(pheno) <- colnames(exprs)
+
+  # scale to total count number for testing
+  exprs <- scale_to_count(exprs)
   
-  # 1) not sure this interpretation is right, but I cannot think of something more reasonable
+
+  # calculate sum per gene per cell type and the fano factor (select by variance) per gene per cell type
+  # see Baron et al., 2016 (Methods)
   geneSums <- rowSums(exprs)
-  
-  # calculate sum per gene per cell type and the fano factor (actually just select by variance) per gene per cell type
+
+  # create matrices for variance and sum per celltype and gene
   sums.per.celltype <- matrix(0, nrow = nrow(exprs), ncol = length(sig.types))
   colnames(sums.per.celltype) <- sig.types
   rownames(sums.per.celltype) <- rownames(exprs)
   fano.per.celltype <- matrix(0, nrow = nrow(exprs), ncol = length(sig.types))
   colnames(fano.per.celltype) <- sig.types
   rownames(fano.per.celltype) <- rownames(exprs)
+
   for(t in sig.types){
     sums.per.celltype[,t] <- apply(exprs[,which(pheno[,"cell_type"] == t),drop=F], 1, sum) / geneSums
     fano.per.celltype[,t] <- apply(exprs[,which(pheno[,"cell_type"] == t),drop=F], 1, var)
   }
   
-  # take only genes with variance above the median
   fano.per.celltype[is.na(fano.per.celltype)] <- 0
   
   # only highly expressed genes
@@ -55,7 +59,7 @@ marker_genes <- function(exprs, pheno, sig.types = NULL){
   	}
   }
   
-  # do a ks test for each of these genes for each group against all others combined?
+  # calculate p-values for the genes that passed the first two criteria (using ks test) and keep only those with p<10^-5
   for(t in sig.types){
     grouping <- ifelse(pheno[,"cell_type"] == t, TRUE, FALSE)
     genes <- genes.per.celltype[[t]]
@@ -64,6 +68,6 @@ marker_genes <- function(exprs, pheno, sig.types = NULL){
       if(length(genes[p.vals < 10^(-5)]) > 0) genes.per.celltype[[t]] <- genes[p.vals < 10^(-5)]
     }
   }
-  #print(str(genes.per.celltype))
+
   return(genes.per.celltype)
 }

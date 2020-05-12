@@ -29,19 +29,15 @@ create_sig_matrix <- function(
   optimize = TRUE,
   split.data = TRUE
   ) {
-  suppressMessages(library(multtest, quietly = TRUE))
-  suppressMessages(library(qvalue, quietly = TRUE))
-  suppressMessages(library(ggplot2, quietly = TRUE))
-  suppressMessages(library(DTD))
-  
-  # error checking
+  # parameter checks
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }
   if (!is.null(max.genes) && max.genes == 0) {
         max.genes <- NULL
-    }
+  }
   rownames(pheno) <- colnames(exprs)
+
   # exclude specified cell types
   if (!is.null(exclude.celltypes)) {
     to.exclude <- which(pheno[, "cell_type"] %in% exclude.celltypes)
@@ -50,6 +46,7 @@ create_sig_matrix <- function(
       pheno <- pheno[-to.exclude, , drop = F]
     }
   }
+
   # exclude genes with zero variance
   if (any(apply(exprs, 1, var) == 0)) {
     exprs <- exprs[-which(apply(exprs, 1, var) == 0), , drop = F]
@@ -86,7 +83,7 @@ create_sig_matrix <- function(
   }
 
   # for each cell type test against all others for DEG
-  # using two-sided unqu. var. t-test
+  # using two-sided t-test
   deg.per.type <- list()
   for (t in unique(pheno[, "cell_type"])) {
     labs <- ifelse(pheno[, "cell_type"] == t, 0, 1)
@@ -99,7 +96,8 @@ create_sig_matrix <- function(
         classlabel = labs,
         test = "t"
       )
-      # adjust for multiple testing, in accordance with Newman et al. 2015 significant if q < 0.3
+
+      # calc p-values and adjust for multiple testing, in accordance with Newman et al. 2015 significant if q < 0.3
       p.vals <- 2 * pt(abs(t.test.result), length(labs) - 2, lower.tail = FALSE)
 
       # apparently an error occurs when qvalue calls pi0est, which calls smooth.spline; input does not contain
@@ -123,7 +121,6 @@ create_sig_matrix <- function(
 
       # catch same error as above
       q.vals <- try(qvalue::qvalue(p.vals)$qvalues, silent = TRUE)
-
       if (class(q.vals) == "try-error") {
         q.vals <- p.adjust(p.vals, "BH")
       }
@@ -167,8 +164,8 @@ create_sig_matrix <- function(
         all.genes <- c(all.genes, sub.genes[1:min(length(sub.genes), g)])
       }
       all.genes <- unique(all.genes)
+
       # several genes have 0 variance, therefore mt.multtest returns NA
-      # they should all have been removed in line 21, but just to be sure
       if (any(is.na(all.genes))) {
         all.genes <- all.genes[-which(is.na(all.genes))]
       }
@@ -192,19 +189,18 @@ create_sig_matrix <- function(
     optimal.genes <- optimal.genes[-which(is.na(optimal.genes))]
   }
 
+  # once again depending on whether split.data is true and possible
   if (split.data && !any(type.counts < 3)) {
     ref.mat <- sig.matrix[optimal.genes, ]
-    full.mat <- sig.matrix
   } else {
     ref.mat <- ref.profiles[optimal.genes, ]
-    full.mat <- ref.profiles
   }
+
+  # remove any duplicate genes that might be in the matrix
   if(any(duplicated(rownames(ref.mat)))){
-    print("Found duplicates in reference matrix")
+    warning("Found duplicates in reference matrix")
     ref.mat <- ref.mat[-which(duplicated(rownames(ref.mat))),]
   }
-  g <- rep(0, nrow(full.mat))
-  names(g) <- rownames(full.mat)
-  g[optimal.genes] <- 1
+
   return(sig.matrix = ref.mat)
 }

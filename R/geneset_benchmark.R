@@ -28,7 +28,7 @@ geneset_benchmark <- function(training.exprs,
                               exclude.from.signature = NULL, 
                               verbose = FALSE, 
                               split.data = FALSE){
-  geneset.lists <- list()
+  # parameter checks
   if(!all(sapply(genesets, function(x){any(x %in% rownames(training.exprs))}))){
     stop("one or more genesets do not contain any genes present in the expression data")
   }
@@ -45,7 +45,9 @@ geneset_benchmark <- function(training.exprs,
       stop("bulk.data has the wrong format")
     }
   }
-  # deconvolute using each geneset
+
+  geneset.lists <- list()
+  # deconvolve using each geneset
   for (i in 1:length(genesets)) {
     genes <- genesets[[i]]
     # reduce to genes contained in current gene set

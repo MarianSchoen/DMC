@@ -50,15 +50,19 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     "score" ,
     "score_variation"
     )
+
     # fix variable types
     overall.df$condition_number <- as.numeric(as.character(overall.df$condition_number))
     overall.df$condition_variation <- as.numeric(as.character(overall.df$condition_variation))
     overall.df$score <- as.numeric(as.character(overall.df$score))
     overall.df$score_variation <- as.numeric(as.character(overall.df$score_variation))
+
+    # order the factor levels for plot order
     if(!is.null(algorithm.order)){
         overall.df$algorithm <- factor(overall.df$algorithm, levels = algorithm.order)
     }
     
+    # create plot labels (for barplot)
     cond_labs <- levels(overall.df$algorithm)
     for(i in 1:length(cond_labs)){
         if(is.na(overall.df[which(overall.df$algorithm == cond_labs[i]), "condition_number"])){

@@ -89,6 +89,7 @@ benchmark <- function(
 		}else{
 			if(dir.exists(paste(temp.dir, benchmark.name,sep="/"))){
 				print("Found existing project directory within temp")
+				# compare to the old hash and proceed only if it does not exist or they are similar
 				if(file.exists(paste(temp.dir, benchmark.name, "hash.rds",sep="/"))){
 					hash.old <- readRDS(paste(temp.dir, benchmark.name, "hash.rds", sep="/"))
 					if(hash != hash.old){
@@ -104,10 +105,9 @@ benchmark <- function(
 			}
 		}
 	}
-	
 	output.folder <- paste(temp.dir,"/",benchmark.name,sep="")
 
-	# check counts and props input
+	# check input parameters
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
@@ -213,6 +213,8 @@ benchmark <- function(
 
 	check_algorithms(algorithms)
 
+	# Data preparation
+	print("data preparation...")
 
 	# load / process / store data
 	# if it exists load previously processed data from temp
@@ -236,67 +238,74 @@ benchmark <- function(
 	if(!file.exists(paste(output.folder, "input_data/params.h5", sep = "/"))){
 	  suppressWarnings(write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/")))
 	}
+
 	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
 		if(cpm){
 			sc.counts <- scale_to_count(sc.counts)
 			real.counts <- scale_to_count(real.counts)
 		}
-	  # create subtypes via tsne embedding even if subtype benchmark is not TRUE
-	  # user might want to add it later on
-    if(verbose) print("simulating subtypes")
-    celltypes <- unique(sc.pheno$cell_type)
-    if(any(exclude.from.bulks %in% celltypes)){
-      celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
-    }
-    k <- list()
-    for(ct in celltypes){
-      k[[ct]] <- n.subtypes
-    }
-    subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
-    sc.pheno <- subtype.return$sc.pheno
-    
-    if(simulation.subtypes && is.null(subtype.return$tsne.embed)){
-      simulation.subtypes <- FALSE
-      warning("subtype simulation failed. skipping this benchmark.")
-    }
-    # exclude subtypes of cell types to exclude from reference matrix as well
-		# split (randomly at the moment) into test and validation set
-    if(length(unique(grouping)) == 2){
-  		split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
-  		training.exprs <- split.data$training$exprs
-  		training.pheno <- split.data$training$pheno
-  		test.exprs <- split.data$test$exprs
-  		test.pheno <- split.data$test$pheno
-    }else if(length(unique(grouping)) == 2){
-      message("Grouping vector contains only one group. Disabling all simulations.")
-      training.exprs <- sc.counts
-      training.pheno <- sc.pheno
-      test.exprs <- NULL
-      test.pheno <- NULL
-      simulation.bulks = FALSE
-      simulation.genes = FALSE
-      simulation.samples = FALSE
-      simulation.subtypes = FALSE
-    }else{
-      stop("Invalid grouping vector")
-    }
-		# exclude.from.bulks is a paramweter of benchmark(), create_bulks expects the opposite
+		# create subtypes via tsne embedding even if subtype benchmark is not TRUE
+		# user might want to add it later on
+		if(verbose) print("simulating subtypes")
+		celltypes <- unique(sc.pheno$cell_type)
+		if(any(exclude.from.bulks %in% celltypes)){
+			celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
+		}
+		k <- list()
+		# list containing for each cell type the number of subtype (same for all types)
+		for(ct in celltypes){
+			k[[ct]] <- n.subtypes
+		}
+		subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
+		sc.pheno <- subtype.return$sc.pheno
+
+		# perform subtype simulation only if simulated types are valid
+		if(simulation.subtypes && is.null(subtype.return$tsne.embed)){
+			simulation.subtypes <- FALSE
+			warning("subtype simulation failed. skipping this benchmark.")
+		}
+
+		# split data into test and validation set
+		if(length(unique(grouping)) == 2){
+			split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
+			training.exprs <- split.data$training$exprs
+			training.pheno <- split.data$training$pheno
+			test.exprs <- split.data$test$exprs
+			test.pheno <- split.data$test$pheno
+		}else if(length(unique(grouping)) == 2){
+			message("Grouping vector contains only one group. Disabling all simulations.")
+			training.exprs <- sc.counts
+			training.pheno <- sc.pheno
+			test.exprs <- NULL
+			test.pheno <- NULL
+			simulation.bulks = FALSE
+			simulation.genes = FALSE
+			simulation.samples = FALSE
+			simulation.subtypes = FALSE
+		}else{
+			stop("Invalid grouping vector")
+		}
+
+		# exclude.from.bulks is a parameter of benchmark(), create_bulks expects the opposite
 		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno$cell_type), exclude.from.bulks)) > 0){
 			include.in.bulks <- unique(test.pheno$cell_type)[-which(unique(test.pheno$cell_type %in% exclude.from.bulks))]
 		}else{
 			include.in.bulks <- NULL
 		}
-    if(!is.null(test.exprs)){
-      sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
-    }else{
-      sim.bulks <- list(bulks = NULL, props = NULL, sub.props = NULL)
-    }
-		
+
+		# create simulated bulks if test data is available
+		if(!is.null(test.exprs)){
+			sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
+		}else{
+			sim.bulks <- list(bulks = NULL, props = NULL, sub.props = NULL)
+		}
+			
 		# save processed data for later use and repeated benchmarks
-    suppressWarnings(write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = "")))
+		suppressWarnings(write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = "")))
 		suppressWarnings(write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep="")))	
 	}
+
 	# assume that samples in expression and pheno data are in the correct order
 	# if names do not match, assign sample names from expression to pheno data
 	if(!identical(rownames(training.pheno), colnames(training.exprs))){
@@ -309,7 +318,6 @@ benchmark <- function(
 	    colnames(test.exprs) <- rownames(test.pheno)
 	  }
 	}
-	
 
 	# make sure subtypes of types in exclude.from.signature are also excluded
 	if(any(training.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(training.pheno)){
@@ -320,9 +328,10 @@ benchmark <- function(
 	}
 	exclude.from.signature <- unique(exclude.from.signature)
 	
-	# begin deconvolution part
+	# Deconvolution
+	print("deconvolution")
 
-	# select algorithms that have not been evaluated in a previous runs
+	# select algorithms that have not been evaluated in a previous run
 	if(verbose) print("Benchmarking performance on real bulks")
 	previous.results <- list()
 	# read available files for this benchmark
@@ -333,11 +342,11 @@ benchmark <- function(
 				f <- files[i]
 				previous.results[[i]] <- read_result_list(f)
 			}
-		  
 		}
 	}else{
 		dir.create(paste(output.folder,"/results/real/",sep=""), recursive = T)
 	}
+
 	# exclude algorithms for which results are already present
 	if(length(previous.results) == 0){
 		to.run <- 1:length(algorithms)
@@ -354,35 +363,53 @@ benchmark <- function(
 	# deconvolute real bulks
 	print("real bulk benchmark")
 	if(length(to.run)>0){
-		real.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, list(bulks = real.counts, props = real.props), repeats)
+		real.benchmark <- deconvolute(
+			training.exprs, 
+			training.pheno, 
+			NULL, NULL, 
+			algorithms[to.run], 
+			verbose, 
+			TRUE, 
+			NULL, 
+			exclude.from.signature, 
+			TRUE, 
+			NULL, 
+			0, 
+			list(bulks = real.counts, props = real.props), 
+			repeats
+		)
 		suppressWarnings(write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep="")))
-		# bootstrapping of real bulks
 	}
-	real.benchmark <- read_result_list(paste(output.folder, "/results/real/deconv_output_1.h5",sep=""))
+	# perform bootstrapping
+	if(!exists("real.benchmark")){
+		real.benchmark <- read_result_list(paste(output.folder, "/results/real/deconv_output_1.h5",sep=""))
+	}
 	print("bootstrapping")
 	estimates <- list()
+	# use the results of the algorithms in the first repetition
 	for(a in algorithms){
 	  estimates[[a$name]] <- real.benchmark$results.list[["1"]][[a$name]]$est.props
 	}
 	props <- list(real = real.props, est = estimates)
-	bootstrap.real <- bootstrap_bulks(training.exprs, training.pheno, algorithms[to.run], verbose, split.data = TRUE, exclude.from.bulks = NULL, exclude.from.signature, TRUE, NULL, bulks = list(bulks = real.counts, props = real.props), props)
+	bootstrap.real <- bootstrap_bulks(props)
 	saveRDS(bootstrap.real, file = paste(output.folder, "/results/real/bootstrap_bulks",res.no,".rds",sep=""))
 
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)
 	names(available.sims) <- c("genes", "samples", "bulks", "subtypes")
-	if(any(available.sims) && verbose) print("Starting simulations")
+	if(any(available.sims)) print("Starting simulations")
 	for(s in names(available.sims)){
 		if(!available.sims[s]) next
+
 		# read previous results and exclude present algorithms
 		previous.results <- list()
 		if(dir.exists(paste(output.folder, "/results/simulation/",s,"/", sep=""))){
 			files <- list.files(paste(output.folder, "/results/simulation/",s,"/",sep = ""), full.names = T, pattern = "*.h5")
 			if(length(files) > 0){
-  			for(i in 1:length(files)) {
-  				f <- files[i]
-  				previous.results[[i]] <- read_result_list(f)
-  			}
+				for(i in 1:length(files)) {
+					f <- files[i]
+					previous.results[[i]] <- read_result_list(f)
+				}
 			}
 		}else{
 			dir.create(paste(output.folder,"/results/simulation/",s,"/",sep=""), recursive = T)
@@ -399,7 +426,6 @@ benchmark <- function(
 		}
 		res.no <- length(previous.results) + 1
 
-		# create unified interface for the benchmarks in the future?
 		# execute benchmark corresponding to s and save results
 		if(length(to.run)>0){
 			if(s == "bulks"){
@@ -417,18 +443,19 @@ benchmark <- function(
 				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = TRUE)
 				benchmark.results <- sim.sample.benchmark
 			}
-		  if(s == "subtypes"){
-		    print("subtype simulation")
-		    sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, split.data = TRUE)
-		    benchmark.results <- sim.subtype.benchmark
-		  }
+			if(s == "subtypes"){
+				print("subtype simulation")
+				sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, split.data = TRUE)
+				benchmark.results <- sim.subtype.benchmark
+			}
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
 		 		dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)
 			}
-			#saveRDS(benchmark.results, paste(output.folder, "/results/simulation/",s,"/deconv_output_",res.no,".rds",sep=""))
-		  suppressWarnings(write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = "")))
+		  	suppressWarnings(write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = "")))
 		}
 	}
+
+	print("Finished benchmark. Preparing results...")
 
 	# deconvolution step is over
 	# create results markdown

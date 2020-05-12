@@ -5,11 +5,12 @@
 #' @return data frame containing information about every deconvolution result in the dataset
 #' 
 prepare_data <- function(results.all, metric="cor") {
+    # parameter check
+    # however, if results.all is not a list as written to file by 'benchmark'
+    # the function will fail
     if(!metric %in% c("cor", "mad", "rmsd")){
         stop("Invalid metric. Must be one of 'cor', 'mad', 'rmsd'")
     }
-
-    # this test is by far not enough; not sure how to it though
     if(!is.list(results.all)){
         stop("results.all must be a list of lists that were returned by deconvolute or one of the simulation functions")
     }
@@ -34,8 +35,6 @@ prepare_data <- function(results.all, metric="cor") {
                     time <- as.numeric(r$times)
 
                     # try to determine what information is present in the lists
-                    # this should do for now, but should be more general
-                    # for further benchmarking modes
                     if(any(is.na(as.numeric(names(results.list)[i])))) {
                         geneset <- names(results.list)[i]
                         fraction <- 100
@@ -59,7 +58,6 @@ prepare_data <- function(results.all, metric="cor") {
                             scores <- c(scores, temp.score)
                             df <- rbind(df, c(name, temp.score, t, geneset, metric, time, fraction, cond.num))
                         }
-                        # deal with NAs here...
                         if(any(is.na(scores))) {
                             if(metric == "cor")
                                 scores[is.na(scores)] <- 0
@@ -76,28 +74,32 @@ prepare_data <- function(results.all, metric="cor") {
                 r <- res
                 name <- r$name
                 time <- as.numeric(r$times)
+                # calculate condition number if reference is available
                 if(!is.null(r$sig.matrix)) {
-                        cond.num <- kappa(r$sig.matrix, exact = T)
-                    }else{
-                        cond.num <- NA
-                    }
+                    cond.num <- kappa(r$sig.matrix, exact = T)
+                }else{
+                    cond.num <- NA
+                }
+                # if the deconvolution worked evaluate according to given metric
                 if(!all(is.null(r$est.props)) && !all(is.na(r$est.props))){
+                    # performance per cell type
                     for (t in intersect(rownames(r$est.props), rownames(real.props))) {
                         temp.score <- evaluate_deconvolution(r$est.props[t,], real.props[t,])[[metric]]
                         scores <- c(scores, temp.score)
                         df <- rbind(df, c(name, temp.score, t, NA, metric, time, 100, cond.num))
                     }
-                    # deal with NAs here...
                     if(any(is.na(scores))) {
                             if(metric == "cor")
                                 scores[is.na(scores)] <- 0
                         }
+                    # overall performance
                     df <- rbind(df, c(name, mean(scores), "overall", NA, metric, time, 100, cond.num))
                 }
             }
         }
     }
     df <- as.data.frame(df)
+    # if a column is missing, something was wrong with the data
     if(ncol(df) != 8) 
 	    return(data.frame())
     colnames(df) <- c("algorithm", "score", "cell_type", "geneset", "metric", "time", "fraction", "condition_number")

@@ -20,7 +20,6 @@ assign_subtypes <- function(
   , celltypecol = "cell_type"
   , ...
   ){
-  require(Rtsne)
   # parameter checks
   if(!celltypecol %in% names(sc.pheno)) stop("celltype column not in data frame")
   if("subtype" %in% names(sc.pheno)) {
@@ -34,8 +33,12 @@ assign_subtypes <- function(
 
   # tsne may fail e.g. due to too few samples
   tsne.embed <- try(Rtsne(t(sc.counts), ...))
+
   # add default subtype 1
   sc.pheno <- cbind(sc.pheno, subtype = rep(1, nrow(sc.pheno)))
+
+  # if tsne worked, cluster each celltype in tsne-space and 
+  # assign each cluster a subtype
   if(!class(tsne.embed) == "try-error"){
     for(ct in names(sub.list)){
       if(!ct %in% sc.pheno[[celltypecol]] || sub.list[[ct]] < 2) {
@@ -43,6 +46,7 @@ assign_subtypes <- function(
         next
       }
       ct.indices <- which(sc.pheno[[celltypecol]] == ct)
+      # number of clusters in k-means has to be > 1 and < number of cells
       if(length(ct.indices) > 2){
         km.clust <- kmeans(x = tsne.embed$Y[ct.indices, ,drop=F], min(sub.list[[ct]], length(ct.indices) - 1))
         sc.pheno[ct.indices, "subtype"] <- km.clust$cluster

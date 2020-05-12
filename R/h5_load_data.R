@@ -12,7 +12,7 @@
 #'  - sub.props: numeric matrix, cell types (subtypes) as rows, bulks as columns
 #'  - bulk.pheno: dataframe containing pheno data for bulks in columns, bulks as rows
 read_data <- function(filename){
-  library(rhdf5)
+  # parameter check
   if(!file.exists(filename)) {
     stop(paste("Could not find file ", filename, sep = ""))
   }
@@ -57,6 +57,7 @@ read_data <- function(filename){
     celltypeids <- h5read(filename, "proportions/celltypeids")
     sampleids <- h5read(filename, "proportions/sampleids")
 
+    # make sure the matrix dimensions are in the right order
     if(length(sampleids) == ncol(bulk.props) && length(celltypeids) == nrow(bulk.props)){
 	    rownames(bulk.props) <- celltypeids
 	    colnames(bulk.props) <- sampleids
@@ -68,11 +69,13 @@ read_data <- function(filename){
   }else{
     bulk.props <- NULL
   }
+
   if("fine_proportions" %in% content$name){
     sub.props <- h5read(filename, "fine_proportions/data")
     celltypeids <- h5read(filename, "fine_proportions/celltypeids")
     sampleids <- h5read(filename, "fine_proportions/sampleids")
 
+    # make sure the matrix dimensions are in the right order
     if(length(sampleids) == ncol(sub.props) && length(celltypeids) == nrow(sub.props)){
 	    rownames(sub.props) <- celltypeids
 	    colnames(sub.props) <- sampleids
@@ -89,6 +92,7 @@ read_data <- function(filename){
     geneids <- h5read(filename, "singlecell/geneids")
     cellids <- h5read(filename, "singlecell/cellids")
 
+    # make sure the matrix dimensions are in the right order
     if(nrow(sc.counts) == length(geneids) && ncol(sc.counts) == length(cellids)){
 	    rownames(sc.counts) <- geneids
 	    colnames(sc.counts) <- cellids

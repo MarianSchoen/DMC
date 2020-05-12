@@ -6,10 +6,11 @@
 #' @return list
 #' 
 read_result_list <- function(filename, content = NULL, groupname = NULL) {
-  library(rhdf5)
+  # parameter check
   if(!file.exists(filename)) {
     stop(paste("Could not find file ", filename, sep = ""))
   }
+  # if content is NULL, read from file
   if(is.null(content)){
     content <- h5dump(filename)
   }
@@ -23,8 +24,10 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
       }
     }
   }else{
+    # reconstruct the objects stored in the lowest levels of the list
     if("data" %in% names(content)){
       temp <- as.matrix(content[["data"]])
+      # assign dimnames according to the data (groupname)
       if(!is.null(groupname)){
         if(groupname == "est.props" || groupname == "bulk.props"){
           rownames(temp) <- content[["celltypeids"]]
@@ -44,11 +47,11 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
         return(temp)
       }
     }
+    # if there is no est.props or sig.matrix (lists) but
+    # name and times, then est.props and sig.matrix are NULL
     if(all(c("name", "times") %in% names(content))){
       content["est.props"] <- list(NULL)
       content["sig.matrix"] <- list(NULL)
-      content["ref.profiles"] <- list(NULL)
-      content["g"] <- list(NULL)
     }
   }
   return(content)

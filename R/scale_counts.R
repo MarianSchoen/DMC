@@ -6,9 +6,12 @@
 #' @return rescaled expression matrix
 
 scale_to_count <- function(exprs, count = NULL) {
+  # parameter check
   if(!is.matrix(exprs)){
     stop("exprs must be a matrix")
   }
+  # scale total sum either to given value (count)
+  # or to the number of rows 
   if (is.null(count)) {
     exprs <- apply(exprs, 2, function(x) {
       (x / sum(x)) * length(x)

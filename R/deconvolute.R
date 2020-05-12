@@ -86,9 +86,6 @@ deconvolute <- function(training.expr,
     } else {
       include.in.bulks <- unique(test.pheno[, "cell_type"])
     }
-    # if seeding is set the bulks will always be the same
-    if (seeding)
-      set.seed(10)
     validation.data <- create_bulks(test.expr,
                                     test.pheno,
                                     n.bulks,
@@ -135,11 +132,12 @@ deconvolute <- function(training.expr,
       })[3]
       results.list[[as.character(i)]][[f$name]]$name <- f$name
       results.list[[as.character(i)]][[f$name]]$times <- time
+      
       if(subtypes){
         if(! "coarse_type" %in% colnames(training.pheno)){
           stop("'subtypes' is TRUE, but column 'coarse_type' is missing from pheno data")
         }
-        # change the est.props to coarse mode
+        # change the est.props to coarse types by combining subtypes
         coarse.rnames <- sapply(strsplit(rownames(results.list[[as.character(i)]][[f$name]]$est.props), ".", fixed = TRUE), function(x){x[1]})
         temp.props <- matrix(0, nrow = length(unique(coarse.rnames)), ncol = ncol(results.list[[as.character(i)]][[f$name]]$est.props))
         rownames(temp.props) <- unique(coarse.rnames)
@@ -149,8 +147,9 @@ deconvolute <- function(training.expr,
           temp.props[t,] <- colSums(results.list[[as.character(i)]][[f$name]]$est.props[idx,,drop=F])
         }
         results.list[[as.character(i)]][[f$name]]$est.props <- temp.props
-        }
+      }
     }
   }
+
   return(list(results.list = results.list, bulk.props = real.props))
   }

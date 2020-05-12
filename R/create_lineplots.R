@@ -10,7 +10,7 @@
 #' 2) list containing lineplot of scores for each celltypes
 
 create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL, celltype.order = NULL, algorithm.order = NULL) {
-    require(ggplot2)
+    # parameter checks
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
     }
@@ -96,8 +96,8 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     	colnames(sub.df) <- c("algorithm", "geneset", "score", "time", "sd")
     	sub.df$score <- as.numeric(as.character(sub.df$score))
     	sub.df$time <- as.numeric(as.character(sub.df$time))
-	sub.df$geneset <- factor(sub.df$geneset, levels = geneset.limits)
-	sub.df$sd <- as.numeric(as.character(sub.df$sd))
+        sub.df$geneset <- factor(sub.df$geneset, levels = geneset.limits)
+        sub.df$sd <- as.numeric(as.character(sub.df$sd))
 
         cell.type.plots[[t]] <- ggplot(sub.df, aes(x=geneset, y = score, group = algorithm, col = algorithm)) +
             geom_line(size = 2) + geom_point() +

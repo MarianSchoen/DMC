@@ -5,13 +5,15 @@
 #' @return NULL
 
 render_results <- function(temp.dir, metric = "cor"){
+	# parameter checks
 	if(!dir.exists(temp.dir)){
 		stop("Invalid temp directory")
 	}
 	if(!metric %in% c("cor", "mad", "rmsd")){
 		stop("Invalid metric. Must be one of 'cor', 'mad', 'rmsd'")
 	}
-	library(rmarkdown)
+	
+	# render the template to pdf with the data stored in temp.dir
 	render(
 	  input = system.file(
 	    "rmd", 

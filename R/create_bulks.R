@@ -27,7 +27,7 @@ create_bulks <- function(
     fraction.per.bulk = 0.1, 
     sum.to.count = TRUE
     ) {
-    # error checking
+    # parameter checks
     if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
     }
@@ -42,7 +42,7 @@ create_bulks <- function(
         }
     }
     rownames(pheno) <- colnames(exprs)
-    print("BSEQ-sc")
+
     # keep only specified cell types
     if (is.null(include.in.bulks)) {
         include.in.bulks <- unique(pheno[, "cell_type"])
@@ -53,17 +53,16 @@ create_bulks <- function(
     }
     exprs <- exprs[, rownames(pheno), drop = F]
 
+    # scale to fixed total count per profile
     exprs <- scale_to_count(exprs)
 
-    genes <- rownames(exprs)
-
+    # create a matrix to contain the bulk expression profiles
     bulk.exprs <- matrix(
         0,
         nrow = nrow(exprs),
         ncol = n.bulks
     )
-
-    rownames(bulk.exprs) <- genes
+    rownames(bulk.exprs) <- rownames(exprs)
     colnames(bulk.exprs) <- as.character(1:n.bulks)
 
     # create a matrix to contain true proportions for each simulated bulk
@@ -81,7 +80,7 @@ create_bulks <- function(
         sub.props <- NULL
     }
 
-    # create random bulks
+    # create random bulks by summation over fixed number of random profiles
     for (i in 1:ncol(bulk.exprs)) {
         bulk.samples <- sample(
             1:ncol(exprs),
@@ -99,11 +98,14 @@ create_bulks <- function(
             }
         }
     }
+
+    # let no feature occur twice in the bulks
     if(any(duplicated(rownames(bulk.exprs)))){
-        print("Found duplicate features in simulated bulks. Removing...")
+        warning("Found duplicate features in simulated bulks. Removing...")
         bulk.exprs <- bulk.exprs[-which(duplicated(bulk.exprs)), ]
     }
 
+    # sum bulks to fixed total count per profile if sum.to.count is true
     if (sum.to.count) {
         bulk.exprs <- apply(bulk.exprs, 2, function(x) {
             x / sum(x) * length(x)

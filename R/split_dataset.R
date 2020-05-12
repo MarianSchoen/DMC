@@ -19,11 +19,13 @@
 #'  in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)'
 
 split_dataset <- function(exprs, pheno, method = "random", prop = 0.25, grouping = NULL) {
+    # parameter check
     if(ncol(exprs) != nrow(pheno)){
         stop("expression and pheno data do not match")
     }
     # method can be 'random' or 'predefined'
     if (method == "random") {
+        # randomly assign given fraction of the samples to the test set
         if(prop <= 0 | prop >= 1) {
             stop("Test set size out of bounds (0,1)")
         }
@@ -34,7 +36,8 @@ split_dataset <- function(exprs, pheno, method = "random", prop = 0.25, grouping
         )
         training.samples <- (1:nrow(pheno))[-test.samples]
     }else if (method == "predefined") {
-        if(length(grouping) != ncol(exprs) | length(unique(grouping)) != 2){
+        # divide dataset according to the grouping vector
+        if(length(grouping) != ncol(exprs) | length(unique(grouping)) != 2 | !all(c(1,2) %in% grouping)){
             stop("Please specify a valid grouping vector containing 1 and 2")
         }
         training.samples <- which(grouping == 1)

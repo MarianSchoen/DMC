@@ -6,7 +6,7 @@
 #' @return runtime plot
 
 plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
-    require(ggplot2)
+    # parameter checks
     if(!is.data.frame(results.df)) {
         stop("Invalid input: results.df has to be data frame as returned by prepare_data()")
     }
@@ -23,18 +23,20 @@ plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
             stop("algorithm.order does not fit the algorithm column of results.df")
         }
     }
-    # reduce to the overall rows
+    # reduce to the 'overall' rows
     results.df <- results.df[which(results.df$cell_type == "overall"),]
-    # average over all runs
+
+    # average over all repetitions
     mean.times <- tapply(results.df$time, results.df$algorithm, mean)
     sd.times <- tapply(results.df$time, results.df$algorithm, sd)
 
-    # create data frame and plot
+    # create data frame containing runtimes
     runtimes <- data.frame(algorithm = names(mean.times), runtime = mean.times, sd = sd.times)
     if(!is.null(algorithm.order)){
         runtimes$algorithm <- factor(runtimes$algorithm, levels = algorithm.order)
     }
     
+    # plot runtime as lineplot
     runtime.plot <- ggplot(runtimes) +
     geom_bar(
         aes(

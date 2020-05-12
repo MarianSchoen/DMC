@@ -15,9 +15,8 @@
 #' @return NULL, function saves into ‘filename‘
 
 write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, sub.props = NULL, filename) {
-  library(rhdf5)
   h5createFile(filename)
-  # write singlecell stuff
+  # write sc counts and pheno data if present
   # assume that sc.counts and sc.pheno are never written independently...
   # in the context of this benchmark this is sensible
   if(!is.null(sc.counts) && !is.null(sc.pheno)){

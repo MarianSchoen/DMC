@@ -50,10 +50,14 @@ subtype_benchmark <- function(training.exprs,
     warning("n.repeats has to be greater than 0. setting to 1")
     n.repeats <- 1
   }
-  # algorithm list will be checked in deconvolute()
+  # algorithm list is checked in deconvolute()
 
+  # replace cell_type with combination of cell_type and subtype,
+  # then add original cell types as column coarse_type to the pheno data
+  # call deconvolute with 'subtype=TRUE'
   temp.pheno <- training.pheno
   temp.pheno[, "cell_type"] <- paste(temp.pheno[,"cell_type"], temp.pheno[,"subtype"], sep = ".")
   temp.pheno <- cbind(temp.pheno, coarse_type = training.pheno$cell_type)
   result <- deconvolute(training.exprs, temp.pheno, NULL, NULL, algorithms, verbose, split.data, NULL, exclude.from.signature, bulks = list(bulks = bulk.data$bulks, props = bulk.data$props), n.repeats = n.repeats, subtypes = TRUE)
+  return(result)
 }

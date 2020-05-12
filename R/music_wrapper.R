@@ -30,7 +30,7 @@ run_music <- function(exprs,
                       optimize = TRUE,
                       split.data = TRUE
                       ) {
-  # error checking
+  # parameters checks
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }
@@ -46,7 +46,6 @@ run_music <- function(exprs,
         max.genes <- NULL
     }
   }
-
 
   # MuSiC uses all supplied genes
   n.genes <- nrow(exprs)

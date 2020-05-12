@@ -6,7 +6,7 @@
 #' @return list of ggplot objects (plots), ordered by celltype.order (if supplied)
 
 create_boxplots <- function(results.df, metric = "cor", celltype.order = NULL, algorithm.order = NULL) {
-    require(ggplot2)
+    # parameter checks
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
     }

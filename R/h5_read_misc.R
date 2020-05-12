@@ -7,13 +7,16 @@
 #'    - 'algorithms': vector containing algorithm names
 #'    - 'grouping': numeric vector grouping samples in test and training set
 #'    - 'function.call': call object
-#'    
+
 read_misc_input <- function(filename){
-  library(rhdf5)
+  # parameter check
   if(!file.exists(filename)) {
     stop(paste("Could not find file ", filename, sep = ""))
   }
+
+  # read the content
   content <- h5ls(filename)
+  # extract objects as writtten by h5_write_misc
   if("/genesets" %in% content$group){
     genesets <- list()
     for(name in content$name[which(content$group == "/genesets")]){

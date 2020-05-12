@@ -43,18 +43,26 @@ if(ncol(training.exprs) != nrow(training.pheno)){
     stop("step.size must be numeric in (0,1)")
   }
 
+# list for storing the results for each fraction
 sample.size.lists <- list()
 for(i in seq(1, 1 / step.size)){
   sample.size.lists[[as.character(i*step.size)]] <- list()
 }
+
 cell.types <- unique(training.pheno[, "cell_type"])
+
+# repeats n.repeats times
 for (rep in seq_len(n.repeats)) {
+  # a pool of available samples
   available.samples <- 1:ncol(training.exprs)
+
+  # growing sc data structures
   temp.expr <- c()
   temp.pheno <- c()
+
   # deconvolve with growing training set
   for (step in seq(1, 1 / step.size)) {
-    # grow training set
+    # grow training set by certain amount (randomly selected) for each type
     for (t in cell.types) {
       samples.to.add <- c()
       # do not try to sample more cells than there are left of this type
@@ -63,12 +71,13 @@ for (rep in seq_len(n.repeats)) {
         length(which(training.pheno[available.samples, "cell_type"] == t))
       )
       # check if there are any unused cells of this type
+      # sample n.cells samples for this cell type
       if (any(training.pheno[available.samples, "cell_type"] == t)) {
           samples.to.add <- sample(
             which(training.pheno[available.samples, "cell_type"] == t),
             size = n.cells,
             replace = FALSE
-          )
+      )
       }
       # extend the set
       if (length(samples.to.add) > 0) {
@@ -80,11 +89,12 @@ for (rep in seq_len(n.repeats)) {
           temp.pheno,
           training.pheno[available.samples[samples.to.add], ]
         )
+        # remove the used samples from the pool
         available.samples <- available.samples[-samples.to.add]
       }
     }
 
-    # deconvolve with this training set
+    # deconvolve once with this training set
     temp.results <- deconvolute(
       training.expr = temp.expr,
       training.pheno = temp.pheno,
@@ -100,9 +110,11 @@ for (rep in seq_len(n.repeats)) {
       bulks = bulk.data,
       n.repeats = 1
     )
+    # add only the result list returned by deconvolute() to sample.size.list
     sample.size.lists[[as.character(step*step.size)]][[as.character(rep)]] <- temp.results[[1]][[1]]
   }
 }
+# add bulk props to the top level of the result list
 sample.size.lists[["bulk.props"]] <- temp.results$bulk.props
 return(sample.size.lists)
 }

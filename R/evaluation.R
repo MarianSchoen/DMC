@@ -9,9 +9,12 @@ evaluate_deconvolution <- function(real, estimate) {
   real <- as.vector(real)
   estimate <- as.vector(estimate)
 
+  # parameter check
   if (length(real) != length(estimate)) {
     stop("Lengths of quantity vectors do not match")
   }
+
+  # calculate evaluation metrics between the two vectors
   correlation <- cor(real, estimate)
   mad <- mean(abs(real - estimate))
   rmsd <- sqrt(mean(abs(real - estimate)^2))

@@ -4,6 +4,7 @@
 #' contains 1) name  and 2) function 
 #' @return
 #' @export
+#' 
 check_algorithms <- function(algorithms){
     if (!length(algorithms) > 0 || any(sapply(algorithms, length) != 2)) {
     stop("Check algorithm list")
@@ -54,6 +55,5 @@ check_algorithms <- function(algorithms){
                     )
             )
         }
-	
     }
 }
