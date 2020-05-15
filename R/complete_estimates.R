@@ -1,9 +1,9 @@
-#' this function adds empty rows for all missing cell types 
+#' this function adds rows filled with for all missing cell types 
 #' to the estimates returned by an algorithm
 #' 
 #' @param est.props matrix containing estimated proportions for each cell type (cell type x bulk)
 #' @param include.in.x vector containing the cell types that should be present in est.props
-#' @return a matrix (cell type x bulks) containing the information of est.props
+#' @return matrix (cell type x bulks) containing the information of est.props
 
 complete_estimates <- function(est.props, include.in.x){
   # check parameters

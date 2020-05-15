@@ -1,4 +1,4 @@
-#' read_data
+#' read data conforming to the format as used by \link{benchmark} for data storage
 #'
 #' @param filename string, which file should be read in?
 #'
@@ -8,9 +8,11 @@
 #'   columns \cr
 #'  - bulk.counts: numeric matrix, features as rows, bulk measurements as 
 #'  columns\cr
-#'  - bulk.props: numeric matrix, cell types as rows, bulks as columns
-#'  - sub.props: numeric matrix, cell types (subtypes) as rows, bulks as columns
+#'  - bulk.props: numeric matrix, cell types as rows, bulks as columns\cr
+#'  - sub.props: numeric matrix, cell types (subtypes) as rows, bulks as columns\cr
 #'  - bulk.pheno: dataframe containing pheno data for bulks in columns, bulks as rows
+#'@export
+#'  
 read_data <- function(filename){
   # parameter check
   if(!file.exists(filename)) {

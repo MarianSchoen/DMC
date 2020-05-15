@@ -9,7 +9,7 @@
 #' @param n.bulks integer, the number of bulks to be created, defaults to 500
 #' @param include.in.bulks vector of strings, cell types to be used for bulk 
 #' simulation; if not supplied, all will be used
-#' @param fraction.per.bulk numeric < 1, fraction of samples to be randomly
+#' @param fraction.per.bulk positive numeric < 1, fraction of samples to be randomly
 #' drawn for each bulk; default 0.1
 #' @param sum.to.count boolean, should all bulks be normalized
 #' to a fixed total count number? default TRUE
@@ -22,7 +22,7 @@
 create_bulks <- function(
     exprs, 
     pheno, 
-    n.bulks = 1000, 
+    n.bulks = 500, 
     include.in.bulks = NULL, 
     fraction.per.bulk = 0.1, 
     sum.to.count = TRUE

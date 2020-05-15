@@ -2,17 +2,17 @@
 % Please edit documentation in R/check_algorithms.R
 \name{check_algorithms}
 \alias{check_algorithms}
-\title{check_algorithms}
+\title{check a list of algorithms for compatitbility with \link{benchmark}}
 \usage{
 check_algorithms(algorithms)
 }
 \arguments{
 \item{algorithms}{list containing a list for each algorithm. Each sublist
-contains 1) name  and 2) function}
+contains \cr 1) name: character  \cr 2) algorithm: function}
 }
 \value{
 
 }
 \description{
-check_algorithms
+check a list of algorithms for compatitbility with \link{benchmark}
 }

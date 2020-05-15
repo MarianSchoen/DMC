@@ -35,7 +35,7 @@ condition number? If FALSE, max.genes genes will be used}
 \item{split.data}{boolean, should the training data be split for signature
 matrix creation? If TRUE, 10% of the data will be used to build
 the signature matrix and the rest will be used to estimate the optimal
-features}
+features. default: FALSE}
 
 \item{verbose}{boolean}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/benchmark.R
 \name{benchmark}
 \alias{benchmark}
-\title{main function of the benchmark}
+\title{main function of the deconvolution benchmark}
 \usage{
 benchmark(
   sc.counts,
@@ -22,7 +22,7 @@ benchmark(
   temp.dir = NULL,
   exclude.from.bulks = NULL,
   exclude.from.signature = NULL,
-  n.bulks = 1000,
+  n.bulks = 500,
   cpm = TRUE,
   verbose = FALSE,
   n.subtypes = 3
@@ -30,75 +30,77 @@ benchmark(
 }
 \arguments{
 \item{sc.counts}{non-negative numeric matrix with features as rows, and 
-scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'}
+scRNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal \code{nrow(sc.pheno)}}
 
 \item{sc.pheno}{data frame with scRNA-Seq profiles as rows, and pheno entries
-in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)'}
+in columns. \code{nrow(sc.pheno)} must equal \code{ncol(sc.counts)}. Cell types need 
+to be specified in a column named 'cell_type' and the patient/origin
+(if available) in a column named 'patient'}
 
 \item{real.counts}{non-negative numeric matrix, with features as rows, and 
-bulk RNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 
-'nrow(real.props)'}
+bulk RNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal 
+\code{nrow(real.props)}}
 
-\item{real.props}{non-negative numeric matrix, with cell types as rows, 
-and bulk RNA-Seq profiles.}
+\item{real.props}{non-negative numeric matrix specifying the amount of each
+cell type in all each bulk, with cell types as rows and bulk RNA-Seq profiles as columns.}
 
-\item{benchmark.name}{string}
+\item{benchmark.name}{string, name of the benchmark. Will be used as name
+for the results directory}
 
-\item{grouping}{factor with 2 levels, and 'length(grouping)' must be 
-'ncol(sc.counts)'. Assigns each scRNA-Seq profile to either 
+\item{grouping}{factor with 2 levels, and \code{length(grouping)} must be 
+\code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either 
 test or train cohort.}
 
 \item{input.algorithms}{list containing a list for each algorithm. 
-Each sublist contains 1) name  and 2) function
-For predefined algorithms it is sufficient to supply only the name instead of the sublist
-#TODO: examples!!!}
+Each sublist contains \cr 1) name - character \cr 2) algorithm: function \cr
+For predefined algorithms it is sufficient to supply only the name instead of the sublist,
+e.g. \code{algorithms = list(list(name = 'DTD', algorithm = run_dtd), "DTD")}. \cr
+If no list is supplied, all implemented algorithms 
+(CIBERSORT, DeconRNASeq, DTD, Least Squares, BSEQ-sc and MuSiC) are selected.}
 
 \item{simulation.bulks}{boolean, should deconvolution of simulated bulks be
-performed, default FALSE}
+performed? default: FALSE}
 
 \item{simulation.genes}{boolean, should deconvolution of simulated bulks with 
-be predefined genesets be performed, default FALSE}
+predefined genesets be performed? default: FALSE}
 
 \item{simulation.samples}{boolean, should deconvolution of simulated bulks with
-varying number of random training profiles be performed, default FALSE}
+varying number of randomly selected training profiles be performed? default: FALSE}
 
 \item{simulation.subtypes}{boolean, should deconvolution of simulated bulks with
-artificial subtypes of given cell types be performed, default FALSE}
+artificial subtypes of given cell types be performed? default: FALSE}
 
-\item{genesets}{list of string vector, must match 'rownames(sc.counts)'}
+\item{genesets}{list of string vector, must match 'rownames(sc.counts)'. default: NULL}
 
-\item{metric}{string, must match one of 'c("cor", "mad", "rmsd")' 
+\item{metric}{string, must match one of \code{c('cor')}. default: 'cor'
 #TODO: keep this up to date}
 
-\item{repeats}{numeric > 0}
+\item{repeats}{numeric > 0, number of repetitions for each algorithm in each setting.
+default: 3}
 
-\item{temp.dir}{string, directory where data, and benchmarks get stored.}
+\item{temp.dir}{string, directory where data, and benchmarks get stored. default: NULL,
+will be set to '.tmp'}
 
 \item{exclude.from.bulks}{vector of strings, cell types that should not be 
-predicted by the algorithms}
+predicted by the algorithms. default: NULL}
 
-\item{exclude.from.signature}{}
+\item{exclude.from.signature}{vector of strings, cell types that should not be 
+included in the simulated bulks. default: NULL}
 
-\item{n.bulks}{numeric > 0}
+\item{n.bulks}{numeric > 0, number of bulks to simulate. default 500}
 
 \item{cpm}{boolean, should the sc profiles and bulks be scaled to counts
-per million}
+per million? default: TRUE}
 
-\item{verbose}{boolean, should progress information be printed to the screen}
+\item{verbose}{boolean, should progress information be printed to the screen? default: FALSE}
 
-\item{n.subtypes}{numeric > 0}
-
-\item{missing.algorithm}{character specifying the algorithm for which a model
-with incomplete reference should be tested; default DTD}
-
-\item{missing.celltype}{character specifiying cell type; compare DTD model with
-reference matrix not containing this cell type to complete models}
+\item{n.subtypes}{numeric > 0, number of subtypes to be simulated for each cell type. default: 3}
 }
 \value{
 NULL, results are stored via hdf5 to 'temp.dir'
 }
 \description{
-main function of the benchmark
+main function of the deconvolution benchmark
 }
 \examples{
 see either 'working_example.R', or 'working_example_fast.R'

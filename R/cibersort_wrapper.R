@@ -14,13 +14,12 @@
 #' @param split.data boolean, should the training data be split for signature
 #' matrix creation? If TRUE, 10% of the data will be used to build
 #' the signature matrix and the rest will be used to estimate the optimal
-#' features
+#' features. default: FALSE
 #' @param verbose boolean
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
-#' @example run_cibersort(training.exprs, training.pheno, bulk.exprs)
 
 # source the CIBERSORT function (not available as package)
 run_cibersort <- function(exprs,

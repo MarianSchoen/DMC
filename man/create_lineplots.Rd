@@ -27,8 +27,10 @@ create_lineplots(
 \item{algorithm.order}{character vector of algorithm names specifying the plotting order}
 }
 \value{
-list containing two elements:
-1) runtime.plot
+list containing two elements:  
+
+1) runtime.plot  
+
 2) list containing lineplot of scores for each celltypes
 }
 \description{

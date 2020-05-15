@@ -1,4 +1,5 @@
-#' write_data
+#' write scRNA-Seq profiles and pheno data, RNA-Seq bulk data and cell type 
+#' proportions within the bulks in format used by \link{benchmark} to hdf5 file
 #'
 #' @param sc.counts numeric matrix, with feature as rows and scRNA-Seq
 #'  profiles as columns
@@ -6,13 +7,14 @@
 #'  entries as rows
 #' @param bulk.counts numeric matrix, with features as rows bulk measurements
 #'  as columns
-#' @param bulk.props numeric matrix cell type proportions, cell types as rows, 
+#' @param bulk.props numeric matrix containing cell type proportions, cell types as rows, 
 #' bulks as columns
-#' @param sub.props numeric matrix cell type proportions of simulated subtypes, cell types as rows, 
-#' bulks as columns
+#' @param sub.props numeric matrix containing cell type proportions of simulated subtypes, 
+#' cell types as rows, bulks as columns
 #' @param filename string, where should the data be stored?
 #'
 #' @return NULL, function saves into ‘filename‘
+#' @export
 
 write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, sub.props = NULL, filename) {
   h5createFile(filename)

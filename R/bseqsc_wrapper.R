@@ -20,15 +20,6 @@
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
-#' @example 
-#' TODO: where do the 'training.exprs', 'training.pheno' and 
-#' 'bulks.exprs' come from? 
-#' 
-#' run_bseqsc(
-#'    training.exprs
-#'    , training.pheno
-#'    , bulks.exprs
-#'  )
 
 run_bseqsc <- function(
   exprs,
