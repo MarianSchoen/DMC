@@ -273,7 +273,7 @@ benchmark <- function(
 			training.pheno <- split.data$training$pheno
 			test.exprs <- split.data$test$exprs
 			test.pheno <- split.data$test$pheno
-		}else if(length(unique(grouping)) == 2){
+		}else if(length(unique(grouping)) == 1){
 			message("Grouping vector contains only one group. Disabling all simulations.")
 			training.exprs <- sc.counts
 			training.pheno <- sc.pheno

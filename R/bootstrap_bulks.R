@@ -15,7 +15,7 @@ bootstrap_bulks <- function(props) {
 
   estimates <- props$est
   real.props <- props$real
-  n.bulks <- ncol(estimates)
+  n.bulks <- ncol(estimates[[1]])
   cts <- intersect(rownames(estimates[[1]]), rownames(real.props))
 
   bootstrap.df <- c()
