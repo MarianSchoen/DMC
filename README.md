@@ -1,13 +1,13 @@
 # Deconvolution Algorithm Benchmarking
 
 ## (Basic) Input:  
-* A list of wrapper around deconovlution models
+* A list of wrapper around deconvolution models / algorithms
 * scRNA-Seq data set (count matrix, and pheno information)
 * RNA-Seq data with FACS
 
 ## Quality metrics: 
 ### On RNA-Seq data
-* Correlation per cell type + overall correlation 
+* Correlation per cell type + overall correlation + bootstrapped correlation
 
 ### scRNA-Seq data  
 * Missing reference profiles

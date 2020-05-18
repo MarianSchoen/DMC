@@ -1,16 +1,21 @@
 Package: DeconvolutionAlgorithmBenchmarking
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: Benchmark of different Deconvolution Algorithms in several scenarios
+Version: 0.1
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Tim",
+           family = "Mirus",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
+           email = "tim.mirus@stud.uni-regensburg.de"
+           )
+Description: Deconvolve given RNA-Seq bulks using sRNA-Seq profiles and a list of algorithms. 
+	Algorithms can be chosen from a list of implemented algorithms or supplied by the user as functions.
+	In addition, perform different benchmark by deconvolving artificial bulks created from single-cell data,
+	including deconvolution with different gene sets, dependency on training data and simulated subtypes. 
+	The user has the option to exclude cell types from the reference or the simulated bulks.
+License: MIT
 Encoding: UTF-8
 LazyData: true
 biocViews:
-Depends: DTD, ggplot2, DeconRNASeq, e1071, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, xbioc, edgeR, factoextra, rmarkdown, rhdf5, digest, Rtsne, tictoc, bseqsc
+Depends: DTD, ggplot2, DeconRNASeq, e1071, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, rhdf5, digest, Rtsne, tictoc
 RoxygenNote: 7.1.0
+Remotes: git::https://github.com/MarianSchoen/DTD.git, https://github.com/xuranw/MuSiC, https://github.com/shenorrLab/bseqsc
