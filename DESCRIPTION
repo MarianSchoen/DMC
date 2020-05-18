@@ -12,5 +12,5 @@ License: What license it uses
 Encoding: UTF-8
 LazyData: true
 biocViews:
-Depends: DTD, ggplot2, DeconRNASeq, e1071, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, xbioc, edgeR, factoextra, rmarkdown, rhdf5, digest, Rtsne, tictoc
+Depends: DTD, ggplot2, DeconRNASeq, e1071, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, xbioc, edgeR, factoextra, rmarkdown, rhdf5, digest, Rtsne, tictoc, bseqsc
 RoxygenNote: 7.1.0
