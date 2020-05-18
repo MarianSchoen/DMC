@@ -1,4 +1,4 @@
-#' assign_subtypes
+#' simulate subtypes of given cell types using t-SNE and k-means clustering
 #'
 #' @param sc.counts non-negative numeric matrix with features as rows, and 
 #' scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
@@ -9,8 +9,12 @@
 #' per scRNA-Seq profile
 #' @param ... additional parameters that get passed to Rtsne()
 #'
-#' @return
-#' @export
+#' @return list containing two entries:  
+#' 
+#' 1) sc.pheno - input pheno data with added column 'subtype'  
+#' 
+#' 2) tsne.embed - t-SNE embedding (output of Rtsne) that was used to generate
+#' the subtypes
 #'
 #' @examples
 assign_subtypes <- function(

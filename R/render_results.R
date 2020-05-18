@@ -1,8 +1,12 @@
-#' render markdown report
+#' render markdown report for data produced by \link{benchmark}
 #' 
-#' @param temp.dir directory containing the benchmark data
-#' @param metric character specifying the metric, default 'cor'
+#' @param temp.dir directory containing the benchmark data. \cr
+#' Usually \code{paste(temp.dir,"/",benchmark.name,sep="")}, 
+#' where \code{temp.dir} and \code{benchmark.name} 
+#' are parameters of \link{benchmark}.
+#' @param metric character specifying the metric. default: 'cor'
 #' @return NULL
+#' @export
 
 render_results <- function(temp.dir, metric = "cor"){
 	# parameter checks

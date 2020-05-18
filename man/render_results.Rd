@@ -2,15 +2,18 @@
 % Please edit documentation in R/render_results.R
 \name{render_results}
 \alias{render_results}
-\title{render markdown report}
+\title{render markdown report for data produced by \link{benchmark}}
 \usage{
 render_results(temp.dir, metric = "cor")
 }
 \arguments{
-\item{temp.dir}{directory containing the benchmark data}
+\item{temp.dir}{directory containing the benchmark data. \cr
+Usually \code{paste(temp.dir,"/",benchmark.name,sep="")}, 
+where \code{temp.dir} and \code{benchmark.name} 
+are parameters of \link{benchmark}.}
 
-\item{metric}{character specifying the metric, default 'cor'}
+\item{metric}{character specifying the metric. default: 'cor'}
 }
 \description{
-render markdown report
+render markdown report for data produced by \link{benchmark}
 }

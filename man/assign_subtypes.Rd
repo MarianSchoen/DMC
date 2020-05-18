@@ -2,7 +2,7 @@
 % Please edit documentation in R/assign_subtypes.R
 \name{assign_subtypes}
 \alias{assign_subtypes}
-\title{assign_subtypes}
+\title{simulate subtypes of given cell types using t-SNE and k-means clustering}
 \usage{
 assign_subtypes(sc.counts, sc.pheno, sub.list, celltypecol = "cell_type", ...)
 }
@@ -21,8 +21,13 @@ per scRNA-Seq profile}
 \item{...}{additional parameters that get passed to Rtsne()}
 }
 \value{
+list containing two entries:  
 
+1) sc.pheno - input pheno data with added column 'subtype'  
+
+2) tsne.embed - t-SNE embedding (output of Rtsne) that was used to generate
+the subtypes
 }
 \description{
-assign_subtypes
+simulate subtypes of given cell types using t-SNE and k-means clustering
 }

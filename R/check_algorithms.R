@@ -1,7 +1,7 @@
-#' check_algorithms
+#' check a list of algorithms for compatitbility with \link{benchmark}
 #'
 #' @param algorithms list containing a list for each algorithm. Each sublist
-#' contains 1) name  and 2) function 
+#' contains \cr 1) name: character  \cr 2) algorithm: function 
 #' @return
 #' @export
 #' 

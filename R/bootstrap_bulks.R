@@ -1,8 +1,10 @@
 #' this functions performs bootstrapping on the real bulks 
 #' to estimate the error of the deconvolution results
 #' 
-#' @param props list with two entries:
-#' 1) est - matrix containing the estimated fractions of cell types within the bulks (cell type x bulk)
+#' @param props list with two entries:  
+#' 
+#' 1) est - matrix containing the estimated fractions of cell types within the bulks (cell type x bulk)  
+#' 
 #' 2) real - matrix containing the true fractions of cell types within the bulks (cell type x bulk)
 #' @return list containing a vector of scores from deconvolution of the bootstrap-samples for each algorithm
 
