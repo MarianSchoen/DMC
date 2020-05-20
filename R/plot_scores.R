@@ -71,10 +71,9 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
                                   "cell_type",
                                   "algorithm",
                                   "measure")
-    
     # create labels for cell types in table plots
     if(is.null(celltype.order)){
-      labels <- levels(quality.scores$cell_type)
+      labels <- unique(quality.scores$cell_type)
       # make sure 'overall' is the first type
       labels <- c("overall", labels[-which(labels == "overall")])
     }else{
@@ -103,7 +102,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
     sds <- tapply(quality.scores$value, quality.scores$algorithm, sd)
     if(is.null(algorithm.order)){
       quality.scores$algorithm <- factor(quality.scores$algorithm,
-                                          levels = levels(quality.scores$algorithm)[order(ranking)])
+                                          levels = names(ranking)[order(ranking)])
       sds <- sds[order(ranking)]
       ranking <- sort(ranking)
     }else{
@@ -112,7 +111,6 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
       sds <- sds[algorithm.order]
       ranking <- ranking[algorithm.order]
     }
-    
 
     # create table plot
     score.plot <- ggplot(quality.scores,

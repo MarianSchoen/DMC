@@ -67,16 +67,17 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
     cors <- matrix(NA, nrow = length(unique(df$repetition)), ncol = length(levels(df$type)))
     rownames(cors) <- unique(df$repetition)
     colnames(cors) <- levels(df$type)
-    
+
     for(r in unique(df$repetition)){
       for(ct in unique(df$type)){
         temp <- as.numeric(as.character(unique(df[which(df$repetition == r & df$type == ct),"cor"])))
-	if(!is.null(temp) && !is.na(temp)){
+	      if(!is.null(temp) && !is.na(temp)){
           	cors[as.character(r), ct] <- temp
         }
       }
     }
     # join type names with corresponding mean correlation across all repetitions for plot titles
+    df$type <- as.factor(df$type)
     labs <- levels(df$type)
     temp <- rep("", length(labs))
     for(i in 1:length(labs)){
@@ -86,7 +87,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
     labs <- temp
     
     # create scatter plot
-    scatter.plot <- ggplot(df, aes(x = real, y = estimate, col = as.factor(type), group = real)) +
+    scatter.plot <- ggplot(df, aes(x = real, y = estimate, col = type, group = real)) +
       geom_boxplot(position = "dodge", varwidth = T) +
       geom_point(alpha = 0.1) +
       facet_grid(
