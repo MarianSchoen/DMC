@@ -383,20 +383,18 @@ benchmark <- function(
 			repeats
 		)
 		suppressWarnings(write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep="")))
+
+		# perform bootstrapping
+		print("bootstrapping")
+		estimates <- list()
+		# use the results of the algorithms in the first repetition
+		for(a in algorithms[to.run]){
+			estimates[[a$name]] <- real.benchmark$results.list[["1"]][[a$name]]$est.props
+		}
+		props <- list(real = real.props, est = estimates)
+		bootstrap.real <- bootstrap_bulks(props)
+		h5_write_mat(bootstrap.real, paste(output.folder, "/results/real/bootstrap_bulks",res.no,".h5",sep=""))
 	}
-	# perform bootstrapping
-	if(!exists("real.benchmark")){
-		real.benchmark <- read_result_list(paste(output.folder, "/results/real/deconv_output_1.h5",sep=""))
-	}
-	print("bootstrapping")
-	estimates <- list()
-	# use the results of the algorithms in the first repetition
-	for(a in algorithms){
-	  estimates[[a$name]] <- real.benchmark$results.list[["1"]][[a$name]]$est.props
-	}
-	props <- list(real = real.props, est = estimates)
-	bootstrap.real <- bootstrap_bulks(props)
-	saveRDS(bootstrap.real, file = paste(output.folder, "/results/real/bootstrap_bulks",res.no,".rds",sep=""))
 
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)

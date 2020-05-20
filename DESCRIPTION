@@ -18,4 +18,6 @@ LazyData: true
 biocViews:
 Depends: DTD, ggplot2, DeconRNASeq, e1071, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, rhdf5, digest, Rtsne, tictoc
 RoxygenNote: 7.1.0
-Remotes: git::https://github.com/MarianSchoen/DTD.git, https://github.com/xuranw/MuSiC, https://github.com/shenorrLab/bseqsc
+Remotes: git::https://github.com/MarianSchoen/DTD.git,
+    git::https://github.com/xuranw/MuSiC,
+    git::https://github.com/shenorrLab/bseqsc

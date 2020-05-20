@@ -74,7 +74,7 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
 ## Deconvolution of real bulks  
 
 ```{r real_results, echo=FALSE}
-  files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.h5")
+  files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "deconv.*.h5")
   results.lists <- list()
   for(i in 1:length(files)) {
     results.lists[[i]] <- read_result_list(files[i])
@@ -91,11 +91,11 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
   	}
   }
   
-  files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "*.rds")
+  files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "bootstrap.*.h5")
   if(length(files) > 0){
     bootstrap.data <- c()
     for(f in files) {
-      temp <- readRDS(f)
+	  temp <- h5_read_mat(f)
       bootstrap.data <- rbind(bootstrap.data, temp)
     }
     bootstrap.data <- as.data.frame(bootstrap.data)
@@ -123,9 +123,11 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
 ### Score plot
 ```{r score_plot, echo = FALSE, fig.width = score.width, fig.height = score.height}
 plot(score.plot)
-pdf(paste(plot.dir, "score_plot_real.pdf", sep = "/"))
-plot(score.plot)
-dev.off()
+invisible({
+	pdf(paste(plot.dir, "score_plot_real.pdf", sep = "/"))
+	plot(score.plot)
+	dev.off()
+})
 ```  
 
 Deconvolution result for real bulks per algorithm and cell type. The value is the pearson correlation coefficient, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined correlations were set to 0. The overall column contains the average performance of the algorithm across all cell types.

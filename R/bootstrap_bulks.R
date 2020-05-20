@@ -6,7 +6,7 @@
 #' 1) est - matrix containing the estimated fractions of cell types within the bulks (cell type x bulk)  
 #' 
 #' 2) real - matrix containing the true fractions of cell types within the bulks (cell type x bulk)
-#' @return list containing a vector of scores from deconvolution of the bootstrap-samples for each algorithm
+#' @return matrix containing all bootstrap runs with columns 'algorithm', 'cell_type' and 'score'
 
 bootstrap_bulks <- function(props) {
 
@@ -20,7 +20,7 @@ bootstrap_bulks <- function(props) {
   n.bulks <- ncol(estimates[[1]])
   cts <- intersect(rownames(estimates[[1]]), rownames(real.props))
 
-  bootstrap.df <- c()
+  bootstrap.mat <- c()
   for(i in 1:1000){
     # draw n.bulks bulks randomly with replacement
     bootstrap.samples <- sample(1:n.bulks, n.bulks, replace = T)
@@ -42,13 +42,13 @@ bootstrap_bulks <- function(props) {
         if(is.na(temp.cor) | temp.cor < 0){
           temp.cor <- 0
         }
-        bootstrap.df <- rbind(bootstrap.df, c(a, t, temp.cor))
+        bootstrap.mat <- rbind(bootstrap.mat, c(a, t, temp.cor))
         cors <- c(cors, temp.cor)
       }
       score <- mean(cors)
-      bootstrap.df <- rbind(bootstrap.df, c(a, 'overall', score))
+      bootstrap.mat <- rbind(bootstrap.mat, c(a, 'overall', score))
     }
   }
-  colnames(bootstrap.df) <- c("algorithm", "cell_type", "score")
-  return(bootstrap.df)
+  colnames(bootstrap.mat) <- c("algorithm", "cell_type", "score")
+  return(bootstrap.mat)
 }
