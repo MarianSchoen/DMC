@@ -73,7 +73,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
                                   "measure")
     # create labels for cell types in table plots
     if(is.null(celltype.order)){
-      labels <- unique(quality.scores$cell_type)
+      labels <- unique(as.character(quality.scores$cell_type))
       # make sure 'overall' is the first type
       labels <- c("overall", labels[-which(labels == "overall")])
     }else{

@@ -215,25 +215,27 @@ if(exists("bootstrap.data")){
 if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 	results.lists <- list()
 	files <- list.files(paste(temp.dir,"/results/simulation/bulks", sep=""), full.names = T, pattern = "*.h5")
-	for(i in 1:length(files)){
-		results.lists[[i]] <- read_result_list(files[i])
-	}
-	bulks.df <- data.frame()
-	for(i in 1:length(results.lists)){
-		bulks.df <- rbind(bulks.df, prepare_data(results.lists[[i]], params$metric))
-	}
+	if(length(files) > 0){
+		for(i in 1:length(files)){
+			results.lists[[i]] <- read_result_list(files[i])
+		}
+		bulks.df <- data.frame()
+		for(i in 1:length(results.lists)){
+			bulks.df <- rbind(bulks.df, prepare_data(results.lists[[i]], params$metric))
+		}
 
-	score.plot.sim.list <- evaluation_plot(bulks.df, "deconvolution quality (simulated bulks)", params$metric)
-	score.plot.sim <- score.plot.sim.list$plot
-	algorithms.ordered <- score.plot.sim.list$algorithm.order
-	celltypes.ordered <- score.plot.sim.list$celltype.order
+		score.plot.sim.list <- evaluation_plot(bulks.df, "deconvolution quality (simulated bulks)", params$metric)
+		score.plot.sim <- score.plot.sim.list$plot
+		algorithms.ordered <- score.plot.sim.list$algorithm.order
+		celltypes.ordered <- score.plot.sim.list$celltype.order
 	
-	runtime.plot.sim <- plot_runtime(bulks.df, algorithm.order = algorithms.ordered)
-	scatter.plots.list.sim <- list()
-	for(i in 1:length(results.lists)){
-		scatter.plots.list.sim[[i]] <- create_scatterplots(results.lists[[i]], celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
+		runtime.plot.sim <- plot_runtime(bulks.df, algorithm.order = algorithms.ordered)
+		scatter.plots.list.sim <- list()
+		for(i in 1:length(results.lists)){
+			scatter.plots.list.sim[[i]] <- create_scatterplots(results.lists[[i]], celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
+		}
+		score.width <- 2*length(unique(bulks.df$cell_type))
 	}
-	score.width <- 2*length(unique(bulks.df$cell_type))
 }else{
   algorithms.ordered = NULL
   celltypes.ordered = NULL
@@ -242,43 +244,49 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 if(dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))){
 	results.lists <- list()
 	files <- list.files(paste(temp.dir, "/results/simulation/samples", sep = ""), full.names = T, pattern = "*.h5")
-	for(i in 1:length(files)){
-		results.lists[[i]] <- read_result_list(files[i])
+	if(length(files) > 0){
+		for(i in 1:length(files)){
+			results.lists[[i]] <- read_result_list(files[i])
+		}
+		samples.df <- data.frame()
+		for(i in 1:length(results.lists)){
+			samples.df <- rbind(samples.df, prepare_data(results.lists[[i]], params$metric))
+		}
+		sample.plots <- create_boxplots(samples.df, metric = params$metric, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
 	}
-	samples.df <- data.frame()
-	for(i in 1:length(results.lists)){
-		samples.df <- rbind(samples.df, prepare_data(results.lists[[i]], params$metric))
-	}
-	sample.plots <- create_boxplots(samples.df, metric = params$metric, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
 }
 
 # gene benchmark
 if(dir.exists(paste(temp.dir, "/results/simulation/genes", sep=""))){
 	results.lists <- list()
 	files <- list.files(paste(temp.dir, "/results/simulation/genes/", sep=""), full.names = T, pattern = "*.h5")
-	for(i in 1:length(files)){
-		results.lists[[i]] <- read_result_list(files[i])
+	if(length(files) > 0){
+		for(i in 1:length(files)){
+			results.lists[[i]] <- read_result_list(files[i])
+		}
+		genes.df <- data.frame()
+		for(i in 1:length(results.lists)){
+			genes.df <- rbind(genes.df, prepare_data(results.lists[[i]], params$metric))
+		}
+		gene.plots <- create_lineplots(genes.df, metric = params$metric, genesets, rownames(training.exprs), algorithm.order = algorithms.ordered, celltype.order = celltypes.ordered)
 	}
-	genes.df <- data.frame()
-	for(i in 1:length(results.lists)){
-		genes.df <- rbind(genes.df, prepare_data(results.lists[[i]], params$metric))
-	}
-	gene.plots <- create_lineplots(genes.df, metric = params$metric, genesets, rownames(training.exprs), algorithm.order = algorithms.ordered, celltype.order = celltypes.ordered)
 }
 
 # subtype benchmark
 if(dir.exists(paste(temp.dir, "/results/simulation/subtypes", sep=""))){
 	results.lists <- list()
 	files <- list.files(paste(temp.dir, "/results/simulation/subtypes/", sep=""), full.names = T, pattern = "*.h5")
-	for(i in 1:length(files)){
-		results.lists[[i]] <- read_result_list(files[i])
+	if(length(files) > 0){
+		for(i in 1:length(files)){
+			results.lists[[i]] <- read_result_list(files[i])
+		}
+		subtypes.df <- data.frame()
+		for(i in 1:length(results.lists)){
+			subtypes.df <- rbind(subtypes.df, prepare_data(results.lists[[i]], params$metric))
+		}
+		score.plot.subtype <- evaluation_plot(subtypes.df, "deconvolution quality (simulated subtypes)", params$metric, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)$plot
+		runtime.plot.subtype <- plot_runtime(subtypes.df, algorithm.order = algorithms.ordered)
 	}
-	subtypes.df <- data.frame()
-	for(i in 1:length(results.lists)){
-		subtypes.df <- rbind(subtypes.df, prepare_data(results.lists[[i]], params$metric))
-	}
-	score.plot.subtype <- evaluation_plot(subtypes.df, "deconvolution quality (simulated subtypes)", params$metric, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)$plot
-	runtime.plot.subtype <- plot_runtime(subtypes.df, algorithm.order = algorithms.ordered)
 }
 
 ```
