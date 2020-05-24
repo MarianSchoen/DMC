@@ -340,7 +340,7 @@ benchmark <- function(
 	previous.results <- list()
 	# read available files for this benchmark
 	if(dir.exists(paste(output.folder,"/results/real/",sep=""))){
-		files <- list.files(paste(output.folder, "/results/real/", sep = ""), full.names = T, pattern = "*.h5")
+		files <- list.files(paste(output.folder, "/results/real/", sep = ""), full.names = T, pattern = "deconv.*.h5")
 		if(length(files) > 0){
 			for(i in 1:length(files)){
 				f <- files[i]
