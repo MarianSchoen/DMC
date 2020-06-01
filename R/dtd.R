@@ -124,7 +124,7 @@ run_dtd <- function(exprs,
   names(start.tweak) <- top.features
 
   # train the DTD model
-  dtd.model <- try(train_deconvolution_model(
+  dtd.model <- suppressWarnings(try(train_deconvolution_model(
     tweak = start.tweak,
     X.matrix = sig.matrix,
     train.data.list = training.bulks,
@@ -133,7 +133,7 @@ run_dtd <- function(exprs,
     NORM.FUN = "identity",
     #learning.rate = 1,
     cv.verbose = FALSE
-  ), silent = TRUE)
+  ), silent = TRUE))
 
 
   if (!class(dtd.model) == "try-error") {

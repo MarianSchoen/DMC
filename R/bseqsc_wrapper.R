@@ -82,7 +82,7 @@ run_bseqsc <- function(
         learning.cells,
         sample(
           which(pheno[, "cell_type"] == t),
-          floor(0.9 * length(which(pheno[, "cell_type"] == t))),
+          floor(0.7 * length(which(pheno[, "cell_type"] == t))),
           replace = FALSE
         )
       )

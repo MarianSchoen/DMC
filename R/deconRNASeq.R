@@ -42,13 +42,12 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   exprs <- scale_to_count(exprs)
   
   # create signature matrix (DeconRNASeq needs data frames)
-  ref.profiles <- as.data.frame(create_sig_matrix(exprs,
+  ref.profiles <- create_sig_matrix(exprs,
       pheno,
       exclude.from.signature,
       max.genes = max.genes,
       optimize = optimize,
       split.data = split.data
-    )
   )
 
   # create bulk data frame
@@ -57,7 +56,7 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
 
   # there is no option to switch the output of this function off
   # deconvolute
-  invisible(capture.output(result <- try(DeconRNASeq::DeconRNASeq(df.mix, ref.profiles), silent = TRUE)))
+  invisible(capture.output(result <- try(DeconRNASeq(df.mix, as.data.frame(ref.profiles)), silent = TRUE)))
 
   if (!class(result) == "try-error") {
     # select the interesting rows and rotate to be compatible with other algorithms' outputs
@@ -68,8 +67,8 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
     if(!all(colnames(ref.profiles) %in% rownames(result))){
       result <- complete_estimates(result, colnames(ref.profiles))
     }
-    return(list(est.props = result, sig.matrix = as.matrix(ref.profiles)))
+    return(list(est.props = result, sig.matrix = ref.profiles))
   } else {
-    return(list(est.props = NULL, sig.matrix = as.matrix(ref.profiles)))
+    return(list(est.props = NULL, sig.matrix = ref.profiles))
   }
 }

@@ -31,9 +31,6 @@
 #' 2) bulk.props: matrix containing the real proportions / quantities for all cell types in all bulks (cell type x bulk)
 #' @example deconvolute(training.expr, training.pheno, test.expr, test.pheno, algorithm_list, "results/test", cor.title = 'correlation plot', n.repeats = 10)
 
-suppressMessages(library(ggplot2))
-suppressMessages(library(gridExtra))
-
 deconvolute <- function(training.expr,
                         training.pheno,
                         test.expr,
@@ -97,7 +94,6 @@ deconvolute <- function(training.expr,
     # use the supplied bulks
     real.props <- bulks$props
     bulks.expr <- bulks$bulks
-
     if (nrow(training.expr) != nrow(bulks.expr)) {
       features <- intersect(rownames(training.expr), rownames(bulks.expr))
       if (length(features) > 0) {

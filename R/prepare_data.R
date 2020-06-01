@@ -55,15 +55,16 @@ prepare_data <- function(results.all, metric="cor") {
                         # performance per cell type
                         for (t in intersect(rownames(r$est.props), rownames(real.props))) {
                             temp.score <- evaluate_deconvolution(r$est.props[t,], real.props[t,])[[metric]]
+                            if(metric == "cor" && (is.na(temp.score) || temp.score < 0)){
+                                temp.score <- 0
+                            }
                             scores <- c(scores, temp.score)
                             df <- rbind(df, c(name, temp.score, t, geneset, metric, time, fraction, cond.num))
                         }
-                        if(any(is.na(scores))) {
-                            if(metric == "cor")
-                                scores[is.na(scores)] <- 0
-                        }
                         # overall performance (average over per-cell-type-performance); store as cell type "overall"
                         df <- rbind(df, c(name, mean(scores), "overall", geneset, metric, time, fraction, cond.num))
+                    }else{
+                        df <- rbind(df, c(name, 0, "overall", geneset, metric, time, fraction, cond.num))
                     }
                 }
             }else{
@@ -85,15 +86,16 @@ prepare_data <- function(results.all, metric="cor") {
                     # performance per cell type
                     for (t in intersect(rownames(r$est.props), rownames(real.props))) {
                         temp.score <- evaluate_deconvolution(r$est.props[t,], real.props[t,])[[metric]]
+                        if(metric == "cor" && (is.na(temp.score) || temp.score < 0)){
+                                temp.score <- 0
+                        }
                         scores <- c(scores, temp.score)
                         df <- rbind(df, c(name, temp.score, t, NA, metric, time, 100, cond.num))
                     }
-                    if(any(is.na(scores))) {
-                            if(metric == "cor")
-                                scores[is.na(scores)] <- 0
-                        }
                     # overall performance
                     df <- rbind(df, c(name, mean(scores), "overall", NA, metric, time, 100, cond.num))
+                }else{
+                        df <- rbind(df, c(name, 0, "overall", NA, metric, time, 100, cond.num))
                 }
             }
         }

@@ -70,16 +70,16 @@ run_least_squares <- function(exprs,
     included.in.X = include.in.x,
     pheno = cell.types,
     expr.data = exprs,
-    percentage.of.all.cells = 0.1,
+    percentage.of.all.cells = 0.3,
     normalize.to.count = TRUE
   )
   sig.matrix <- sample.X$X.matrix
   full.mat <- sig.matrix
 
   # remove used samples from expression matrix and pheno data
-  samples.to.remove <- sample.X$samples.to.remove
-  exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
-  cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
+  #samples.to.remove <- sample.X$samples.to.remove
+  #exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
+  #cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
 
   # use a maximum of 4000 genes
   n.genes <- min(4000, nrow(exprs))
