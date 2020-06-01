@@ -123,11 +123,9 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
 ### Score plot
 ```{r score_plot, echo = FALSE, fig.width = score.width, fig.height = score.height}
 plot(score.plot)
-invisible({
-	pdf(paste(plot.dir, "score_plot_real.pdf", sep = "/"))
-	plot(score.plot)
-	dev.off()
-})
+pdf(paste(plot.dir, "score_plot_real.pdf", sep = "/"), width = score.width, height = score.height)
+plot(score.plot)
+invisible(dev.off())
 ```  
 
 Deconvolution result for real bulks per algorithm and cell type. The value is the pearson correlation coefficient, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined correlations were set to 0. The overall column contains the average performance of the algorithm across all cell types.
@@ -137,9 +135,9 @@ In case of multiple repetitions, the plotted scores are averages over all repeti
 ### Runtime plot
 ```{r runtime_plot, echo = FALSE, fig.width = 16, fig.height = 9}
 plot(runtime.plot)
-pdf(paste(plot.dir, "runtime_plot_real.pdf", sep = "/"))
+pdf(paste(plot.dir, "runtime_plot_real.pdf", sep = "/"), width = 16, height = 9)
 plot(runtime.plot)
-dev.off()
+invisible(dev.off())
 ```  
   
 Runtime per algorithm. Due to possible large differences in runtime the scale on the y-axis is transformed using the log10. In case of multiple repetitions, the plotted runtimes are averages over all repetitions.
@@ -155,7 +153,7 @@ for(l in scatter.plots.list){
 			}
 	}
 }
-pdf(paste(plot.dir, "scatter_plots_real.pdf", sep = "/"))
+pdf(paste(plot.dir, "scatter_plots_real.pdf", sep = "/"), width = 18, height = 5)
 for(l in scatter.plots.list){
 	if(!is.null(l)){
 		for(p in l){
@@ -164,7 +162,7 @@ for(l in scatter.plots.list){
 			}
 	}
 }
-dev.off()
+invisible(dev.off())
 ```  
 
 Comparison of the real cell type quantities and the estimated quantities per cell type for each algorithm. 
@@ -180,13 +178,13 @@ plot(cond.num.plots$cond_vs_score)
 
 plot(cond.num.plots$variation_plot)
 
-pdf(paste(plot.dir, "condition_number_plots_real.pdf", sep = "/"))
+pdf(paste(plot.dir, "condition_number_plots_real.pdf", sep = "/"), width = 16, height = 9)
 plot(cond.num.plots$cond_num_plot)  
 
 plot(cond.num.plots$cond_vs_score)  
 
 plot(cond.num.plots$variation_plot)
-dev.off()
+invisible(dev.off())
 ```  
   
 
@@ -201,9 +199,9 @@ dev.off()
 if(exists("bootstrap.data")){
   bootstrap.plot <- ggplot2::ggplot(bootstrap.data, aes(x = algorithm, y = score, col = algorithm)) + facet_grid(rows = vars(cell_type)) + geom_boxplot()
   plot(bootstrap.plot)
-  pdf(paste(plot.dir, "bootstrap_plot_real.pdf", sep = "/"))
+  pdf(paste(plot.dir, "bootstrap_plot_real.pdf", sep = "/"), width = bootstrap.plot.width, height = bootstrap.plot.height)
   plot(bootstrap.plot)
-  dev.off()
+  invisible(dev.off())
 }
 ```
   
@@ -296,9 +294,11 @@ if(dir.exists(paste(temp.dir, "/results/simulation/subtypes", sep=""))){
 ```{r bulk_sim_scores, fig.width = score.width, fig.height = score.height}
 if(exists("score.plot.sim")){
 	plot(score.plot.sim)
-  pdf(paste(plot.dir, "score_plot_simulated.pdf", sep = "/"))
+  pdf(paste(plot.dir, "score_plot_simulated.pdf", sep = "/"), width = score.width, height = score.height)
   plot(score.plot.sim)
-  dev.off()
+  invisible(dev.off())
+}else{
+	cat("No data available for plotting.\n")
 }
 ```  
   
@@ -315,13 +315,15 @@ if(exists("scatter.plots.list.sim")){
 			plot(p)
 		}
 	}
-  pdf(paste(plot.dir, "scatter_plots_simulated.pdf", sep = "/"))
+  pdf(paste(plot.dir, "scatter_plots_simulated.pdf", sep = "/"), width = 18, height = 5)
 	for(l in scatter.plots.list.sim){
 		for(p in l){
 			plot(p)
 		}
 	}
-  dev.off()
+  invisible(dev.off())
+}else{
+	cat("No data available for plotting.\n")
 }
 ```  
 
@@ -333,9 +335,11 @@ Comparison of the real cell type quantities (in the simulated bulks) and the est
 ```{r sample_sim, fig.width = 16, fig.height = 9}
 if(exists("sample.plots")){
 	for(p in sample.plots$cell.type.plots) plot(p)
-  pdf(paste(plot.dir, "sample_plots_simulated.pdf", sep = "/"))
+  pdf(paste(plot.dir, "sample_plots_simulated.pdf", sep = "/"), width = 16, height = 9)
   for(p in sample.plots$cell.type.plots) plot(p)
-  dev.off()
+  invisible(dev.off())
+}else{
+	cat("No data available for plotting.\n")
 }
 ```  
 
@@ -349,9 +353,11 @@ Variability of performance of algorithms using different amounts and selection o
 if(exists("gene.plots")){
 	plot(gene.plots$runtime.plot)
   
-  pdf(paste(plot.dir, "gene_time_plot_simulated.pdf", sep = "/"))
+  pdf(paste(plot.dir, "gene_time_plot_simulated.pdf", sep = "/"), width = 16, height = 9)
   plot(score.plot.sim)
-  dev.off()
+  invisible(dev.off())
+}else{
+	cat("No data available for plotting.\n")
 }
 ```  
   
@@ -362,10 +368,12 @@ Runtime of algorithms depending on the gene set supplied for deconvolution. Each
 if(exists("gene.plots")){
 	for(p in gene.plots$cell.type.plots)
 		plot(p)
-  pdf(paste(plot.dir, "gene_score_plots_simulated.pdf", sep = "/"))
+  pdf(paste(plot.dir, "gene_score_plots_simulated.pdf", sep = "/"), width = 16, height = 9)
 	for(p in gene.plots$cell.type.plots)
 		plot(p)
-  dev.off()
+  invisible(dev.off())
+}else{
+	cat("No data available for plotting.\n")
 }
 ```  
 
@@ -378,9 +386,11 @@ Performance of algorithms depending ont the gene set supplied for deconvolution.
 ```{r subtype_sim, fig.width = score.width, fig.height = score.height}
 if(exists("score.plot.subtype")){
   plot(score.plot.subtype)
-  pdf(paste(plot.dir, "subtype_plot.pdf", sep = "/"))
+  pdf(paste(plot.dir, "subtype_plot.pdf", sep = "/"), width = score.width, height = score.height)
   plot(score.plot.subtype)
-  dev.off()
+  invisible(dev.off())
+}else{
+	cat("No data available for plotting.\n")
 }
 ```  
   
@@ -393,9 +403,11 @@ For each cell type, a fixed number of subtypes was simulated based on t-SNE embe
 ```{r, fig.width = 16, fig.height = 9}
 if(exists("runtime.plot.subtype")){
   plot(runtime.plot.subtype)
-  pdf(paste(plot.dir, "subtype_plot_runtime.pdf", sep = "/"))
+  pdf(paste(plot.dir, "subtype_plot_runtime.pdf", sep = "/"), width = 16, height = 9)
   plot(runtime.plot.subtype)
-  dev.off()
+  invisible(dev.off())
+}else{
+	cat("No data available for plotting.\n")
 }
 ```  
   
