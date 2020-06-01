@@ -69,7 +69,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
     }
 
     # store correlation for each algorithm and repetition in matrix for easier access
-    cors <- matrix(NA, nrow = length(unique(df$repetition)), ncol = length(unique(df$type)))
+    cors <- matrix(0, nrow = length(unique(df$repetition)), ncol = length(unique(df$type)))
     rownames(cors) <- unique(as.character(df$repetition))
     colnames(cors) <- unique(as.character(df$type))
 
