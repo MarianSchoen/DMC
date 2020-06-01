@@ -94,8 +94,13 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
 
     # cleaner plot by setting negative correlations to 0
     quality.scores$value <- as.numeric(as.character(quality.scores$value))
-    quality.scores$value[quality.scores$value < 0] <- 0
-    quality.scores$value[is.na(quality.scores$value)] <- 0
+    if(any(quality.scores$value < 0)){
+      quality.scores$value[quality.scores$value < 0] <- 0
+    }
+    if(any(is.na(quality.scores$value))){
+      warning("NAs detected")
+      quality.scores$value[is.na(quality.scores$value)] <- 0
+    }
 
     # order algorithms by performance if ordering is not given
     ranking <- tapply(quality.scores$value, quality.scores$algorithm, mean)
@@ -131,7 +136,8 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
       ggtitle(title, subtitle = metric) +
       scale_size_continuous(
         limits = c(0, 1),
-        range = c(min(quality.scores$value)*25, max(quality.scores$value) * 25),
+        #range = c(min(quality.scores$value)*25, max(quality.scores$value) * 25),
+        range = c(0,25),
         guide = "none"
       ) +
       theme(
@@ -157,10 +163,10 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
           sep = ""
         ),
         minor_breaks = seq(
-          0,
+          0.5,
           length(levels(
             quality.scores$algorithm
-          )) + 1,
+          )) + 0.5,
           0.1)
       ) +
       scale_x_continuous(
@@ -170,10 +176,10 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
         )) + 0.5),
         labels = labels,
         minor_breaks = seq(
-          0,
+          0.5,
           length(levels(
             quality.scores$cell_type
-          )) + 1,
+          )) + 0.5,
           0.1)
       ) +
       scale_color_gradient2(
