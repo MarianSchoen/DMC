@@ -108,7 +108,7 @@ run_dtd <- function(exprs,
   sig.matrix <- sig.matrix[top.features, ]
 
   # create artificial mixtures to train DTD model on
-  n.per.mixture <- floor(0.1 * ncol(exprs))
+  n.per.mixture <- max(floor(0.1 * ncol(exprs)),3)
   n.samples <- max(n.genes, 50)
   training.bulks <- mix_samples(
     expr.data = exprs,
