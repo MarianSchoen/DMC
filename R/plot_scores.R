@@ -94,6 +94,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
 
     # cleaner plot by setting negative correlations to 0
     quality.scores$value <- as.numeric(as.character(quality.scores$value))
+    quality.scores$sd <- as.numeric(as.character(quality.scores$sd))
     if(any(quality.scores$value < 0)){
       quality.scores$value[quality.scores$value < 0] <- 0
     }
@@ -103,8 +104,19 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
     }
 
     # order algorithms by performance if ordering is not given
-    ranking <- tapply(quality.scores$value, quality.scores$algorithm, mean)
-    sds <- tapply(quality.scores$value, quality.scores$algorithm, sd)
+    algos <- quality.scores$algorithm[which(quality.scores$cell_type == "overall")]
+    ranking <- quality.scores$value[which(quality.scores$cell_type == "overall")]
+    sds <- quality.scores$sd[which(quality.scores$cell_type == "overall")]
+
+    names(ranking) <- algos
+    names(sds) <- algos
+
+    if(any(quality.scores$algorithm == "DTD")){
+      print("DTD scores:")
+      print(quality.scores$value[which(quality.scores$algorithm == "DTD")])
+      print(quality.scores$value[which(quality.scores$algorithm == "DTD" & quality.scores$cell_type == "overall")])
+      print(quality.scores$sd[which(quality.scores$algorithm == "DTD" & quality.scores$cell_type == "overall")])
+    }
     if(is.null(algorithm.order)){
       quality.scores$algorithm <- factor(quality.scores$algorithm,
                                           levels = names(ranking)[order(ranking)])
