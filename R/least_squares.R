@@ -36,12 +36,10 @@ run_least_squares <- function(exprs,
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }
-  if (nrow(exprs) != nrow(bulks)) {
-      features <- intersect(rownames(exprs), rownames(bulks))
-      if (length(features) > 0) {
-          exprs <- exprs[features, ]
-          bulks <- bulks[features, ]
-      }
+  features <- intersect(rownames(exprs), rownames(bulks))
+  if (length(features) > 0) {
+      exprs <- exprs[features, ]
+      bulks <- bulks[features, ]
   }
   if(!is.null(max.genes)){
     if (max.genes == 0) {
