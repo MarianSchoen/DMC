@@ -76,6 +76,7 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
 ```{r real_results, echo=FALSE}
   files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "deconv.*.h5")
   results.lists <- list()
+  if(length(files) > 0){
   for(i in 1:length(files)) {
     results.lists[[i]] <- read_result_list(files[i])
   }
@@ -116,16 +117,25 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
   	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]], celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
   }
   cond.num.plots <- plot_cond_num(real.df, metric = params$metric, algorithm.order = algorithms.ordered)
+  
   score.width <- 2 * length(unique(real.df$cell_type))
   score.height <- 2 * length(algorithm.names)
+  }else{
+	  score.width = 1
+	  score.height = 1
+	  bootstrap.plot.width <- 1
+	  bootstrap.plot.height <- 1
+  }
 ```
 
 ### Score plot
 ```{r score_plot, echo = FALSE, fig.width = score.width, fig.height = score.height}
-plot(score.plot)
-pdf(paste(plot.dir, "score_plot_real.pdf", sep = "/"), width = score.width, height = score.height)
-plot(score.plot)
-invisible(dev.off())
+if(exists("score.plot")){
+	plot(score.plot)
+	pdf(paste(plot.dir, "score_plot_real.pdf", sep = "/"), width = score.width, height = score.height)
+	plot(score.plot)
+	invisible(dev.off())
+}
 ```  
 
 Deconvolution result for real bulks per algorithm and cell type. The value is the pearson correlation coefficient, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined correlations were set to 0. The overall column contains the average performance of the algorithm across all cell types.
@@ -134,10 +144,12 @@ In case of multiple repetitions, the plotted scores are averages over all repeti
 
 ### Runtime plot
 ```{r runtime_plot, echo = FALSE, fig.width = 16, fig.height = 9}
-plot(runtime.plot)
-pdf(paste(plot.dir, "runtime_plot_real.pdf", sep = "/"), width = 16, height = 9)
-plot(runtime.plot)
-invisible(dev.off())
+if(exists("runtime.plot")){
+	plot(runtime.plot)
+	pdf(paste(plot.dir, "runtime_plot_real.pdf", sep = "/"), width = 16, height = 9)
+	plot(runtime.plot)
+	invisible(dev.off())
+}
 ```  
   
 Runtime per algorithm. Due to possible large differences in runtime the scale on the y-axis is transformed using the log10. In case of multiple repetitions, the plotted runtimes are averages over all repetitions.
@@ -145,6 +157,7 @@ Runtime per algorithm. Due to possible large differences in runtime the scale on
 
 ### Scatter plots of quantities
 ```{r scatter_plots, echo = FALSE, fig.width = 18, fig.height = 5}
+if(exists("scatter.plots.list")){
 for(l in scatter.plots.list){
 	if(!is.null(l)){
 		for(p in l){
@@ -163,6 +176,7 @@ for(l in scatter.plots.list){
 	}
 }
 invisible(dev.off())
+}
 ```  
 
 Comparison of the real cell type quantities and the estimated quantities per cell type for each algorithm. 
@@ -172,6 +186,7 @@ Comparison of the real cell type quantities and the estimated quantities per cel
 
 ### Condition number plots
 ```{r condition_plots, fig.width = 16, fig.height = 9}
+if(exists("cond.num.plots")){
 plot(cond.num.plots$cond_num_plot)  
 
 plot(cond.num.plots$cond_vs_score)  
@@ -185,6 +200,7 @@ plot(cond.num.plots$cond_vs_score)
 
 plot(cond.num.plots$variation_plot)
 invisible(dev.off())
+}
 ```  
   
 
@@ -221,8 +237,12 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 		for(i in 1:length(results.lists)){
 			bulks.df <- rbind(bulks.df, prepare_data(results.lists[[i]], params$metric))
 		}
+		saveRDS(bulks.df, "/home/tim/bulksdf.rds")
 
 		score.plot.sim.list <- evaluation_plot(bulks.df, "deconvolution quality (simulated bulks)", params$metric)
+		sink("/home/tim/test.txt")
+		print("test")
+		sink()
 		score.plot.sim <- score.plot.sim.list$plot
 		algorithms.ordered <- score.plot.sim.list$algorithm.order
 		celltypes.ordered <- score.plot.sim.list$celltype.order

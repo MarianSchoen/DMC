@@ -107,16 +107,9 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
     algos <- quality.scores$algorithm[which(quality.scores$cell_type == "overall")]
     ranking <- quality.scores$value[which(quality.scores$cell_type == "overall")]
     sds <- quality.scores$sd[which(quality.scores$cell_type == "overall")]
-
     names(ranking) <- algos
     names(sds) <- algos
 
-    if(any(quality.scores$algorithm == "DTD")){
-      print("DTD scores:")
-      print(quality.scores$value[which(quality.scores$algorithm == "DTD")])
-      print(quality.scores$value[which(quality.scores$algorithm == "DTD" & quality.scores$cell_type == "overall")])
-      print(quality.scores$sd[which(quality.scores$algorithm == "DTD" & quality.scores$cell_type == "overall")])
-    }
     if(is.null(algorithm.order)){
       quality.scores$algorithm <- factor(quality.scores$algorithm,
                                           levels = names(ranking)[order(ranking)])
