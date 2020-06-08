@@ -31,9 +31,7 @@ subtype_benchmark <- function(training.exprs,
     stop("training.exprs and training.pheno do not match")
   }
   if(!is.null(test.exprs) || !is.null(test.pheno)){
-    if(ncol(test.exprs) != nrow(test.pheno)){
-      stop("test.exprs and test.pheno do not match")
-    }
+    stop("test.exprs and test.pheno are not being used in this benchmark and must be NULL")
   }
   if(!is.null(bulk.data)){
     if(!is.list(bulk.data) || !c("bulks", "props") %in% names(bulk.data)){
