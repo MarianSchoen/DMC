@@ -37,12 +37,12 @@ run_dtd <- function(exprs,
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }
-  if (nrow(exprs) != nrow(bulks)) {
-      features <- intersect(rownames(exprs), rownames(bulks))
-      if (length(features) > 0) {
-          exprs <- exprs[features, ]
-          bulks <- bulks[features, ]
-      }
+  features <- intersect(rownames(exprs), rownames(bulks))
+  if (length(features) > 0) {
+      exprs <- exprs[features, ]
+      bulks <- bulks[features, ]
+  } else {
+      stop("no common features in bulks and expression data.")
   }
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL

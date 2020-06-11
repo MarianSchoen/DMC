@@ -177,7 +177,7 @@ benchmark <- function(
 	if(!is.null(input.algorithms)){
 		# input.algorithms must be a list
 		if(!is.list(input.algorithms)){
-			stop("Invalid algorithm input")
+			stop("Invalid algorithm input. input.algorithms must be a list.")
 		}
 		predef.algos <- c()
 		new.algos <- list()
@@ -195,7 +195,7 @@ benchmark <- function(
 				if(is.character(a) && a %in% algorithm.names){
 					predef.algos <- c(predef.algos, which(algorithm.names == a))	
 				}else{
-					stop("Invalid algorithm")
+					stop("Invalid algorithm. User supplied algorithms can be given as a list with two entries: name (name of the algorithm) and algorithm (wrapper to call the algorithm)")
 				}
 			}
 		}
