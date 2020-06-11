@@ -237,12 +237,9 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 		for(i in 1:length(results.lists)){
 			bulks.df <- rbind(bulks.df, prepare_data(results.lists[[i]], params$metric))
 		}
-		saveRDS(bulks.df, "/home/tim/bulksdf.rds")
 
 		score.plot.sim.list <- evaluation_plot(bulks.df, "deconvolution quality (simulated bulks)", params$metric)
-		sink("/home/tim/test.txt")
-		print("test")
-		sink()
+		
 		score.plot.sim <- score.plot.sim.list$plot
 		algorithms.ordered <- score.plot.sim.list$algorithm.order
 		celltypes.ordered <- score.plot.sim.list$celltype.order
@@ -253,6 +250,7 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 			scatter.plots.list.sim[[i]] <- create_scatterplots(results.lists[[i]], celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
 		}
 		score.width <- 2*length(unique(bulks.df$cell_type))
+		score.height <- 2 * length(unique(bulks.df$algorithm))
 	}
 }else{
   algorithms.ordered = NULL
