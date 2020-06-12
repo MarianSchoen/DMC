@@ -1,7 +1,7 @@
 #' create lineplots of deconvolution results for different gene sets
 #' 
 #' @param results.df data frame as returned by prepare_data
-#' @param metric character string specifying the evaluation metric; default 'cor'
+#' @param metric evaluation metric; either string 'cor' (default) or a function
 #' @param genesets list of gene sets (character vectors)
 #' @param available.features character vector containing names of available features
 #' @param celltype.order character vector of cell types specifying the plotting order
@@ -19,9 +19,6 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     }
     if(!all(c("algorithm", "score", "metric", "geneset", "cell_type", "time") %in% colnames(results.df))){
         stop("required columns missing from results.df")
-    }
-    if(!metric %in% c("cor", "mad", "rmsd")){
-        stop("unknown metric. choose one of 'cor', 'mad', 'rmsd'")
     }
     if(!is.null(genesets)){
         if(!is.list(genesets)){
@@ -49,6 +46,18 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
             stop("algorithm.order does not fit the algorithm column of results.df")
         }
     }
+    if(is.character(metric)){
+    if(metric != "cor"){
+			stop("metric must be either \"cor\" or a function")
+		}else{
+			metric <- cor
+		}
+    }else{
+        if(!is.function(metric)){
+            stop("Function corresponding to 'metric' could not be found.")
+        }
+    }
+
     overall.df <- results.df[which(results.df$cell_type == "overall"), ]
     
     # order algorithms by performance or given order
@@ -64,7 +73,6 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     
 
     # create display labels for gene sets and sort according to number of genes if possible
-    metric <- results.df$metric[1]
     if(!is.null(genesets)) {
         if(all(unique(results.df$geneset) %in% names(genesets))){
             geneset.labs <- paste(names(genesets), "\n(", as.numeric(sapply(genesets, function(x) length(which(x %in% available.features)))), " genes)", sep = "")
@@ -106,7 +114,7 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
             geom_line(size = 2) + geom_point() +
             geom_errorbar(aes(x = geneset, ymin = score - sd, ymax = score + sd), width = 0.2) +
             xlab("gene set (increasing size)") +
-            ylab(metric) +
+            ylab("average score") +
             ggtitle(paste(
             "deconvolution quality using different gene sets (", t, ")",
             sep = ""
@@ -122,9 +130,7 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
                 axis.title.y = element_text(size = 22),
                 axis.text.y = element_text(size = 20)
             )
-            if(metric == "cor"){
-                cell.type.plots[[t]] <- cell.type.plots[[t]] + ylim(0,1)
-            }
+            cell.type.plots[[t]] <- cell.type.plots[[t]] + ylim(0,1)
             # create only one runtime plot
             if(t == "overall") {
                 runtime.plot <- ggplot(sub.df, aes(

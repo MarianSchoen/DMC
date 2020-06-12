@@ -4,7 +4,7 @@
 #' Usually \code{paste(temp.dir,"/",benchmark.name,sep="")}, 
 #' where \code{temp.dir} and \code{benchmark.name} 
 #' are parameters of \link{benchmark}.
-#' @param metric character specifying the metric. default: 'cor'
+#' @param metric evaluation metric; either string 'cor' (default) or a function
 #' @return NULL
 #' @export
 
@@ -13,9 +13,17 @@ render_results <- function(temp.dir, metric = "cor"){
 	if(!dir.exists(temp.dir)){
 		stop("Invalid temp directory")
 	}
-	if(!metric %in% c("cor", "mad", "rmsd")){
-		stop("Invalid metric. Must be one of 'cor', 'mad', 'rmsd'")
-	}
+	if(is.character(metric)){
+    if(metric != "cor"){
+			stop("metric must be either \"cor\" or a function")
+		}else{
+			metric <- cor
+		}
+  }else{
+    if(!is.function(metric)){
+			stop("Function corresponding to 'metric' could not be found.")
+		}
+  }
 	
 	# render the template to pdf with the data stored in temp.dir
 	render(

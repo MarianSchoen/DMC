@@ -6,13 +6,25 @@
 #' 1) est - matrix containing the estimated fractions of cell types within the bulks (cell type x bulk)  
 #' 
 #' 2) real - matrix containing the true fractions of cell types within the bulks (cell type x bulk)
+#' @param metric evaluation metric; either "cor" (default) or a function conforming to the required format. See benchmark() for details.
 #' @return matrix containing all bootstrap runs with columns 'algorithm', 'cell_type' and 'score'
 
-bootstrap_bulks <- function(props) {
+bootstrap_bulks <- function(props, metric = "cor") {
 
   # parameter check
   if(!is.list(props) || length(props) != 2 || !all(c("est", "real") %in% names(props))){
     stop("Invalid estimated proportions ('props')")
+  }
+  if(is.character(metric)){
+    if(metric != "cor"){
+			stop("metric must be either \"cor\" or a function")
+		}else{
+			metric <- cor
+		}
+  }else{
+    if(!is.function(metric)){
+			stop("Function corresponding to 'metric' could not be found.")
+		}
   }
 
   estimates <- props$est
@@ -35,17 +47,17 @@ bootstrap_bulks <- function(props) {
     # calculate for each algorithm for each cell type the correlation 
     # between real and estimated proportions
     for(a in names(estimates)){
-      cors <- c()
+      scores <- c()
       for(t in cts){
-        temp.cor <- cor(bootstrap.estimates[[a]][t,], bootstrap.real[t,])
+        temp.score <- metric(bootstrap.estimates[[a]][t,], bootstrap.real[t,])
         # NAs and negative correlations are set to 0
-        if(is.na(temp.cor) | temp.cor < 0){
-          temp.cor <- 0
+        if(is.na(temp.score) | temp.score < 0){
+          temp.score <- 0
         }
-        bootstrap.mat <- rbind(bootstrap.mat, c(a, t, temp.cor))
-        cors <- c(cors, temp.cor)
+        bootstrap.mat <- rbind(bootstrap.mat, c(a, t, temp.score))
+        scores <- c(scores, temp.score)
       }
-      score <- mean(cors)
+      score <- mean(scores)
       bootstrap.mat <- rbind(bootstrap.mat, c(a, 'overall', score))
     }
   }

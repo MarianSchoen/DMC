@@ -1,7 +1,7 @@
 #' create condition number plots for deconvolution results
 #' 
 #' @param results.df data frame containing results as returned by prepare_data
-#' @param metric character string specifying the metric to be used, default 'cor'
+#' @param metric evaluation metric; either string 'cor' (default) or a function
 #' @param algorithm.order character vector of algorithm names specifying the plotting order
 #' @return list containing 3 plots:
 #' 1) cond_num_plot - barplot of average condition numbers
@@ -16,9 +16,17 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     if(!all(c("score", "algorithm", "cell_type", "condition_number") %in% colnames(results.df))){
         stop("required columns missing from results.df")
     }
-    if(!metric %in% c("cor", "mad", "rmsd")){
-        stop("unknown metric. must be one of 'cor', 'mad', 'rmsd'")
-    }
+    if(is.character(metric)){
+    if(metric != "cor"){
+			stop("metric must be either \"cor\" or a function")
+		}else{
+			metric <- cor
+		}
+  }else{
+    if(!is.function(metric)){
+			stop("Function corresponding to 'metric' could not be found.")
+		}
+  }
     if(!is.null(algorithm.order)){
         if(!is.character(algorithm.order)){
             stop("celltype.order must be a charcter vector")
@@ -85,9 +93,7 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
         ggtitle("score vs condition number") +
         xlab("condition number") +
         ylab("score")
-    if(metric == "cor"){
-        cond_vs_score <- cond_vs_score + ylim(0,1)
-    }
+    cond_vs_score <- cond_vs_score + ylim(0,1)
 
     # plot sd of score vs sd of condition number
     variation_plot <- ggplot(overall.df) +

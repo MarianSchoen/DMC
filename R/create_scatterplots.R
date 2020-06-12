@@ -40,7 +40,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
         t <- cts[i]
         temp.df <- data.frame(real = real.props[t, ], estimate = res$est.props[t, ])
         rownames(temp.df) <- colnames(real.props)
-        df <- rbind(df, cbind(temp.df, t, j, evaluate_deconvolution(real.props[t, ], res$est.props[t, ])$cor))
+        df <- rbind(df, cbind(temp.df, t, j, cor(real.props[t, ], res$est.props[t, ])))
       }
       #df <- data.frame(df)
       colnames(df) <- c('real', 'estimate', 'type', 'repetition', 'cor')

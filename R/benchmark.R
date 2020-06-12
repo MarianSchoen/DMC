@@ -31,8 +31,9 @@
 #' @param simulation.subtypes boolean, should deconvolution of simulated bulks with
 #' artificial subtypes of given cell types be performed? default: FALSE
 #' @param genesets list of string vector, must match 'rownames(sc.counts)'. default: NULL
-#' @param metric string, must match one of \code{c('cor')}. default: 'cor'
-#' #TODO: keep this up to date
+#' @param metric method of result evaluation; either "cor" (default) or a function. An 
+#' evaluation function must receive two vectors (real and estimated proportions of a cell type across all bulks)
+#' as input and return a single value as output. Note that the score should be between 0 and 1
 #' @param repeats numeric > 0, number of repetitions for each algorithm in each setting.
 #' default: 3
 #' @param temp.dir string, directory where data, and benchmarks get stored. default: NULL,
@@ -49,7 +50,7 @@
 #'
 #' @return NULL, results are stored via hdf5 to 'temp.dir'
 #' @export
-#'
+#' 
 #' @examples see either 'working_example.R', or 'working_example_fast.R'
 benchmark <- function(
   sc.counts, 
@@ -122,8 +123,18 @@ benchmark <- function(
 		warning("No gene sets provided; skipping that benchmark")
 		simulation.genes <- FALSE
 	}
-	if(!metric %in% c("cor", "mad", "rmsd")){
-		stop("metric must be one of 'cor', 'mad', 'rmsd'")
+	if(is.character(metric)){
+		if(metric != "cor"){
+			stop("metric must be either \"cor\" or a function")
+		}else{
+			metric <- cor
+		}
+	}else{
+		if(is.function(metric)){
+			warning("Using custom evaluation function / metric. Unexpected results and plots may occur.")
+		}else{
+			stop("Function corresponding to 'metric' could not be found.")
+		}
 	}
 	if(!is.factor(grouping) || !length(levels(grouping)) == 2 || !length(grouping) == ncol(sc.counts)){
 		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts) with two levels indicating training and validation set")
@@ -186,7 +197,7 @@ benchmark <- function(
 		for(a in input.algorithms) {
 			if(is.list(a)){
 				# for now check only whether algorithm exists, not its output
-				if(exists(as.character(substitute(a$algorithm))) && is.character(a$name)){
+				if(is.function(a$algorithm) && is.character(a$name)){
 					new.algos <- c(new.algos, a)
 				}else{
 					stop("Invalid algorithm")

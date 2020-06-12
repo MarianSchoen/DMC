@@ -12,6 +12,18 @@ plot.dir <- paste(temp.dir, "report_plots", sep = '/')
 if(!dir.exists(plot.dir)){
   dir.create(plot.dir)
 }
+if(is.character(metric)){
+    if(metric != "cor"){
+        stop("metric must be either \"cor\" or a function")
+    }else{
+        metric <- cor
+    }
+}else{
+	if(!exists(as.character(substitute(metric)))){
+		stop("Function corresponding to 'metric' could not be found.")
+	}
+}
+	
 benchmark.name <- strsplit(temp.dir, "/")[[1]][length(strsplit(temp.dir, "/")[[1]])]
 # read input and processed data
 input_raw <- read_data(paste(temp.dir, "/input_data/raw.h5", sep=""))
