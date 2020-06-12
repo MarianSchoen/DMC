@@ -1,4 +1,4 @@
-#' simulate subtypes of given cell types using t-SNE and k-means clustering
+#' simulate subtypes of given cell types using PCA and hierarchical clustering
 #'
 #' @param sc.counts non-negative numeric matrix with features as rows, and 
 #' scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
@@ -7,7 +7,6 @@
 #' @param sub.list named list containing the number of subtypes to be simulated for each cell type
 #' @param celltypecol string, column name in 'sc.pheno' that holds the cell type
 #' per scRNA-Seq profile
-#' @param ... additional parameters that get passed to Rtsne()
 #'
 #' @return list containing two entries:  
 #' 
@@ -22,7 +21,6 @@ assign_subtypes <- function(
   , sc.pheno
   , sub.list
   , celltypecol = "cell_type"
-  , ...
   ){
   # parameter checks
   if(!celltypecol %in% names(sc.pheno)) stop("celltype column not in data frame")
@@ -35,8 +33,10 @@ assign_subtypes <- function(
     stop("sub.list must be a list")
   }
 
-  # tsne may fail e.g. due to too few samples
-  tsne.embed <- try(Rtsne(t(sc.counts), ...))
+  # calculate PCA
+  counts.pca <- prcomp(sc.counts)$x[, 1:50]
+  # hierarchical clustering
+  dists <- as.matrix(dist(counts.pca, "euclidean"))
 
   # add default subtype 1
   sc.pheno <- cbind(sc.pheno, subtype = rep(1, nrow(sc.pheno)))
@@ -50,15 +50,15 @@ assign_subtypes <- function(
         next
       }
       ct.indices <- which(sc.pheno[[celltypecol]] == ct)
-      # number of clusters in k-means has to be > 1 and < number of cells
-      if(length(ct.indices) > 2){
-        km.clust <- kmeans(x = tsne.embed$Y[ct.indices, ,drop=F], min(sub.list[[ct]], length(ct.indices) - 1))
-        sc.pheno[ct.indices, "subtype"] <- km.clust$cluster
-      }
+
+      # hierarchical clustering on pca
+      temp.dists <- as.dist(dists[ct.indices, ct.indices])
+      tree <- hclust(temp.dists, "average")
+      clustering <- cutree(tree, k = sub.list[[ct]])
+
+      sc.pheno[ct.indices, "subtype"] <- clustering
     }
-  }else{
-    tsne.embed <- NULL
   }
   
-  return(list(sc.pheno = sc.pheno, tsne.embed = tsne.embed))
+  return(list(sc.pheno = sc.pheno))
 }
