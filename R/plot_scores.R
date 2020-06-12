@@ -2,7 +2,7 @@
 #' 
 #' @param results.df data frame as returned by prepare_data
 #' @param title character, plot title
-#' @param metric character string specifying the evaluation metric; default 'cor'
+#' @param metric evaluation metric; either string 'cor' (default) or a function
 #' @param real.props non-negative numeric matrix, with cell types as rows, 
 #' and bulk RNA-Seq profiles.
 #' @param celltype.order character vector of cell types specifying the plotting order
@@ -23,9 +23,17 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
     if (is.null(title)) {
         title <- "deconvolution quality"
     }
-    if(!metric %in% c("cor", "mad", "rmsd")){
-      stop("Invalid metric. Must be one of 'cor', 'mad', 'rmsd'")
-    }
+    if(is.character(metric)){
+    if(metric != "cor"){
+			stop("metric must be either \"cor\" or a function")
+		}else{
+			metric <- cor
+		}
+  }else{
+    if(!is.function(metric)){
+			stop("Function corresponding to 'metric' could not be found.")
+		}
+  }
     if(!is.null(real.props) && !is.matrix(real.props)){
       stop("real.props is not a matrix")
     }
@@ -55,7 +63,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
             quality.scores <- rbind(quality.scores, 
                                     c(mean(results.df[subset,]$score),
                                     sd(results.df[subset,]$score),
-                                    ct, a, metric))
+                                    ct, a, as.character(substitute(metric))))
         }
       }
     }
@@ -138,7 +146,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", real.props
       ) +
       xlab("cell type") + 
       ylab("algorithm") +
-      ggtitle(title, subtitle = metric) +
+      ggtitle(title, subtitle = as.character(substitute(metric))) +
       scale_size_continuous(
         limits = c(0, 1),
         #range = c(min(quality.scores$value)*25, max(quality.scores$value) * 25),
