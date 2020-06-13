@@ -2,6 +2,8 @@
 #' 
 #' @param results.df data frame as returned by prepare_data
 #' @param metric evaluation metric; either string 'cor' (default) or a function
+#' @param metric.name string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
+#' is NULL, the default will be "custom metric"
 #' @param genesets list of gene sets (character vectors)
 #' @param available.features character vector containing names of available features
 #' @param celltype.order character vector of cell types specifying the plotting order
@@ -12,7 +14,7 @@
 #' 
 #' 2) list containing lineplot of scores for each celltypes
 
-create_lineplots <- function(results.df, metric = "cor", genesets = NULL, available.features = NULL, celltype.order = NULL, algorithm.order = NULL) {
+create_lineplots <- function(results.df, metric = "cor", metric.name = NULL, genesets = NULL, available.features = NULL, celltype.order = NULL, algorithm.order = NULL) {
     # parameter checks
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
@@ -50,11 +52,18 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
     if(metric != "cor"){
 			stop("metric must be either \"cor\" or a function")
 		}else{
+            if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "custom metric"
+			}
 			metric <- cor
 		}
     }else{
         if(!is.function(metric)){
             stop("Function corresponding to 'metric' could not be found.")
+        }else{
+            if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "custom metric"
+			}
         }
     }
 
@@ -114,7 +123,7 @@ create_lineplots <- function(results.df, metric = "cor", genesets = NULL, availa
             geom_line(size = 2) + geom_point() +
             geom_errorbar(aes(x = geneset, ymin = score - sd, ymax = score + sd), width = 0.2) +
             xlab("gene set (increasing size)") +
-            ylab("average score") +
+            ylab(metric.name) +
             ggtitle(paste(
             "deconvolution quality using different gene sets (", t, ")",
             sep = ""

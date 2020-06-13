@@ -2,13 +2,15 @@
 #' 
 #' @param results.df data frame containing results as returned by prepare_data
 #' @param metric evaluation metric; either string 'cor' (default) or a function
+#' @param metric.name string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
+#' is NULL, the default will be "custom metric"
 #' @param algorithm.order character vector of algorithm names specifying the plotting order
 #' @return list containing 3 plots:
 #' 1) cond_num_plot - barplot of average condition numbers
 #' 2) cond_vs_score - scatter plot of average condition number vs. score for each algorithm
 #' 3) variation_plot - standard deviation of score vs. standard deviation of condition number
 
-plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
+plot_cond_num <- function(results.df, metric = "cor", metric.name = NULL, algorithm.order = NULL){
     require(ggplot2)
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
@@ -20,12 +22,19 @@ plot_cond_num <- function(results.df, metric = "cor", algorithm.order = NULL){
     if(metric != "cor"){
 			stop("metric must be either \"cor\" or a function")
 		}else{
+            if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "custom metric"
+			}
 			metric <- cor
 		}
   }else{
     if(!is.function(metric)){
 			stop("Function corresponding to 'metric' could not be found.")
-		}
+		}else{
+            if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "custom metric"
+			}
+        }
   }
     if(!is.null(algorithm.order)){
         if(!is.character(algorithm.order)){

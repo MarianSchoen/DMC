@@ -4,6 +4,7 @@ output: pdf_document
 params:
    tempdir: ""
    metric: "cor"
+   metric.name: ""
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
@@ -12,15 +13,24 @@ plot.dir <- paste(temp.dir, "report_plots", sep = '/')
 if(!dir.exists(plot.dir)){
   dir.create(plot.dir)
 }
+metric <- params$metric
+metric.name <- params$metric.name
 if(is.character(metric)){
     if(metric != "cor"){
         stop("metric must be either \"cor\" or a function")
     }else{
+		if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "custom metric"
+			}
         metric <- cor
     }
 }else{
-	if(!exists(as.character(substitute(metric)))){
+	if(!is.function(metric)){
 		stop("Function corresponding to 'metric' could not be found.")
+	}else{
+		if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "custom metric"
+			}
 	}
 }
 	
@@ -94,7 +104,7 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
   }
   
   for(i in 1:length(results.lists)){
-  	temp.df <- prepare_data(results.lists[[i]], params$metric)
+  	temp.df <- prepare_data(results.lists[[i]], metric, metric.name)
   	if(!is.null(temp.df)){
   		if(!exists("real.df")){
   			real.df <- temp.df
@@ -118,7 +128,7 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
     bootstrap.plot.width <- length(unique(bootstrap.data$cell_type)) * 2
   }
 
-  score.plot.list <- evaluation_plot(real.df, "deconvolution quality",params$metric)
+  score.plot.list <- evaluation_plot(real.df, "deconvolution quality", metric, metric.name)
   score.plot <- score.plot.list$plot
   celltypes.ordered <- score.plot.list$celltype.order
   algorithms.ordered <- score.plot.list$algorithm.order
@@ -128,7 +138,7 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
   for(i in 1:length(results.lists)) {
   	scatter.plots.list[[i]] <- create_scatterplots(results.lists[[i]], celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
   }
-  cond.num.plots <- plot_cond_num(real.df, metric = params$metric, algorithm.order = algorithms.ordered)
+  cond.num.plots <- plot_cond_num(real.df, metric = metric, metric.name = metric.name, algorithm.order = algorithms.ordered)
   
   score.width <- 2 * length(unique(real.df$cell_type))
   score.height <- 2 * length(algorithm.names)
@@ -247,10 +257,10 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 		}
 		bulks.df <- data.frame()
 		for(i in 1:length(results.lists)){
-			bulks.df <- rbind(bulks.df, prepare_data(results.lists[[i]], params$metric))
+			bulks.df <- rbind(bulks.df, prepare_data(results.lists[[i]], metric, metric.name))
 		}
 
-		score.plot.sim.list <- evaluation_plot(bulks.df, "deconvolution quality (simulated bulks)", params$metric)
+		score.plot.sim.list <- evaluation_plot(bulks.df, "deconvolution quality (simulated bulks)", metric, metric.name)
 		
 		score.plot.sim <- score.plot.sim.list$plot
 		algorithms.ordered <- score.plot.sim.list$algorithm.order
@@ -278,9 +288,9 @@ if(dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))){
 		}
 		samples.df <- data.frame()
 		for(i in 1:length(results.lists)){
-			samples.df <- rbind(samples.df, prepare_data(results.lists[[i]], params$metric))
+			samples.df <- rbind(samples.df, prepare_data(results.lists[[i]], metric, metric.name))
 		}
-		sample.plots <- create_boxplots(samples.df, metric = params$metric, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
+		sample.plots <- create_boxplots(samples.df, metric = metric, metric.name = metric.name, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
 	}
 }
 
@@ -294,9 +304,9 @@ if(dir.exists(paste(temp.dir, "/results/simulation/genes", sep=""))){
 		}
 		genes.df <- data.frame()
 		for(i in 1:length(results.lists)){
-			genes.df <- rbind(genes.df, prepare_data(results.lists[[i]], params$metric))
+			genes.df <- rbind(genes.df, prepare_data(results.lists[[i]], metric, metric.name))
 		}
-		gene.plots <- create_lineplots(genes.df, metric = params$metric, genesets, rownames(training.exprs), algorithm.order = algorithms.ordered, celltype.order = celltypes.ordered)
+		gene.plots <- create_lineplots(genes.df, metric = metric, metric.name, genesets, rownames(training.exprs), algorithm.order = algorithms.ordered, celltype.order = celltypes.ordered)
 	}
 }
 
@@ -310,9 +320,9 @@ if(dir.exists(paste(temp.dir, "/results/simulation/subtypes", sep=""))){
 		}
 		subtypes.df <- data.frame()
 		for(i in 1:length(results.lists)){
-			subtypes.df <- rbind(subtypes.df, prepare_data(results.lists[[i]], params$metric))
+			subtypes.df <- rbind(subtypes.df, prepare_data(results.lists[[i]], metric, metric.name))
 		}
-		score.plot.subtype <- evaluation_plot(subtypes.df, "deconvolution quality (simulated subtypes)", params$metric, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)$plot
+		score.plot.subtype <- evaluation_plot(subtypes.df, "deconvolution quality (simulated subtypes)", metric, metric.name, celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)$plot
 		runtime.plot.subtype <- plot_runtime(subtypes.df, algorithm.order = algorithms.ordered)
 	}
 }

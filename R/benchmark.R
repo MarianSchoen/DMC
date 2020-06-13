@@ -34,6 +34,8 @@
 #' @param metric method of result evaluation; either "cor" (default) or a function. An 
 #' evaluation function must receive two vectors (real and estimated proportions of a cell type across all bulks)
 #' as input and return a single value as output. Note that the score should be between 0 and 1
+#' @param metric.name string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
+#' is NULL, the default will be "custom metric"
 #' @param repeats numeric > 0, number of repetitions for each algorithm in each setting.
 #' default: 3
 #' @param temp.dir string, directory where data, and benchmarks get stored. default: NULL,
@@ -65,7 +67,8 @@ benchmark <- function(
   simulation.samples = FALSE,
   simulation.subtypes = FALSE,
   genesets = NULL, 
-  metric = "cor", 
+  metric = "cor",
+  metric.name = NULL,
   repeats = 3, 
   temp.dir = NULL, 
   exclude.from.bulks = NULL, 
@@ -128,10 +131,16 @@ benchmark <- function(
 			stop("metric must be either \"cor\" or a function")
 		}else{
 			metric <- cor
+			if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "pearson correlation"
+			}
 		}
 	}else{
 		if(is.function(metric)){
 			warning("Using custom evaluation function / metric. Unexpected results and plots may occur.")
+			if(is.null(metric.name) || !is.character(metric.name)){
+				metric.name <- "custom metric"
+			}
 		}else{
 			stop("Function corresponding to 'metric' could not be found.")
 		}
@@ -274,12 +283,6 @@ benchmark <- function(
 		}
 		subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
 		sc.pheno <- subtype.return$sc.pheno
-
-		# perform subtype simulation only if simulated types are valid
-		if(simulation.subtypes && is.null(subtype.return$tsne.embed)){
-			simulation.subtypes <- FALSE
-			warning("subtype simulation failed. skipping this benchmark.")
-		}
 
 		# split data into test and validation set
 		if(length(unique(grouping)) == 2){
@@ -472,7 +475,7 @@ benchmark <- function(
 
 	# deconvolution step is over
 	# create results markdown
-	render_results(output.folder, metric)
+	render_results(output.folder, metric, metric.name)
 	if(dir.exists("CIBERSORT")){
 	  unlink("CIBERSORT", recursive = TRUE)
 	}
