@@ -68,12 +68,12 @@ prepare_data <- function(results.all, metric="cor") {
                                 temp.score <- 0
                             }
                             scores <- c(scores, temp.score)
-                            df <- rbind(df, c(name, temp.score, t, geneset, as.character(substitute(metric)), time, fraction, cond.num))
+                            df <- rbind(df, c(name, temp.score, t, geneset, "cor", time, fraction, cond.num))
                         }
                         # overall performance (average over per-cell-type-performance); store as cell type "overall"
-                        df <- rbind(df, c(name, mean(scores), "overall", geneset, as.character(substitute(metric)), time, fraction, cond.num))
+                        df <- rbind(df, c(name, mean(scores), "overall", geneset, "cor", time, fraction, cond.num))
                     }else{
-                        df <- rbind(df, c(name, 0, "overall", geneset, as.character(substitute(metric)), time, fraction, cond.num))
+                        df <- rbind(df, c(name, 0, "overall", geneset, "cor", time, fraction, cond.num))
                     }
                 }
             }else{
@@ -99,12 +99,12 @@ prepare_data <- function(results.all, metric="cor") {
                                 temp.score <- 0
                         }
                         scores <- c(scores, temp.score)
-                        df <- rbind(df, c(name, temp.score, t, NA, as.character(substitute(metric)), time, 100, cond.num))
+                        df <- rbind(df, c(name, temp.score, t, NA, "cor", time, 100, cond.num))
                     }
                     # overall performance
-                    df <- rbind(df, c(name, mean(scores), "overall", NA, as.character(substitute(metric)), time, 100, cond.num))
+                    df <- rbind(df, c(name, mean(scores), "overall", NA, "cor", time, 100, cond.num))
                 }else{
-                        df <- rbind(df, c(name, 0, "overall", NA, as.character(substitute(metric)), time, 100, cond.num))
+                        df <- rbind(df, c(name, 0, "overall", NA, "cor", time, 100, cond.num))
                 }
             }
         }
