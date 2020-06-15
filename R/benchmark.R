@@ -187,7 +187,7 @@ benchmark <- function(
 			if(is.list(a)){
 				# for now check only whether algorithm exists, not its output
 				if(exists(as.character(substitute(a$algorithm))) && is.character(a$name)){
-					new.algos <- c(new.algos, a)
+					new.algos <- c(new.algos, list(a))
 				}else{
 					stop("Invalid algorithm")
 				}
