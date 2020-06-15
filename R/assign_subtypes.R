@@ -33,17 +33,22 @@ assign_subtypes <- function(
     stop("sub.list must be a list")
   }
 
+  # pre-select most variable genes
+  gene.vars <- apply(sc.counts, 2, sd)
+  var.genes <- names(sort(gene.vars, decreasing = TRUE)[1:1000])
+  sc.counts <- sc.counts[, var.genes]
+
+  sc.counts <- apply(sc.counts, 2, function(x){ (x-mean(x)) / sd(x)})
+
   # calculate PCA
-  counts.pca <- prcomp(sc.counts)$x[, 1:50]
-  # hierarchical clustering
-  dists <- as.matrix(dist(counts.pca, "euclidean"))
+  #counts.pca <- prcomp(sc.counts, rank. = 50, center = TRUE, scale = TRUE, retx = TRUE)$x
 
   # add default subtype 1
   sc.pheno <- cbind(sc.pheno, subtype = rep(1, nrow(sc.pheno)))
 
   # if tsne worked, cluster each celltype in tsne-space and 
   # assign each cluster a subtype
-  if(!class(tsne.embed) == "try-error"){
+  
     for(ct in names(sub.list)){
       if(!ct %in% sc.pheno[[celltypecol]] || sub.list[[ct]] < 2) {
         warning(paste(ct, ": No such cell type"))
@@ -51,14 +56,18 @@ assign_subtypes <- function(
       }
       ct.indices <- which(sc.pheno[[celltypecol]] == ct)
 
-      # hierarchical clustering on pca
-      temp.dists <- as.dist(dists[ct.indices, ct.indices])
-      tree <- hclust(temp.dists, "average")
-      clustering <- cutree(tree, k = sub.list[[ct]])
+      custom.conf <- umap.defaults
+      custom.conf$metric <- "euclidean"
+      umap.embed <- umap(sc.counts[ct.indices,], custom.conf)$layout
+      clustering <- cutree(
+        hclust(
+          dist(umap.embed, "euclidean"),
+          "average"
+        ), k = sub.list[[ct]]
+      )
 
       sc.pheno[ct.indices, "subtype"] <- clustering
     }
-  }
   
   return(list(sc.pheno = sc.pheno))
 }

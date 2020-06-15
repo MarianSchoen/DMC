@@ -4,7 +4,7 @@
 #' @param content h5 file content; used instead of filename in case of recursive function call
 #' @param groupname name of the current group
 #' @return list
-#' 
+#' @export 
 read_result_list <- function(filename, content = NULL, groupname = NULL) {
   # parameter check
   if(!file.exists(filename)) {

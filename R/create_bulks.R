@@ -72,31 +72,63 @@ create_bulks <- function(
     
     # if column subtypes exists create a matrix containing proportions of subtypes
     if("subtype" %in% colnames(pheno)){
+        subtypes <- unique(pheno$subtype)
+        n.subtypes <- length(subtypes)
         combined.type <- paste(pheno$cell_type, pheno$subtype, sep = ".")
         sub.props <- matrix(0, length(unique(combined.type)), ncol = n.bulks)
         rownames(sub.props) <- unique(combined.type)
         colnames(sub.props) <- colnames(bulk.exprs)
     }else{
         sub.props <- NULL
+        n.subtypes <- 0
     }
 
-    # create random bulks by summation over fixed number of random profiles
-    for (i in 1:ncol(bulk.exprs)) {
-        bulk.samples <- sample(
-            1:ncol(exprs),
-            ceiling(fraction.per.bulk * ncol(exprs)),
-            replace = TRUE
-        )
-        bulk.exprs[, i] <- rowSums(exprs[, bulk.samples, drop = F])
-        # store the quantities
-        for (t in rownames(props)) {
-            props[t, i] <- sum(pheno[bulk.samples, "cell_type"] == t) / length(bulk.samples)
+    # if no subtype, sample with random distribution from cell_types
+    # if subtypes, sample with random distribution from combined.type
+    
+    for(i in 1:ncol(bulk.exprs)){
+      bulk.samples <- c()
+      if("subtype" %in% colnames(pheno)){
+        # for debugging
+        print(table(combined.type))
+        types <- unique(combined.type)
+        
+        # sample random weights for each type
+        weights <- sample(0:100, size = length(types), replace = TRUE)
+        
+        # determine, how many samples of each type should be drawn
+        n.samples <- sample(types, size = ceiling(fraction.per.bulk * ncol(exprs)), replace = TRUE)
+        
+        # draw samples for each type, store the proportions and the expression
+        for(t in types){
+          sub.samples <- sample(which(combined.type == t), size = sum(n.samples == t), replace = TRUE)
+          coarse.types <- pheno$cell_type[sub.samples]
+          bulk.samples <- c(bulk.samples, sub.samples)
+          
+          sub.props[t, i] <- length(sub.samples)
+          for(ct in unique(coarse.types)){
+            props[ct, i] <- props[ct, i] + sum(coarse.types == ct)
+          }
         }
-        if("subtype" %in% colnames(pheno)){
-            for(t in rownames(sub.props)){
-                sub.props[t, i] <- sum(combined.type[bulk.samples] == t) / length(bulk.samples)
-            }
+        sub.props[,i] <- sub.props[,i] / length(bulk.samples)
+        props[,i] <- props[,i] / length(bulk.samples)
+      }else{
+        types <- unique(pheno$cell_type)
+        # sample random weights for each type
+        weights <- sample(0:100, size = length(types), replace = TRUE) #
+        # determine, how many samples of each type should be drawn
+        n.samples <- sample(types, size = ceiling(fraction.per.bulk * ncol(exprs)), replace = TRUE) #
+        
+        # draw samples for each type, store the proportions and the expression
+        for(t in types){
+          coarse.samples <- sample(which(pheno$cell_type == t), size = sum(n.samples == t), replace = TRUE)
+          bulk.samples <- c(bulk.samples, coarse.samples)
+          props[t, i] <- length(coarse.samples)
         }
+        props[,i] <- props[,i] / length(bulk.samples)
+      }
+      
+      bulk.exprs[,i] <- rowSums(exprs[, bulk.samples, drop = F])
     }
 
     # let no feature occur twice in the bulks
