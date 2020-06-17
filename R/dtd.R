@@ -18,7 +18,8 @@
 #' @param verbose boolean
 #' @param cell.type.column string, which column of 'training.pheno'/'test.pheno'
 #' holds the cell type information? 
-#' 
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
@@ -34,7 +35,8 @@ run_dtd <- function(
   max.genes = NULL,
   optimize = TRUE,
   split.data = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  patient.column = NULL
 ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {

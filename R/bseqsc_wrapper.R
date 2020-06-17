@@ -18,6 +18,8 @@
 #' @param verbose boolean
 #' @param cell.type.column string, which column of 'pheno'
 #' holds the cell type information?
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
@@ -32,7 +34,8 @@ run_bseqsc <- function(
   optimize = TRUE,
   split.data = TRUE,
   verbose = FALSE,
-  cell.type.column = "cell_type"
+  cell.type.column = "cell_type",
+  patient.column = NULL
   ) {
 	suppressMessages(library(Biobase, quietly = T))
 	suppressMessages(library(xbioc, quietly = T))
@@ -51,6 +54,9 @@ run_bseqsc <- function(
     if (max.genes == 0) {
         max.genes <- NULL
     }
+  }
+  if(is.null(patient.column) | ! patient.column %in% colnames(pheno)){
+    return(list(est.props = NULL, sig.matrix = NULL))
   }
 
   # ExpressionSet creation may fail in some cases without this
@@ -120,7 +126,7 @@ run_bseqsc <- function(
   # create reference matrix based on single cell data and DEGs
   B <- try({
 	  bseqsc::bseqsc_basis(sc.exprs, deg.per.type,
-      clusters = cell.type.column, samples = "patient",
+      clusters = cell.type.column, samples = patient.column,
       ct.scale = TRUE
     )
   })

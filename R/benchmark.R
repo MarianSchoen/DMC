@@ -17,7 +17,9 @@
 #' \code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either 
 #' test or train cohort. 
 #' @param cell.type.column string, which column of 'pheno'
-#' holds the cell type information? 
+#' holds the cell type information?
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @param input.algorithms list containing a list for each algorithm. 
 #' Each sublist contains \cr 1) name: character \cr 2) algorithm: function \cr
 #' For predefined algorithms it is sufficient to supply only the name instead of the sublist,
@@ -64,6 +66,7 @@ benchmark <- function(
   benchmark.name,
   grouping,
   cell.type.column = "cell_type",
+  patient.column = NULL,
   input.algorithms = NULL,
   simulation.bulks = FALSE,
   simulation.genes = FALSE,

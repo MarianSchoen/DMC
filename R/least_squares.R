@@ -17,7 +17,9 @@
 #' features
 #' @param verbose boolean
 #' @param cell.type.column string, which column of 'pheno'
-#' holds the cell type information? 
+#' holds the cell type information?
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
@@ -31,7 +33,8 @@ run_least_squares <- function(
   max.genes = 500,
   optimize = TRUE,
   split.data = TRUE, 
-  cell.type.column = "cell_type"
+  cell.type.column = "cell_type",
+  patient.column = NULL
 ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {

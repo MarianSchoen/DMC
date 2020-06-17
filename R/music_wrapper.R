@@ -16,6 +16,10 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
+#' @param cell.type.column string, which column of 'training.pheno'/'test.pheno'
+#' holds the cell type information?
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
@@ -29,7 +33,8 @@ run_music <- function(exprs,
                       max.genes = NULL,
                       optimize = TRUE,
                       split.data = TRUE,
-                      cell.type.column = "cell_type"
+                      cell.type.column = "cell_type",
+                      patient.column = NULL
                       ) {
   suppressMessages(library(xbioc, quietly = TRUE))
 	# parameters checks
@@ -45,6 +50,9 @@ run_music <- function(exprs,
     if (max.genes == 0) {
         max.genes <- NULL
     }
+  }
+  if(is.null(patient.column) | !patient.column %in% colnames(pheno)){
+    return(list(est.props = NULL, sig.matrix = NULL))
   }
 
   # MuSiC uses all supplied genes
@@ -83,7 +91,7 @@ run_music <- function(exprs,
   # deconvolution
   est.prop.music <- try(MuSiC::music_prop(
     bulk.eset = bulks, sc.eset = sc.exprs, clusters = cell.type.column,
-    samples = "patient", select.ct = include.in.x, verbose = FALSE
+    samples = patient.column, select.ct = include.in.x, verbose = FALSE
   ))
   if(class(est.prop.music) == "try-error"){
 	  return(list(est.props = NULL, sig.matrix = NULL))

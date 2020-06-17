@@ -16,10 +16,12 @@
 #' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
 #' the rest for feature selection/optimization
 #' @param cell.type.column string, which column of 'pheno'
-#' holds the cell type information? 
+#' holds the cell type information?
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @return list containing deconvolution results for all algorithms for each training set size
 
-sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE, split.data = FALSE, cell.type.column = "cell_type") {
+sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE, split.data = FALSE, cell.type.column = "cell_type", patient.column = NULL) {
 # parameter checks
 if(ncol(training.exprs) != nrow(training.pheno)){
     stop("training.exprs and training.pheno do not match")
@@ -113,7 +115,8 @@ for (rep in seq_len(n.repeats)) {
       n.bulks = 0,
       bulks = bulk.data,
       n.repeats = 1,
-      cell.type.column = cell.type.column
+      cell.type.column = cell.type.column,
+      patient.column = patient.column
     )
     # add only the result list returned by deconvolute() to sample.size.list
     sample.size.lists[[as.character(step*step.size)]][[as.character(rep)]] <- temp.results[[1]][[1]]

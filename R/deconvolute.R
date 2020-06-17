@@ -22,7 +22,9 @@
 #' @param bulks matrix containing expression profiles of bulks in the columns. If not supplied, bulks will be created
 #' @param n.repeats integer determining the number of times deconvolution should be repeated for each algorithm, default 1
 #' @param cell.type.column string, which column of 'training.pheno'/'test.pheno'
-#' holds the cell type information? 
+#' holds the cell type information?
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @param subtypes boolean, are simulated subtypes used for deconvolution?
 #'
 #' @return list with two entries:
@@ -34,7 +36,8 @@ deconvolute <- function(
   training.pheno,
   test.expr,
   test.pheno,
-  cell.type.column = "cell_type", 
+  cell.type.column = "cell_type",
+  patient.column = NULL,
   algorithms,
   verbose = FALSE,
   split.data = FALSE,
@@ -128,7 +131,8 @@ deconvolute <- function(
           cell.type.column = cell.type.column,
           max.genes = max.genes,
           optimize = optimize,
-          split.data = split.data
+          split.data = split.data,
+          patient.column = patient.column
         )
       })[3]
       results.list[[as.character(i)]][[f$name]]$name <- f$name

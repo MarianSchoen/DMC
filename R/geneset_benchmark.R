@@ -15,6 +15,10 @@
 #' 1) bulks - matrix containing expression data of the bulks (one bulk per column)
 #' 2) props - matrix containing the true fractions of cell types within the bulks (cell type x bulk)
 #' @param n.repeats integer determining the number of times deconvolution should be repeated for each algorithm
+#' @param cell.type.column string, which column of 'training.pheno'/'test.pheno'
+#' holds the cell type information? 
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @return list containing deconvolution results for all algorithms for all genesets
 
 geneset_benchmark <- function(training.exprs, 
@@ -28,7 +32,8 @@ geneset_benchmark <- function(training.exprs,
                               exclude.from.signature = NULL, 
                               verbose = FALSE, 
                               split.data = FALSE,
-                              cell.type.column = "cell_type"){
+                              cell.type.column = "cell_type",
+                              patient.column = NULL){
   # parameter checks
   if(!all(sapply(genesets, function(x){any(x %in% rownames(training.exprs))}))){
     stop("one or more genesets do not contain any genes present in the expression data")
@@ -68,7 +73,8 @@ geneset_benchmark <- function(training.exprs,
       n.bulks = 0,
       bulks = bulk.data,
       n.repeats = n.repeats,
-      cell.type.column = cell.type.column
+      cell.type.column = cell.type.column,
+      patient.column = patient.column
     )
     # add only the results, not the real proportions that are returned
     geneset.lists[[names(genesets)[i]]] <- temp.results[[1]]

@@ -15,7 +15,9 @@
 #' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
 #' the rest for feature selection/optimization
 #' @param cell.type.column string, which column of 'pheno'
-#' holds the cell type information? 
+#' holds the cell type information?
+#' @param patient.column string, which column of 'pheno'
+#' holds the patient information; optional, default NULL
 #' @return list containing deconvolution results
 
 subtype_benchmark <- function(training.exprs, 
@@ -28,7 +30,8 @@ subtype_benchmark <- function(training.exprs,
                               exclude.from.signature = NULL, 
                               verbose = F, 
                               split.data = FALSE,
-                              cell.type.column = "cell_type"){
+                              cell.type.column = "cell_type",
+                              patient.column = NULL){
   # parameter checks
   if(ncol(training.exprs) != nrow(training.pheno)){
     stop("training.exprs and training.pheno do not match")
@@ -59,6 +62,6 @@ subtype_benchmark <- function(training.exprs,
   temp.pheno <- training.pheno
   temp.pheno[, cell.type.column] <- paste(temp.pheno[,cell.type.column], temp.pheno[,"subtype"], sep = ".")
   temp.pheno <- cbind(temp.pheno, coarse_type = training.pheno[[cell.type.column]])
-  result <- deconvolute(training.exprs, temp.pheno, NULL, NULL, algorithms, verbose, split.data, NULL, exclude.from.signature, bulks = list(bulks = bulk.data$bulks, props = bulk.data$props), n.repeats = n.repeats, subtypes = TRUE, cell.type.column = cell.type.column)
+  result <- deconvolute(training.exprs, temp.pheno, NULL, NULL, algorithms, verbose, split.data, NULL, exclude.from.signature, bulks = list(bulks = bulk.data$bulks, props = bulk.data$props), n.repeats = n.repeats, subtypes = TRUE, cell.type.column = cell.type.column, patient.column = patient.column)
   return(result)
 }
