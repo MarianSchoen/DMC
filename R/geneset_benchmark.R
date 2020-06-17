@@ -7,7 +7,7 @@
 #' @param genesets list of gene sets (character vectors)
 #' @param algorithms List containing a list for each algorithm. Each sublist contains 1) name  and 2) function
 #' @param verbose logical, default FALSE
-#' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
+#' @param split.data logical, if TRUE (default) then 10\% of the training data will be used for reference profile creation and
 #' the rest for feature selection/optimization
 #' @param exclude.from.signature character vector containing cell types to be excluded from the signature matrix.
 #' If not specified, all will be used.

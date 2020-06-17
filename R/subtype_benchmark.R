@@ -12,7 +12,7 @@
 #' @param exclude.from.signature character vector containing cell types to be excluded from the signature matrix.
 #' If not specified, all will be used.
 #' @param verbose logical, default FALSE
-#' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
+#' @param split.data logical, if TRUE (default) then 10\% of the training data will be used for reference profile creation and
 #' the rest for feature selection/optimization
 #' @param cell.type.column string, which column of 'pheno'
 #' holds the cell type information?

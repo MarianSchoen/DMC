@@ -57,7 +57,7 @@ plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
         axis.text.y = element_text(size = 12)
     ) +
         scale_y_continuous(
-            labels = function(x){round(10^as.numeric(x) - 1,0)}
+            labels = function(x){round(10^as.numeric(x) - 1,2)}
         )
     return(runtime.plot)
 }

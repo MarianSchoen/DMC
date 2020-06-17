@@ -12,7 +12,7 @@
 #' @param optimize boolean, should the signature matrix be optimized by
 #' condition number? If FALSE, max.genes genes will be used
 #' @param split.data boolean, should the training data be split for signature
-#' matrix creation? If TRUE, 10% of the data will be used to build
+#' matrix creation? If TRUE, 10\% of the data will be used to build
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean

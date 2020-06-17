@@ -13,7 +13,7 @@
 #' If not specified, all will be used.
 #' @param step.size numerical 0 < step.size < 1; fraction of samples by which size of training set is increased each step
 #' @param verbose logical, default FALSE
-#' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
+#' @param split.data logical, if TRUE (default) then 10\% of the training data will be used for reference profile creation and
 #' the rest for feature selection/optimization
 #' @param cell.type.column string, which column of 'pheno'
 #' holds the cell type information?

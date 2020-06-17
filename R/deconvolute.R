@@ -36,8 +36,6 @@ deconvolute <- function(
   training.pheno,
   test.expr,
   test.pheno,
-  cell.type.column = "cell_type",
-  patient.column = NULL,
   algorithms,
   verbose = FALSE,
   split.data = FALSE,
@@ -48,7 +46,9 @@ deconvolute <- function(
   n.bulks = 500,
   bulks = NULL,
   n.repeats = 1,
-  subtypes = FALSE
+  subtypes = FALSE,
+  cell.type.column = "cell_type",
+  patient.column = NULL
   ) {
   # parameter checks
   if (n.repeats < 1) {
