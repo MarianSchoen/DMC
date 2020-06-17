@@ -64,6 +64,13 @@ grouping <- input_params$grouping
 # Deconvolution Benchmark
 
 ## Input data
+<button  type="button"
+   onclick="if(document.getElementById('input') .style.display=='none')
+              {document.getElementById('input') .style.display=''}
+            else{document.getElementById('input') .style.display='none'}">
+  Show/hide
+</button>
+<div id="input" style="display:none" >
 Parameters of the `benchmark` call:
 ```{r}
 function.call.list <- as.list(function.call)
@@ -98,6 +105,7 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
   print(t(apply(real.props, 1, summary)))
 ```
 \pagebreak
+</div>
 ## Deconvolution of real bulks  
 
 ```{r real_results, echo=FALSE}
@@ -129,8 +137,8 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
     bootstrap.data <- as.data.frame(bootstrap.data)
     bootstrap.data$score <- as.numeric(as.character(bootstrap.data$score))
     
-    bootstrap.plot.height <- length(unique(bootstrap.data$algorithm)) * 3
-    bootstrap.plot.width <- length(unique(bootstrap.data$cell_type)) * 2
+    bootstrap.plot.width <- length(unique(bootstrap.data$algorithm)) * 2
+    bootstrap.plot.height <- length(unique(bootstrap.data$cell_type)) * 2
   }
 
   score.plot.list <- evaluation_plot(real.df, "deconvolution quality", metric, metric.name)
@@ -169,19 +177,6 @@ Deconvolution result for real bulks per algorithm and cell type. The value is th
 In case of multiple repetitions, the plotted scores are averages over all repetitions. The pearson r specified for each algorithm corresponds to the 'overall' column. Uncertainty (standard deviation) of the overall performance is specified for each algorithm as well.
 \pagebreak  
 
-### Runtime plot
-```{r runtime_plot, echo = FALSE, fig.width = 16, fig.height = 9}
-if(exists("runtime.plot")){
-	plot(runtime.plot)
-	pdf(paste(plot.dir, "runtime_plot_real.pdf", sep = "/"), width = 16, height = 9)
-	plot(runtime.plot)
-	invisible(dev.off())
-}
-```  
-  
-Runtime per algorithm. Due to possible large differences in runtime the scale on the y-axis is transformed using the log10. In case of multiple repetitions, the plotted runtimes are averages over all repetitions.
-\pagebreak  
-
 ### Scatter plots of quantities
 ```{r scatter_plots, echo = FALSE, fig.width = 18, fig.height = 5}
 if(exists("scatter.plots.list")){
@@ -209,8 +204,27 @@ invisible(dev.off())
 Comparison of the real cell type quantities and the estimated quantities per cell type for each algorithm. 
 \pagebreak  
 
+### Runtime plot
+```{r runtime_plot, echo = FALSE, fig.width = 16, fig.height = 9}
+if(exists("runtime.plot")){
+	plot(runtime.plot)
+	pdf(paste(plot.dir, "runtime_plot_real.pdf", sep = "/"), width = 16, height = 9)
+	plot(runtime.plot)
+	invisible(dev.off())
+}
+```  
   
+Runtime per algorithm. Due to possible large differences in runtime the scale on the y-axis is transformed using the log10. In case of multiple repetitions, the plotted runtimes are averages over all repetitions.
+\pagebreak  
 
+### Additional Plots
+<button  type="button"
+   onclick="if(document.getElementById('additional_info') .style.display=='none')
+              {document.getElementById('additional_info') .style.display=''}
+            else{document.getElementById('additional_info') .style.display='none'}">
+  Show/hide
+</button>
+<div id="additional_info" style="display:none" >
 ### Condition number plots
 ```{r condition_plots, fig.width = 16, fig.height = 9}
 if(exists("cond.num.plots")){
@@ -235,18 +249,19 @@ invisible(dev.off())
   
 2) Dependency of score (average overall pearson correlation) on condition number of the model  
   
-3) Standard deviation of the score (correlation) of the model across multiple repetitions depending on the variability of the model's condition number  
+3) Standard deviation of the score (correlation) of the model across multiple repetitions depending on the variability of the model's condition number
 
 ### Bootstrapped Bulks
 ```{r bootstrap_plots, fig.width = bootstrap.plot.width, fig.height = bootstrap.plot.height}
 if(exists("bootstrap.data")){
-  bootstrap.plot <- ggplot2::ggplot(bootstrap.data, aes(x = algorithm, y = score, col = algorithm)) + facet_grid(rows = vars(cell_type)) + geom_boxplot()
+  bootstrap.plot <- ggplot2::ggplot(bootstrap.data, aes(x = algorithm, y = score, col = algorithm)) + facet_grid(rows = vars(cell_type)) + geom_boxplot() + ylim(0,1)
   plot(bootstrap.plot)
   pdf(paste(plot.dir, "bootstrap_plot_real.pdf", sep = "/"), width = bootstrap.plot.width, height = bootstrap.plot.height)
   plot(bootstrap.plot)
   invisible(dev.off())
 }
 ```
+</div>
   
 \pagebreak
 
@@ -276,8 +291,8 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 		for(i in 1:length(results.lists)){
 			scatter.plots.list.sim[[i]] <- create_scatterplots(results.lists[[i]], celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
 		}
-		score.width <- 2*length(unique(bulks.df$cell_type))
-		score.height <- 2 * length(unique(bulks.df$algorithm))
+		score.width <- 3*length(unique(bulks.df$cell_type))
+		score.height <- 3 * length(unique(bulks.df$algorithm))
 	}
 }else{
   algorithms.ordered = NULL
@@ -331,7 +346,6 @@ if(dir.exists(paste(temp.dir, "/results/simulation/subtypes", sep=""))){
 		runtime.plot.subtype <- plot_runtime(subtypes.df, algorithm.order = algorithms.ordered)
 	}
 }
-
 ```
 
 ### Bulk simulations
@@ -457,4 +471,3 @@ if(exists("runtime.plot.subtype")){
 ```  
   
 Runtime for the benchmark described above. Do the runtimes depend on the number of cell types to be estimated?  
-
