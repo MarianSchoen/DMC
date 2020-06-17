@@ -4,7 +4,7 @@
 #' @param exprs non-negative numeric matrix, 
 #' @param pheno data.frame, phenodata corresponding to
 #' expression data, same ordering of samples/cells; cell type
-#' label column must be named 'cell_type'
+#' label column must be named `cell.type.column`
 #' @param exclude.celltypes character vector, defaults to
 #' c("malignant", "not_annotated", "unassigned"). Cells
 #' with these labels are not included in the signature matrix
@@ -19,6 +19,8 @@
 #' If FALSE, for each cell type the top 'max.genes' genes will be taken.
 #' @param split.data logical, should the training data be split for
 #' reference profile creation and optimization? default: TRUE
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
 #' @return numeric matrix, holding reference profiles in its column, 
 #' features in its rows
 create_sig_matrix <- function(
@@ -27,7 +29,8 @@ create_sig_matrix <- function(
   exclude.celltypes = NULL,
   max.genes = NULL,
   optimize = TRUE,
-  split.data = TRUE
+  split.data = TRUE,
+  cell.type.column = "cell_type"
   ) {
   # parameter checks
   if (nrow(pheno) != ncol(exprs)) {
@@ -40,7 +43,7 @@ create_sig_matrix <- function(
 
   # exclude specified cell types
   if (!is.null(exclude.celltypes)) {
-    to.exclude <- which(pheno[, "cell_type"] %in% exclude.celltypes)
+    to.exclude <- which(pheno[, cell.type.column] %in% exclude.celltypes)
     if(length(to.exclude) > 0){
       exprs <- exprs[, -to.exclude, drop = F]
       pheno <- pheno[-to.exclude, , drop = F]
@@ -54,19 +57,19 @@ create_sig_matrix <- function(
 
   # make sure that not more genes than available are selected
   if (is.null(max.genes)) {
-    max.genes <- floor(nrow(exprs) / length(unique(pheno[, "cell_type"])))
+    max.genes <- floor(nrow(exprs) / length(unique(pheno[, cell.type.column])))
   }
 
   # only split data if there are at least 3 samples for each cell type
   # otherwise the testing in the sig. matrix building will fail
   type.counts <- c()
-  for (t in unique(pheno[, "cell_type"])) {
-    type.counts <- c(type.counts, length(which(pheno[, "cell_type"] == t)))
+  for (t in unique(pheno[, cell.type.column])) {
+    type.counts <- c(type.counts, length(which(pheno[, cell.type.column] == t)))
   }
 
   if (split.data && !any(type.counts < 3)) {
     # create reference profiles from 10% of the cells of each type
-    cell.types <- pheno[, "cell_type"]
+    cell.types <- pheno[, cell.type.column]
     names(cell.types) <- colnames(exprs)
 
     sample.X <- DTD::sample_random_X(
@@ -85,8 +88,8 @@ create_sig_matrix <- function(
   # for each cell type test against all others for DEG
   # using two-sided t-test
   deg.per.type <- list()
-  for (t in unique(pheno[, "cell_type"])) {
-    labs <- ifelse(pheno[, "cell_type"] == t, 0, 1)
+  for (t in unique(pheno[, cell.type.column])) {
+    labs <- ifelse(pheno[, cell.type.column] == t, 0, 1)
     no.var.genes <- which(
       apply(exprs[, which(labs == 0), drop = F], 1, var) == 0
     )
@@ -142,13 +145,13 @@ create_sig_matrix <- function(
   ref.profiles <- matrix(
     NA,
     nrow = nrow(exprs),
-    ncol = length(unique(pheno[, "cell_type"]))
+    ncol = length(unique(pheno[, cell.type.column]))
   )
-  colnames(ref.profiles) <- unique(pheno[, "cell_type"])
+  colnames(ref.profiles) <- unique(pheno[, cell.type.column])
   rownames(ref.profiles) <- rownames(exprs)
   for (t in colnames(ref.profiles)) {
     ref.profiles[, t] <- rowMeans(
-      exprs[, which(pheno[, "cell_type"] == t), drop = F]
+      exprs[, which(pheno[, cell.type.column] == t), drop = F]
     )
   }
   # again following Newman et al.:

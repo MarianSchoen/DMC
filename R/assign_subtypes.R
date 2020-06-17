@@ -5,8 +5,8 @@
 #' @param sc.pheno data frame with scRNA-Seq profiles as rows, and pheno entries
 #' in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)' 
 #' @param sub.list named list containing the number of subtypes to be simulated for each cell type
-#' @param celltypecol string, column name in 'sc.pheno' that holds the cell type
-#' per scRNA-Seq profile
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
 #'
 #' @return list containing two entries:  
 #' 
@@ -20,10 +20,10 @@ assign_subtypes <- function(
   sc.counts
   , sc.pheno
   , sub.list
-  , celltypecol = "cell_type"
+  , cell.type.column = "cell_type"
   ){
   # parameter checks
-  if(!celltypecol %in% names(sc.pheno)) stop("celltype column not in data frame")
+  if(!cell.type.column %in% names(sc.pheno)) stop("celltype column not in data frame")
   if("subtype" %in% names(sc.pheno)) {
     warning("subtype column already present. returning data frame unchanged")
     return(list(sc.pheno = sc.pheno))
@@ -53,11 +53,11 @@ assign_subtypes <- function(
   # assign each cluster a subtype
   
     for(ct in names(sub.list)){
-      if(!ct %in% sc.pheno[[celltypecol]] || sub.list[[ct]] < 2) {
+      if(!ct %in% sc.pheno[[cell.type.column]] || sub.list[[ct]] < 2) {
         warning(paste(ct, ": No such cell type"))
         next
       }
-      ct.indices <- which(sc.pheno[[celltypecol]] == ct)
+      ct.indices <- which(sc.pheno[[cell.type.column]] == ct)
       if(length(ct.indices) < sub.list[[ct]]){
 	      warning("Could not simulate subtype, too few cells of that type")
 	      next

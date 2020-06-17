@@ -14,6 +14,8 @@
 #' @param verbose logical, default FALSE
 #' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
 #' the rest for feature selection/optimization
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
 #' @return list containing deconvolution results
 
 subtype_benchmark <- function(training.exprs, 
@@ -25,7 +27,8 @@ subtype_benchmark <- function(training.exprs,
                               n.repeats, 
                               exclude.from.signature = NULL, 
                               verbose = F, 
-                              split.data = FALSE){
+                              split.data = FALSE,
+                              cell.type.column = "cell_type"){
   # parameter checks
   if(ncol(training.exprs) != nrow(training.pheno)){
     stop("training.exprs and training.pheno do not match")
@@ -38,7 +41,7 @@ subtype_benchmark <- function(training.exprs,
       stop("bulk.data has the wrong format")
     }
   }
-  if(!"subtype" %in% colnames(training.pheno) || !"cell_type" %in% colnames(training.pheno)){
+  if(!"subtype" %in% colnames(training.pheno) || !cell.type.column %in% colnames(training.pheno)){
     stop("Required columns missing from training.pheno")
   }
   if(!is.numeric(n.repeats)){
@@ -54,8 +57,8 @@ subtype_benchmark <- function(training.exprs,
   # then add original cell types as column coarse_type to the pheno data
   # call deconvolute with 'subtype=TRUE'
   temp.pheno <- training.pheno
-  temp.pheno[, "cell_type"] <- paste(temp.pheno[,"cell_type"], temp.pheno[,"subtype"], sep = ".")
-  temp.pheno <- cbind(temp.pheno, coarse_type = training.pheno$cell_type)
-  result <- deconvolute(training.exprs, temp.pheno, NULL, NULL, algorithms, verbose, split.data, NULL, exclude.from.signature, bulks = list(bulks = bulk.data$bulks, props = bulk.data$props), n.repeats = n.repeats, subtypes = TRUE)
+  temp.pheno[, cell.type.column] <- paste(temp.pheno[,cell.type.column], temp.pheno[,"subtype"], sep = ".")
+  temp.pheno <- cbind(temp.pheno, coarse_type = training.pheno[[cell.type.column]])
+  result <- deconvolute(training.exprs, temp.pheno, NULL, NULL, algorithms, verbose, split.data, NULL, exclude.from.signature, bulks = list(bulks = bulk.data$bulks, props = bulk.data$props), n.repeats = n.repeats, subtypes = TRUE, cell.type.column = cell.type.column)
   return(result)
 }

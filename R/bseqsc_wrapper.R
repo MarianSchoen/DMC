@@ -16,6 +16,8 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information?
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
@@ -29,7 +31,8 @@ run_bseqsc <- function(
   max.genes = NULL,
   optimize = TRUE,
   split.data = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  cell.type.column = "cell_type"
   ) {
 	suppressMessages(library(Biobase, quietly = T))
 	suppressMessages(library(xbioc, quietly = T))
@@ -65,7 +68,7 @@ run_bseqsc <- function(
 
   # exclude cells of types contained in exclude.from.signature
   if (!is.null(exclude.from.signature)) {
-    to.exclude <- which(pheno[, "cell_type"] %in% exclude.from.signature)
+    to.exclude <- which(pheno[, cell.type.column] %in% exclude.from.signature)
     if  (length(to.exclude) > 0)  {
       exprs <- exprs[, -to.exclude]
       pheno <- pheno[-to.exclude, ]
@@ -79,22 +82,22 @@ run_bseqsc <- function(
   # find informative genes for each cell type
   if (split.data) {
     learning.cells <- c()
-    for (t in unique(pheno[, "cell_type"])) {
+    for (t in unique(pheno[, cell.type.column])) {
       learning.cells <- c(
         learning.cells,
         sample(
-          which(pheno[, "cell_type"] == t),
-          floor(0.7 * length(which(pheno[, "cell_type"] == t))),
+          which(pheno[, cell.type.column] == t),
+          floor(0.7 * length(which(pheno[, cell.type.column] == t))),
           replace = FALSE
         )
       )
     }
 
-    deg.per.type <- try(marker_genes(exprs[, learning.cells, drop = F], pheno[learning.cells, , drop = F], NULL))
+    deg.per.type <- try(marker_genes(exprs[, learning.cells, drop = F], pheno[learning.cells, , drop = F], NULL, cell.type.column = cell.type.column))
     exprs <- exprs[, -learning.cells, drop = F]
     pheno <- pheno[-learning.cells, , drop = F]
   } else {
-    deg.per.type <- try(marker_genes(exprs, pheno, NULL))
+    deg.per.type <- try(marker_genes(exprs, pheno, NULL, cell.type.column = cell.type.column))
   }
 
   # BSEQ-sc marker selection produces errors sometimes
@@ -117,7 +120,7 @@ run_bseqsc <- function(
   # create reference matrix based on single cell data and DEGs
   B <- try({
 	  bseqsc::bseqsc_basis(sc.exprs, deg.per.type,
-      clusters = "cell_type", samples = "patient",
+      clusters = cell.type.column, samples = "patient",
       ct.scale = TRUE
     )
   })
@@ -136,8 +139,8 @@ run_bseqsc <- function(
   }
 
   # complete the estimation matrix in case of dropout cell types
-  if(!all(unique(pheno$cell_type) %in% rownames(fit$coefficients))){
-    est.props <- bseqsc::complete_estimates(fit$coefficients, unique(pheno$cell_type))
+  if(!all(unique(pheno[[cell.type.column]]) %in% rownames(fit$coefficients))){
+    est.props <- bseqsc::complete_estimates(fit$coefficients, unique(pheno[[cell.type.column]]))
   }else{
     est.props <- fit$coefficients
   }

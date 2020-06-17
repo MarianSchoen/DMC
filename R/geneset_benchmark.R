@@ -1,9 +1,9 @@
 #' perform deconvolution of simulated bulks on different gene sets
 #' 
 #' @param training.expr matrix containing single-cell expression profiles (training set, one cell per column)
-#' @param training.pheno data frame containing phenotype data of the single-cell training set. Has to contain column "cell_type"
+#' @param training.pheno data frame containing phenotype data of the single-cell training set. Has to contain column `cell.type.column`
 #' @param test.expr matrix containing single-cell expression profiles (test set, one cell per column)
-#' @param test.pheno data frame containing phenotype data of the single-cell test set. Has to contain column "cell_type"
+#' @param test.pheno data frame containing phenotype data of the single-cell test set. Has to contain column `cell.type.column`
 #' @param genesets list of gene sets (character vectors)
 #' @param algorithms List containing a list for each algorithm. Each sublist contains 1) name  and 2) function
 #' @param verbose logical, default FALSE
@@ -27,7 +27,8 @@ geneset_benchmark <- function(training.exprs,
                               n.repeats, 
                               exclude.from.signature = NULL, 
                               verbose = FALSE, 
-                              split.data = FALSE){
+                              split.data = FALSE,
+                              cell.type.column = "cell_type"){
   # parameter checks
   if(!all(sapply(genesets, function(x){any(x %in% rownames(training.exprs))}))){
     stop("one or more genesets do not contain any genes present in the expression data")
@@ -66,7 +67,8 @@ geneset_benchmark <- function(training.exprs,
       max.genes = nrow(temp.exprs),
       n.bulks = 0,
       bulks = bulk.data,
-      n.repeats = n.repeats
+      n.repeats = n.repeats,
+      cell.type.column = cell.type.column
     )
     # add only the results, not the real proportions that are returned
     geneset.lists[[names(genesets)[i]]] <- temp.results[[1]]

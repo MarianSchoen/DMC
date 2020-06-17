@@ -2,21 +2,23 @@
 #' 
 #' @param exprs matrix containing single cell profiles as columns
 #' @param pheno phenotype data corresponding to the expression matrix.
-#' Has to contain single cell labels in a column named 'cell_type'
+#' Has to contain single cell labels in a column named `cell.type.column`
 #' @param sig.types character vector containing cell types for which 
 #' marker genes should be selected. Default is all of them.
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information?
 #' @return list containing a vector of marker genes for each cell type
 #' @example marker_genes(sc.exprs, sc.pheno)
 
-marker_genes <- function(exprs, pheno, sig.types = NULL){
+marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cell_type"){
   # parameter checks
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }
-  if (!all(sig.types %in% pheno[, "cell_type"])) {
+  if (!all(sig.types %in% pheno[, cell.type.column])) {
     stop("Not all cell types in 'sig.types' are present in pheno data.")
   }
-  if(is.null(sig.types)) sig.types <- unique(pheno[,"cell_type"])
+  if(is.null(sig.types)) sig.types <- unique(pheno[,cell.type.column])
   rownames(pheno) <- colnames(exprs)
 
   # scale to total count number for testing
@@ -36,8 +38,8 @@ marker_genes <- function(exprs, pheno, sig.types = NULL){
   rownames(fano.per.celltype) <- rownames(exprs)
 
   for(t in sig.types){
-    sums.per.celltype[,t] <- apply(exprs[,which(pheno[,"cell_type"] == t),drop=F], 1, sum) / geneSums
-    fano.per.celltype[,t] <- apply(exprs[,which(pheno[,"cell_type"] == t),drop=F], 1, var)
+    sums.per.celltype[,t] <- apply(exprs[,which(pheno[,cell.type.column] == t),drop=F], 1, sum) / geneSums
+    fano.per.celltype[,t] <- apply(exprs[,which(pheno[,cell.type.column] == t),drop=F], 1, var)
   }
   
   fano.per.celltype[is.na(fano.per.celltype)] <- 0
@@ -61,7 +63,7 @@ marker_genes <- function(exprs, pheno, sig.types = NULL){
   
   # calculate p-values for the genes that passed the first two criteria (using ks test) and keep only those with p<10^-5
   for(t in sig.types){
-    grouping <- ifelse(pheno[,"cell_type"] == t, TRUE, FALSE)
+    grouping <- ifelse(pheno[, cell.type.column] == t, TRUE, FALSE)
     genes <- genes.per.celltype[[t]]
     if(length(genes)>0){
       p.vals <- apply(exprs[genes,,drop=FALSE], 1, function(x){ks.test(x[grouping], x[!grouping], alternative = "two.sided")$p.value})

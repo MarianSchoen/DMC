@@ -76,7 +76,7 @@ create_bulks <- function(
     if("subtype" %in% colnames(pheno)){
         subtypes <- unique(pheno$subtype)
         n.subtypes <- length(subtypes)
-        combined.type <- paste(pheno$cell_type, pheno$subtype, sep = ".")
+        combined.type <- paste(pheno[[cell.type.column]], pheno$subtype, sep = ".")
         sub.props <- matrix(0, length(unique(combined.type)), ncol = n.bulks)
         rownames(sub.props) <- unique(combined.type)
         colnames(sub.props) <- colnames(bulk.exprs)
@@ -102,7 +102,7 @@ create_bulks <- function(
         # draw samples for each type, store the proportions and the expression
         for(t in types){
           sub.samples <- sample(which(combined.type == t), size = sum(n.samples == t), replace = TRUE)
-          coarse.types <- pheno$cell_type[sub.samples]
+          coarse.types <- pheno[[cell.type.column]][sub.samples]
           bulk.samples <- c(bulk.samples, sub.samples)
           
           sub.props[t, i] <- length(sub.samples)

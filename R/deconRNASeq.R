@@ -15,13 +15,14 @@
 #' matrix creation? If TRUE, 10% of the data will be used to build
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
-#' @param verbose boolean
-#' @return list with four entries: 
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
+#' @return list with two entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_deconrnaseq(training.exprs, training.pheno, bulk.exprs)
-run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE) {
+run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE, cell.type.column = "cell_type") {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -44,7 +45,8 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
       exclude.from.signature,
       max.genes = max.genes,
       optimize = optimize,
-      split.data = split.data
+      split.data = split.data,
+      cell.type.column = cell.type.column
   )
 
   # create bulk data frame

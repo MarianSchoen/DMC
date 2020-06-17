@@ -16,6 +16,8 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features. default: FALSE
 #' @param verbose boolean
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
@@ -28,7 +30,8 @@ run_cibersort <- function(exprs,
                           exclude.from.signature = NULL,
                           max.genes = 500,
                           optimize = TRUE,
-                          split.data = FALSE
+                          split.data = FALSE,
+                          cell.type.column = "cell_type"
                           ) {
     # error checking
     if (nrow(pheno) != ncol(exprs)) {
@@ -53,7 +56,8 @@ run_cibersort <- function(exprs,
         exclude.from.signature,
         max.genes = max.genes,
         optimize = optimize,
-        split.data = split.data
+        split.data = split.data,
+        cell.type.column = cell.type.column
     )
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
     df.sig <- cbind(df.sig, ref.profiles)

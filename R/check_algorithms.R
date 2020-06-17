@@ -1,7 +1,7 @@
 #' check a list of algorithms for compatitbility with \link{benchmark}
 #'
 #' @param algorithms list containing a list for each algorithm. Each sublist
-#' contains \cr 1) name: character  \cr 2) algorithm: function 
+#' contains \cr 1) name: character  \cr 2) algorithm: function
 #' @return
 #' @export
 #' 
@@ -44,7 +44,8 @@ check_algorithms <- function(algorithms){
         res <- a$algorithm(
             random.data,
             pheno,
-            bulks$mixtures
+            bulks$mixtures,
+            cell.type.column = "cell_type"
         )
     	
         if(!is.list(res) || !all(c("est.props", "sig.matrix") %in% names(res))){

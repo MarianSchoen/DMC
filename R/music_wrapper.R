@@ -28,7 +28,8 @@ run_music <- function(exprs,
                       exclude.from.signature = NULL,
                       max.genes = NULL,
                       optimize = TRUE,
-                      split.data = TRUE
+                      split.data = TRUE,
+                      cell.type.column = "cell_type"
                       ) {
   suppressMessages(library(xbioc, quietly = TRUE))
 	# parameters checks
@@ -70,18 +71,18 @@ run_music <- function(exprs,
 
   # exclude samples of types contained in exclude.from.signature
   if (!is.null(exclude.from.signature)) {
-    if (length(which(unique(pheno[, "cell_type"]) %in% exclude.from.signature)) > 0) {
-      include.in.x <- unique(pheno[, "cell_type"])[-which(unique(pheno[, "cell_type"]) %in% exclude.from.signature)]
+    if (length(which(unique(pheno[, cell.type.column]) %in% exclude.from.signature)) > 0) {
+      include.in.x <- unique(pheno[, cell.type.column])[-which(unique(pheno[, cell.type.column]) %in% exclude.from.signature)]
     }else{
-      include.in.x <- unique(pheno[, "cell_type"])
+      include.in.x <- unique(pheno[, cell.type.column])
     }
   } else {
-    include.in.x <- unique(pheno[, "cell_type"])
+    include.in.x <- unique(pheno[, cell.type.column])
   }
 
   # deconvolution
   est.prop.music <- try(MuSiC::music_prop(
-    bulk.eset = bulks, sc.eset = sc.exprs, clusters = "cell_type",
+    bulk.eset = bulks, sc.eset = sc.exprs, clusters = cell.type.column,
     samples = "patient", select.ct = include.in.x, verbose = FALSE
   ))
   if(class(est.prop.music) == "try-error"){

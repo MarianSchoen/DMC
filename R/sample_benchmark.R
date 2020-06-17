@@ -15,9 +15,11 @@
 #' @param verbose logical, default FALSE
 #' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
 #' the rest for feature selection/optimization
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
 #' @return list containing deconvolution results for all algorithms for each training set size
 
-sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE, split.data = FALSE) {
+sample_size_benchmark <- function(training.exprs, training.pheno, test.exprs, test.pheno, algorithms, bulk.data, n.repeats, exclude.from.signature = NULL, step.size = 0.05, verbose = FALSE, split.data = FALSE, cell.type.column = "cell_type") {
 # parameter checks
 if(ncol(training.exprs) != nrow(training.pheno)){
     stop("training.exprs and training.pheno do not match")
@@ -49,7 +51,7 @@ for(i in seq(1, 1 / step.size)){
   sample.size.lists[[as.character(i*step.size)]] <- list()
 }
 
-cell.types <- unique(training.pheno[, "cell_type"])
+cell.types <- unique(training.pheno[, cell.type.column])
 
 # repeats n.repeats times
 for (rep in seq_len(n.repeats)) {
@@ -69,14 +71,14 @@ for (rep in seq_len(n.repeats)) {
       samples.to.add <- c()
       # do not try to sample more cells than there are left of this type
       n.cells <- min(
-        ceiling(step.size * length(which(training.pheno[, "cell_type"] == t))),
-        length(which(training.pheno[available.samples, "cell_type"] == t))
+        ceiling(step.size * length(which(training.pheno[, cell.type.column] == t))),
+        length(which(training.pheno[available.samples, cell.type.column] == t))
       )
       # check if there are any unused cells of this type
       # sample n.cells samples for this cell type
-      if (any(training.pheno[available.samples, "cell_type"] == t)) {
+      if (any(training.pheno[available.samples, cell.type.column] == t)) {
           samples.to.add <- sample(
-            which(training.pheno[available.samples, "cell_type"] == t),
+            which(training.pheno[available.samples, cell.type.column] == t),
             size = n.cells,
             replace = FALSE
       )
@@ -110,7 +112,8 @@ for (rep in seq_len(n.repeats)) {
       max.genes = NULL,
       n.bulks = 0,
       bulks = bulk.data,
-      n.repeats = 1
+      n.repeats = 1,
+      cell.type.column = cell.type.column
     )
     # add only the result list returned by deconvolute() to sample.size.list
     sample.size.lists[[as.character(step*step.size)]][[as.character(rep)]] <- temp.results[[1]][[1]]

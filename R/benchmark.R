@@ -4,7 +4,7 @@
 #' scRNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal \code{nrow(sc.pheno)}
 #' @param sc.pheno data frame with scRNA-Seq profiles as rows, and pheno entries
 #'  in columns. \code{nrow(sc.pheno)} must equal \code{ncol(sc.counts)}. Cell types need 
-#'  to be specified in a column named 'cell_type' and the patient/origin
+#'  to be specified in a column named `cell.type.column` and the patient/origin
 #'  (if available) in a column named 'patient'
 #' @param real.counts non-negative numeric matrix, with features as rows, and 
 #' bulk RNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal 
@@ -16,6 +16,8 @@
 #' @param grouping factor with 2 levels, and \code{length(grouping)} must be 
 #' \code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either 
 #' test or train cohort. 
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
 #' @param input.algorithms list containing a list for each algorithm. 
 #' Each sublist contains \cr 1) name: character \cr 2) algorithm: function \cr
 #' For predefined algorithms it is sufficient to supply only the name instead of the sublist,
@@ -58,9 +60,10 @@ benchmark <- function(
   sc.counts, 
   sc.pheno, 
   real.counts, 
-  real.props,  
+  real.props,
   benchmark.name,
   grouping,
+  cell.type.column = "cell_type",
   input.algorithms = NULL,
   simulation.bulks = FALSE,
   simulation.genes = FALSE,
@@ -174,12 +177,12 @@ benchmark <- function(
 		n.bulks <- 1000
 	}
 	if(!is.null(exclude.from.bulks)){
-		if(!all(exclude.from.bulks %in% unique(sc.pheno$cell_type))){
+		if(!all(exclude.from.bulks %in% unique(sc.pheno[[cell.type.column]]))){
 			stop("Unknown cell type(s) in exclude.from.bulks. Please select only cell types present in pheno data.")
 		}
 	}
 	if(!is.null(exclude.from.signature)){
-		if(!all(exclude.from.signature %in% unique(sc.pheno$cell_type))){
+		if(!all(exclude.from.signature %in% unique(sc.pheno[[cell.type.column]]))){
 			stop("Unknown cell types(s) in exclude.from.signature. Please select only cell types present in pheno data.")
 		}
 	}
@@ -278,7 +281,7 @@ benchmark <- function(
 		# create subtypes via tsne embedding even if subtype benchmark is not TRUE
 		# user might want to add it later on
 		if(verbose) cat("simulating subtypes\n")
-		celltypes <- unique(sc.pheno$cell_type)
+		celltypes <- unique(sc.pheno[[cell.type.column]])
 		if(any(exclude.from.bulks %in% celltypes)){
 			celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
 		}
@@ -287,7 +290,7 @@ benchmark <- function(
 		for(ct in celltypes){
 			k[[ct]] <- n.subtypes
 		}
-		subtype.return <- assign_subtypes(sc.counts, sc.pheno, k)
+		subtype.return <- assign_subtypes(sc.counts, sc.pheno, k, cell.type.column = cell.type.column)
 		sc.pheno <- subtype.return$sc.pheno
 
 		# split data into test and validation set
@@ -312,8 +315,8 @@ benchmark <- function(
 		}
 
 		# exclude.from.bulks is a parameter of benchmark(), create_bulks expects the opposite
-		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno$cell_type), exclude.from.bulks)) > 0){
-			include.in.bulks <- unique(test.pheno$cell_type)[-which(unique(test.pheno$cell_type %in% exclude.from.bulks))]
+		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno[[cell.type.column]]), exclude.from.bulks)) > 0){
+			include.in.bulks <- unique(test.pheno[[cell.type.column]])[-which(unique(test.pheno[[cell.type.column]] %in% exclude.from.bulks))]
 		}else{
 			include.in.bulks <- NULL
 		}
@@ -321,7 +324,7 @@ benchmark <- function(
 		# create simulated bulks if test data is available
 		if(!is.null(test.exprs)){
 			cat("creating artificial bulks for simulation\n")
-			sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm)
+			sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm, cell.type.column = cell.type.column)
 		}else{
 			sim.bulks <- list(bulks = NULL, props = NULL, sub.props = NULL)
 		}
@@ -345,11 +348,11 @@ benchmark <- function(
 	}
 
 	# make sure subtypes of types in exclude.from.signature are also excluded
-	if(any(training.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(training.pheno)){
-	  exclude.from.signature <- c(exclude.from.signature, unique(paste(training.pheno$cell_type ,training.pheno$subtype, sep = ".")[which(training.pheno$cell_type %in% exclude.from.signature)]))
+	if(any(training.pheno[[cell.type.column]] %in% exclude.from.signature) && "subtype" %in% colnames(training.pheno)){
+	  exclude.from.signature <- c(exclude.from.signature, unique(paste(training.pheno[[cell.type.column]] ,training.pheno$subtype, sep = ".")[which(training.pheno[[cell.type.column]] %in% exclude.from.signature)]))
 	}
-	if(any(test.pheno$cell_type %in% exclude.from.signature) && "subtype" %in% colnames(test.pheno)){
-	  exclude.from.signature <- c(exclude.from.signature, unique(paste(test.pheno$cell_type ,test.pheno$subtype, sep = ".")[which(test.pheno$cell_type %in% exclude.from.signature)]))
+	if(any(test.pheno[[cell.type.column]] %in% exclude.from.signature) && "subtype" %in% colnames(test.pheno)){
+	  exclude.from.signature <- c(exclude.from.signature, unique(paste(test.pheno[[cell.type.column]] ,test.pheno$subtype, sep = ".")[which(test.pheno[[cell.type.column]] %in% exclude.from.signature)]))
 	}
 	exclude.from.signature <- unique(exclude.from.signature)
 	
@@ -401,7 +404,8 @@ benchmark <- function(
 			NULL, 
 			0, 
 			list(bulks = real.counts, props = real.props), 
-			repeats
+			repeats,
+			cell.type.column = cell.type.column
 		)
 		suppressMessages(suppressWarnings(write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))))
 
@@ -453,22 +457,22 @@ benchmark <- function(
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				cat("bulk simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats)
+				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats, cell.type.column = cell.type.column)
 				benchmark.results <- sim.bulk.benchmark
 			}
 			if(s == "genes"){
 				cat("geneset simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = TRUE)
+				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = TRUE, cell.type.column = cell.type.column)
 				benchmark.results <- sim.genes.benchmark
 			}
 			if(s == "samples"){
 				cat("sample simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = TRUE)
+				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = TRUE, cell.type.column = cell.type.column)
 				benchmark.results <- sim.sample.benchmark
 			}
 			if(s == "subtypes"){
 				cat("subtype simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = TRUE)
+				sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = TRUE, cell.type.column = cell.type.column)
 				benchmark.results <- sim.subtype.benchmark
 			}
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
