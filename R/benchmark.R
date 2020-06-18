@@ -460,22 +460,22 @@ benchmark <- function(
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				cat("bulk simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, TRUE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats, cell.type.column = cell.type.column)
+				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats, cell.type.column = cell.type.column)
 				benchmark.results <- sim.bulk.benchmark
 			}
 			if(s == "genes"){
 				cat("geneset simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = TRUE, cell.type.column = cell.type.column)
+				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column)
 				benchmark.results <- sim.genes.benchmark
 			}
 			if(s == "samples"){
 				cat("sample simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = TRUE, cell.type.column = cell.type.column)
+				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = FALSE, cell.type.column = cell.type.column)
 				benchmark.results <- sim.sample.benchmark
 			}
 			if(s == "subtypes"){
 				cat("subtype simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = TRUE, cell.type.column = cell.type.column)
+				sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column)
 				benchmark.results <- sim.subtype.benchmark
 			}
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){

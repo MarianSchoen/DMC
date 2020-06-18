@@ -55,7 +55,10 @@ run_bseqsc <- function(
         max.genes <- NULL
     }
   }
-  if(is.null(patient.column) | ! patient.column %in% colnames(pheno)){
+  if(is.null(patient.column)){
+    return(list(est.props = NULL, sig.matrix = NULL))
+  }
+  if(!patient.column %in% colnames(pheno)){
     return(list(est.props = NULL, sig.matrix = NULL))
   }
 

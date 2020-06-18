@@ -25,6 +25,7 @@
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_deconrnaseq(training.exprs, training.pheno, bulk.exprs)
 run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE, cell.type.column = "cell_type", patient.column = NULL) {
+  library(DeconRNASeq)
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -57,7 +58,9 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
 
   # there is no option to switch the output of this function off
   # deconvolute
-  invisible(capture.output(result <- try(DeconRNASeq::DeconRNASeq(df.mix, as.data.frame(ref.profiles)), silent = TRUE)))
+  invisible(capture.output(
+    result <- try(DeconRNASeq::DeconRNASeq(df.mix, as.data.frame(ref.profiles)), silent = TRUE)
+  ))
 
   if (!class(result) == "try-error") {
     # select the interesting rows and rotate to be compatible with other algorithms' outputs
