@@ -41,6 +41,6 @@ render_results <- function(temp.dir, metric = "cor", metric.name = NULL){
 	    "report.Rmd"
 	    , package = "DeconvolutionAlgorithmBenchmarking")
 	  , params = list(tempdir = temp.dir, metric=metric, metric.name = metric.name)
-	  , output_file = paste(temp.dir, "/report_", gsub(" ", "_", Sys.time()),".pdf", sep = "")
+	  , output_file = paste(temp.dir, "/report_", gsub(" ", "_", Sys.time()),".html", sep = "")
 	  )
 }

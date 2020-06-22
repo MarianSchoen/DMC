@@ -1,6 +1,11 @@
 ---
-title: "report"
-output: pdf_document
+title: "Deconvolution Algorithm Comparison"
+output: 
+   html_document:
+      toc: true
+      toc_float:
+         collapsed: true
+         smooth_scroll: true
 params:
    tempdir: ""
    metric: "cor"
