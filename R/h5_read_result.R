@@ -12,7 +12,7 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
   }
   # if content is NULL, read from file
   if(is.null(content)){
-    content <- h5dump(filename)
+    content <- rhdf5::h5dump(filename)
   }
   # go down recursively as in the write function
   # return the content in each function call and add it to the larger list one

@@ -1,4 +1,4 @@
-#' deconvolute given bulks with all supplied algorithms and training data, optionally plotting the results in a table plot
+#' deconvolute given bulks with all supplied algorithms and training data
 #'
 #' @param training.expr matrix containing single-cell expression profiles (training set, one cell per column)
 #' @param training.pheno data frame containing phenotype data of the single-cell training set. Has to contain column "cell_type"

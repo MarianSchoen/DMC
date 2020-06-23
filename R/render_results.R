@@ -35,7 +35,7 @@ render_results <- function(temp.dir, metric = "cor", metric.name = NULL){
   }
 	
 	# render the template to pdf with the data stored in temp.dir
-	render(
+	rmarkdown::render(
 	  input = system.file(
 	    "rmd", 
 	    "report.Rmd"

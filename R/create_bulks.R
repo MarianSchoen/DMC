@@ -89,8 +89,6 @@ create_bulks <- function(
     for(i in 1:ncol(bulk.exprs)){
       bulk.samples <- c()
       if("subtype" %in% colnames(pheno)){
-        # for debugging
-        print(table(combined.type))
         types <- unique(combined.type)
         
         # sample random weights for each type
@@ -140,7 +138,7 @@ create_bulks <- function(
     # sum bulks to fixed total count per profile if sum.to.count is true
     if (sum.to.count) {
         bulk.exprs <- apply(bulk.exprs, 2, function(x) {
-            x / sum(x) * length(x)
+            (x / sum(x)) * length(x)
         })
     }
 

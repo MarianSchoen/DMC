@@ -56,9 +56,9 @@ run_bseqsc <- function(
   rownames(bulk.pheno) <- colnames(bulks)
   colnames(bulk.pheno) <- "sample"
   colnames(bulks) <- rownames(bulk.pheno)   # ExpressionSet creation may fail due to differences in attributes
-  bulks <- ExpressionSet(
+  bulks <- Biobase::ExpressionSet(
     assayData = bulks,
-    phenoData = AnnotatedDataFrame(bulk.pheno)
+    phenoData = Biobase::AnnotatedDataFrame(bulk.pheno)
   )
 
   # exclude cells of types contained in exclude.from.signature
@@ -107,14 +107,14 @@ run_bseqsc <- function(
   }
 
   # create single cell and bulk expression set
-  sc.exprs <- ExpressionSet(
+  sc.exprs <- Biobase::ExpressionSet(
     assayData = exprs,
-    phenoData = AnnotatedDataFrame(pheno)
+    phenoData = Biobase::AnnotatedDataFrame(pheno)
   )
 
   # create reference matrix based on single cell data and DEGs
   B <- try({
-    bseqsc_basis(sc.exprs, deg.per.type,
+	  bseqsc::bseqsc_basis(sc.exprs, deg.per.type,
       clusters = "cell_type", samples = "patient",
       ct.scale = TRUE
     )
@@ -126,7 +126,7 @@ run_bseqsc <- function(
   }
 
   # deconvolute bulks using reference matrix B
-  fit <- try(bseqsc_proportions(bulks, B, log = F, verbose = verbose))
+  fit <- try(bseqsc::bseqsc_proportions(bulks, B, log = F, verbose = verbose))
 
   if (class(fit) == "try-error") {
     warning("BSEQ-sc estimation failed")
@@ -135,7 +135,7 @@ run_bseqsc <- function(
 
   # complete the estimation matrix in case of dropout cell types
   if(!all(unique(pheno$cell_type) %in% rownames(fit$coefficients))){
-    est.props <- complete_estimates(fit$coefficients, unique(pheno$cell_type))
+    est.props <- bseqsc::complete_estimates(fit$coefficients, unique(pheno$cell_type))
   }else{
     est.props <- fit$coefficients
   }

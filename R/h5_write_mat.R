@@ -33,16 +33,16 @@ h5_write_mat <- function(m, filename, filepath = ""){
 
     # create h5 file
     if(!file.exists(filename)){
-        h5createFile(filename)
+	    rhdf5::h5createFile(filename)
     }
 
     # write row names
     if(!is.null(rownames(m)) && !is.na(rownames(m))){
-        h5write(as.vector(rownames(m)), filename, "rownames", write.attributes = TRUE)
+	    rhdf5::h5write(as.vector(rownames(m)), filename, "rownames", write.attributes = TRUE)
     }
     # write column names
-    h5write(as.vector(colnames(m)), filename, "colnames", write.attributes = TRUE)
+    rhdf5::h5write(as.vector(colnames(m)), filename, "colnames", write.attributes = TRUE)
     # write matrix
-    h5write(as.matrix(m), filename, "data", write.attributes = FALSE)
+    rhdf5::h5write(as.matrix(m), filename, "data", write.attributes = FALSE)
     
 }

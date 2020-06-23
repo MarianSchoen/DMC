@@ -53,18 +53,18 @@ run_music <- function(exprs,
   rownames(bulks) <- make.names(rownames(bulks))
 
   # create ExpressionSets from exprs, pheno and bulks
-  sc.exprs <- ExpressionSet(
+  sc.exprs <- Biobase::ExpressionSet(
     assayData = exprs,
-    phenoData = AnnotatedDataFrame(pheno)
+    phenoData = Biobase::AnnotatedDataFrame(pheno)
   )
   bulk.pheno <- data.frame(sample = colnames(bulks))
 
   # equality check of sample names may fail due to different attributes
   rownames(bulk.pheno) <- colnames(bulks)
   colnames(bulks) <- rownames(bulk.pheno)
-  bulks <- ExpressionSet(
+  bulks <- Biobase::ExpressionSet(
     assayData = bulks,
-    phenoData = AnnotatedDataFrame(bulk.pheno)
+    phenoData = Biobase::AnnotatedDataFrame(bulk.pheno)
   )
 
   # exclude samples of types contained in exclude.from.signature
@@ -79,7 +79,7 @@ run_music <- function(exprs,
   }
 
   # deconvolution
-  est.prop.music <- try(music_prop(
+  est.prop.music <- try(MuSiC::music_prop(
     bulk.eset = bulks, sc.eset = sc.exprs, clusters = "cell_type",
     samples = "patient", select.ct = include.in.x, verbose = FALSE
   ))

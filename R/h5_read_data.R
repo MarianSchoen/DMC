@@ -19,15 +19,15 @@ read_data <- function(filename){
     stop(paste("Could not find file ", filename, sep = ""))
   }
 
-  content <- h5ls(filename, recursive = T)
+  content <- rhdf5::h5ls(filename, recursive = T)
   # read data that was stored using write_data
   # assume that if a group is present, all expected subgroups etc are available
   # this works as long as no external data is read (use function above)
 
   if("bulk" %in% content$name){
-    bulk.counts <- h5read(filename, "bulk/data")
-    geneids <- h5read(filename, "bulk/geneids")
-    sampleids <- h5read(filename, "bulk/sampleids")
+    bulk.counts <- rhdf5::h5read(filename, "bulk/data")
+    geneids <- rhdf5::h5read(filename, "bulk/geneids")
+    sampleids <- rhdf5::h5read(filename, "bulk/sampleids")
     if(nrow(bulk.counts) == length(geneids) && ncol(bulk.counts) == length(sampleids)){
 	    rownames(bulk.counts) <- geneids
 	    colnames(bulk.counts) <- sampleids
@@ -44,10 +44,10 @@ read_data <- function(filename){
     bulk.pheno <- c()
     pheno.rows <- which(content$group == "/bulk/pheno")
     pheno.names <- content[pheno.rows, "name"]
-    bulk.pheno <- data.frame(h5read(filename, paste("bulk/pheno", pheno.names[1], sep = "/")))
+    bulk.pheno <- data.frame(rhdf5::h5read(filename, paste("bulk/pheno", pheno.names[1], sep = "/")))
     if(length(pheno.names) > 1){
       for(i in 2:length(pheno.names)){
-        bulk.pheno <- cbind(bulk.pheno, h5read(filename, paste("bulk/pheno", pheno.names[i], sep = "/")))
+        bulk.pheno <- cbind(bulk.pheno, rhdf5::h5read(filename, paste("bulk/pheno", pheno.names[i], sep = "/")))
       }
     }
     colnames(bulk.pheno) <- pheno.names
@@ -55,9 +55,9 @@ read_data <- function(filename){
     bulk.pheno <- NULL
   }
   if("proportions" %in% content$name){
-    bulk.props <- h5read(filename, "proportions/data")
-    celltypeids <- h5read(filename, "proportions/celltypeids")
-    sampleids <- h5read(filename, "proportions/sampleids")
+    bulk.props <- rhdf5::h5read(filename, "proportions/data")
+    celltypeids <- rhdf5::h5read(filename, "proportions/celltypeids")
+    sampleids <- rhdf5::h5read(filename, "proportions/sampleids")
 
     # make sure the matrix dimensions are in the right order
     if(length(sampleids) == ncol(bulk.props) && length(celltypeids) == nrow(bulk.props)){
@@ -73,9 +73,9 @@ read_data <- function(filename){
   }
 
   if("fine_proportions" %in% content$name){
-    sub.props <- h5read(filename, "fine_proportions/data")
-    celltypeids <- h5read(filename, "fine_proportions/celltypeids")
-    sampleids <- h5read(filename, "fine_proportions/sampleids")
+    sub.props <- rhdf5::h5read(filename, "fine_proportions/data")
+    celltypeids <- rhdf5::h5read(filename, "fine_proportions/celltypeids")
+    sampleids <- rhdf5::h5read(filename, "fine_proportions/sampleids")
 
     # make sure the matrix dimensions are in the right order
     if(length(sampleids) == ncol(sub.props) && length(celltypeids) == nrow(sub.props)){
@@ -90,9 +90,9 @@ read_data <- function(filename){
     sub.props <- NULL
   }
   if("singlecell" %in% content$name){
-    sc.counts <- h5read(filename, "singlecell/data")
-    geneids <- h5read(filename, "singlecell/geneids")
-    cellids <- h5read(filename, "singlecell/cellids")
+    sc.counts <- rhdf5::h5read(filename, "singlecell/data")
+    geneids <- rhdf5::h5read(filename, "singlecell/geneids")
+    cellids <- rhdf5::h5read(filename, "singlecell/cellids")
 
     # make sure the matrix dimensions are in the right order
     if(nrow(sc.counts) == length(geneids) && ncol(sc.counts) == length(cellids)){
@@ -111,10 +111,10 @@ read_data <- function(filename){
     sc.pheno <- c()
     pheno.rows <- which(content$group == "/singlecell/pheno")
     pheno.names <- content[pheno.rows, "name"]
-    sc.pheno <- data.frame(h5read(filename, paste("singlecell/pheno", pheno.names[1], sep = "/")))
+    sc.pheno <- data.frame(rhdf5::h5read(filename, paste("singlecell/pheno", pheno.names[1], sep = "/")))
     if(length(pheno.names) > 1){
       for(i in 2:length(pheno.names)){
-        sc.pheno <- cbind(sc.pheno, h5read(filename, paste("singlecell/pheno", pheno.names[i], sep = "/")))
+        sc.pheno <- cbind(sc.pheno, rhdf5::h5read(filename, paste("singlecell/pheno", pheno.names[i], sep = "/")))
       }
     }
     colnames(sc.pheno) <- pheno.names

@@ -11,12 +11,12 @@ h5_read_mat <- function(filename){
     }
 
     # list the content and load the data
-    content <- h5ls(filename)
+    content <- rhdf5::h5ls(filename)
     if("rownames" %in%  content$name){
-        rnames <- h5read(filename, "rownames")
+        rnames <- rhdf5::h5read(filename, "rownames")
     }
-    cnames <- h5read(filename, "colnames")
-    m <- h5read(filename, "data")
+    cnames <- rhdf5::h5read(filename, "colnames")
+    m <- rhdf5::h5read(filename, "data")
     colnames(m) <- cnames
     if(exists("rnames")){
         rownames(m) <- rnames

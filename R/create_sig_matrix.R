@@ -91,7 +91,7 @@ create_sig_matrix <- function(
       apply(exprs[, which(labs == 0), drop = F], 1, var) == 0
     )
     if (length(no.var.genes) > 0) {
-      t.test.result <- mt.teststat(
+      t.test.result <- multtest::mt.teststat(
         X = exprs[-no.var.genes, , drop = F],
         classlabel = labs,
         test = "t"
@@ -112,7 +112,7 @@ create_sig_matrix <- function(
       temp.exprs <- exprs[-no.var.genes, , drop = F]
       fold.changes <- log2(rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 0), drop = F])) - log2(rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 1), drop = F]))
     } else {
-      t.test.result <- mt.teststat(
+      t.test.result <- multtest::mt.teststat(
         X = exprs,
         classlabel = labs,
         test = "t"

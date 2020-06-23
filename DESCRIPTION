@@ -15,10 +15,9 @@ Description: Deconvolve given RNA-Seq bulks using sRNA-Seq profiles and a list o
 License: MIT
 Encoding: UTF-8
 LazyData: true
-Remotes: git::https://github.com/MarianSchoen/DTD.git,
-    git::https://github.com/xuranw/MuSiC,
-    git::https://github.com/shenorrLab/bseqsc,
-    git::https://github.com/renozao/xbioc
+#Remotes: git::https://github.com/shenorrLab/bseqsc,
+#    git::https://github.com/renozao/xbioc
 biocViews:
-Depends: DTD, ggplot2, DeconRNASeq, e1071, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, rhdf5, digest, Rtsne, tictoc, umap
+Depends: ggplot2
+Imports: DTD, DeconRNASeq, e1071, rhdf5, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest, Rtsne, tictoc, umap
 RoxygenNote: 7.1.0

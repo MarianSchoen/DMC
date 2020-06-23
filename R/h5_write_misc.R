@@ -23,19 +23,19 @@ write_misc_input <- function(genesets, algorithm.names, function.call, grouping,
     stop("genesets must be a list of character vectors")
   }
   
-  h5createFile(filename)
+  rhdf5::h5createFile(filename)
   if(!is.null(genesets)){
-    h5createGroup(filename, "genesets")
+    rhdf5::h5createGroup(filename, "genesets")
     for(g in names(genesets)){
-      h5write(as.vector(genesets[[g]]), filename, paste("genesets", g, sep = "/"))
+	rhdf5::h5write(as.vector(genesets[[g]]), filename, paste("genesets", g, sep = "/"))
     }
   }
-  h5write(as.vector(algorithm.names), filename, "algorithms")
-  h5write(as.vector(grouping), filename, "grouping")
-  h5createGroup(filename, "function_call")
+  rhdf5::h5write(as.vector(algorithm.names), filename, "algorithms")
+  rhdf5::h5write(as.vector(grouping), filename, "grouping")
+  rhdf5::h5createGroup(filename, "function_call")
   function.args <- as.character(function.call)
   function.argnames <- names(as.list(function.call))
-  h5write(as.vector(function.args), filename, "function_call/args")
-  h5write(as.vector(function.argnames), filename, "function_call/argnames")
+  rhdf5::h5write(as.vector(function.args), filename, "function_call/args")
+  rhdf5::h5write(as.vector(function.argnames), filename, "function_call/argnames")
 }
 

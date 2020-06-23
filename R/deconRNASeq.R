@@ -54,7 +54,7 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
 
   # there is no option to switch the output of this function off
   # deconvolute
-  invisible(capture.output(result <- try(DeconRNASeq(df.mix, as.data.frame(ref.profiles)), silent = TRUE)))
+  invisible(capture.output(result <- try(DeconRNASeq::DeconRNASeq(df.mix, as.data.frame(ref.profiles)), silent = TRUE)))
 
   if (!class(result) == "try-error") {
     # select the interesting rows and rotate to be compatible with other algorithms' outputs

@@ -15,20 +15,20 @@ read_misc_input <- function(filename){
   }
 
   # read the content
-  content <- h5ls(filename)
+  content <- rhdf5::h5ls(filename)
   # extract objects as writtten by h5_write_misc
   if("/genesets" %in% content$group){
     genesets <- list()
     for(name in content$name[which(content$group == "/genesets")]){
-      genesets[[name]] <- h5read(filename, paste("genesets/",name,sep="/"))
+      genesets[[name]] <- rhdf5::h5read(filename, paste("genesets/",name,sep="/"))
     }
   }else{
     genesets <- NULL
   }
-  algorithms <- h5read(filename, "algorithms")
-  grouping <- as.factor(h5read(filename, "grouping"))
-  function.call <- as.list(h5read(filename, "function_call/args"))
-  names(function.call) <- h5read(filename, "function_call/argnames")
+  algorithms <- rhdf5::h5read(filename, "algorithms")
+  grouping <- as.factor(rhdf5::h5read(filename, "grouping"))
+  function.call <- as.list(rhdf5::h5read(filename, "function_call/args"))
+  names(function.call) <- rhdf5::h5read(filename, "function_call/argnames")
   function.call <- as.call(function.call)
   return(list(genesets = genesets, algorithms = algorithms, grouping = grouping, function.call = function.call))
 }

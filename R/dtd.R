@@ -22,8 +22,6 @@
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_dtd(training.exprs, training.pheno, bulks)
 
-suppressMessages(library(DTD))
-
 run_dtd <- function(exprs,
                     pheno,
                     bulks,
@@ -110,7 +108,7 @@ run_dtd <- function(exprs,
   # create artificial mixtures to train DTD model on
   n.per.mixture <- max(floor(0.1 * ncol(exprs)),3)
   n.samples <- max(n.genes, 50)
-  training.bulks <- mix_samples(
+  training.bulks <- DTD::mix_samples(
     expr.data = exprs,
     pheno = cell.types,
     included.in.X = include.in.x,
@@ -124,7 +122,7 @@ run_dtd <- function(exprs,
   names(start.tweak) <- top.features
 
   # train the DTD model
-  dtd.model <- suppressWarnings(try(train_deconvolution_model(
+  dtd.model <- suppressWarnings(try(DTD::train_deconvolution_model(
     tweak = start.tweak,
     X.matrix = sig.matrix,
     train.data.list = training.bulks,
@@ -138,7 +136,7 @@ run_dtd <- function(exprs,
 
   if (!class(dtd.model) == "try-error") {
     # use the model to estimate the composition of the supplied bulks
-    est.props <- estimate_c(
+    est.props <- DTD::estimate_c(
       X.matrix = sig.matrix,
       new.data = bulks[rownames(sig.matrix), , drop = F],
       DTD.model = dtd.model,

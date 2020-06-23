@@ -22,7 +22,6 @@
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_dtd_baseline(training.exprs, training.pheno, bulks)
 
-suppressMessages(library(DTD))
 
 run_least_squares <- function(exprs,
                              pheno,
@@ -64,7 +63,7 @@ run_least_squares <- function(exprs,
   }
   
   # create reference profiles
-  sample.X <- sample_random_X(
+  sample.X <- DTD::sample_random_X(
     included.in.X = include.in.x,
     pheno = cell.types,
     expr.data = exprs,
@@ -91,7 +90,7 @@ run_least_squares <- function(exprs,
   names(start.tweak) <- top.features
     
   # use the untrained model to estimate the composition of the supplied bulks
-  est.props <- estimate_c(
+  est.props <- DTD::estimate_c(
     X.matrix = sig.matrix,
     new.data = bulks[rownames(sig.matrix), , drop = FALSE],
     DTD.model = start.tweak,
