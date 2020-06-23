@@ -26,7 +26,7 @@ assign_subtypes <- function(
   if(!celltypecol %in% names(sc.pheno)) stop("celltype column not in data frame")
   if("subtype" %in% names(sc.pheno)) {
     warning("subtype column already present. returning data frame unchanged")
-    return(list(sc.pheno = sc.pheno, tsne.embed = NULL))
+    return(list(sc.pheno = sc.pheno))
   }
   if(ncol(sc.counts) != nrow(sc.pheno)) stop("number of columns in sc.counts and rows in sc.pheno do not match")
   if(!is.list(sub.list)){
@@ -34,8 +34,11 @@ assign_subtypes <- function(
   }
 
   # pre-select most variable genes
+  
   gene.vars <- apply(sc.counts, 2, sd)
-  var.genes <- names(sort(gene.vars, decreasing = TRUE)[1:1000])
+  n.genes <- min(length(gene.vars), 1000)
+  var.genes <- names(sort(gene.vars, decreasing = TRUE)[1:n.genes])
+  
   sc.counts <- sc.counts[, var.genes]
 
   sc.counts <- apply(sc.counts, 2, function(x){ (x-mean(x)) / sd(x)})
@@ -55,10 +58,14 @@ assign_subtypes <- function(
         next
       }
       ct.indices <- which(sc.pheno[[celltypecol]] == ct)
-
-      custom.conf <- umap.defaults
+      if(length(ct.indices) < sub.list[[ct]]){
+	      warning("Could not simulate subtype, too few cells of that type")
+	      next
+      }
+      custom.conf <- umap::umap.defaults
       custom.conf$metric <- "euclidean"
-      umap.embed <- umap(sc.counts[ct.indices,], custom.conf)$layout
+      
+      umap.embed <- umap::umap(t(sc.counts[,ct.indices]), custom.conf)$layout
       clustering <- cutree(
         hclust(
           dist(umap.embed, "euclidean"),
