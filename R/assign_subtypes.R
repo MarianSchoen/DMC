@@ -35,13 +35,13 @@ assign_subtypes <- function(
 
   # pre-select most variable genes
   
-  gene.vars <- apply(sc.counts, 2, sd)
+  gene.vars <- apply(sc.counts, 1, sd)
   n.genes <- min(length(gene.vars), 1000)
   var.genes <- names(sort(gene.vars, decreasing = TRUE)[1:n.genes])
   
-  sc.counts <- sc.counts[, var.genes]
+  sc.counts <- sc.counts[var.genes,]
 
-  sc.counts <- apply(sc.counts, 2, function(x){ (x-mean(x)) / sd(x)})
+  #sc.counts <- apply(sc.counts, 1, function(x){ (x-mean(x)) / sd(x)})
 
   # calculate PCA
   #counts.pca <- prcomp(sc.counts, rank. = 50, center = TRUE, scale = TRUE, retx = TRUE)$x
@@ -64,7 +64,6 @@ assign_subtypes <- function(
       }
       custom.conf <- umap::umap.defaults
       custom.conf$metric <- "euclidean"
-      
       umap.embed <- umap::umap(t(sc.counts[,ct.indices]), custom.conf)$layout
       clustering <- cutree(
         hclust(

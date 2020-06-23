@@ -31,6 +31,8 @@ run_bseqsc <- function(
   split.data = TRUE,
   verbose = FALSE
   ) {
+	suppressMessages(library(Biobase, quietly = T))
+	suppressMessages(library(xbioc, quietly = T))
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")

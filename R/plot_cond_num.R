@@ -11,7 +11,6 @@
 #' 3) variation_plot - standard deviation of score vs. standard deviation of condition number
 
 plot_cond_num <- function(results.df, metric = "cor", metric.name = NULL, algorithm.order = NULL){
-    require(ggplot2)
     if(!is.data.frame(results.df)){
         stop("results.df must be a data frame")
     }

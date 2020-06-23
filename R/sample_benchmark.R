@@ -53,6 +53,7 @@ cell.types <- unique(training.pheno[, "cell_type"])
 
 # repeats n.repeats times
 for (rep in seq_len(n.repeats)) {
+  if(verbose) cat("Repetition ", rep, " of ", n.repeats, "\n", sep = "")
   # a pool of available samples
   available.samples <- 1:ncol(training.exprs)
 
@@ -62,6 +63,7 @@ for (rep in seq_len(n.repeats)) {
 
   # deconvolve with growing training set
   for (step in seq(1, 1 / step.size)) {
+    if(verbose) cat(step*step.size*100, "%\t", sep = "")
     # grow training set by certain amount (randomly selected) for each type
     for (t in cell.types) {
       samples.to.add <- c()
@@ -101,7 +103,7 @@ for (rep in seq_len(n.repeats)) {
       test.expr = test.exprs,
       test.pheno = test.pheno,
       algorithms = algorithms,
-      verbose = verbose,
+      verbose = FALSE,
       split.data = split.data,
       exclude.from.signature = exclude.from.signature,
       optimize = TRUE,
@@ -113,6 +115,7 @@ for (rep in seq_len(n.repeats)) {
     # add only the result list returned by deconvolute() to sample.size.list
     sample.size.lists[[as.character(step*step.size)]][[as.character(rep)]] <- temp.results[[1]][[1]]
   }
+  if(verbose) cat("\n")
 }
 # add bulk props to the top level of the result list
 sample.size.lists[["bulk.props"]] <- temp.results$bulk.props

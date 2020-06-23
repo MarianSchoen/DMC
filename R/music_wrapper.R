@@ -30,7 +30,8 @@ run_music <- function(exprs,
                       optimize = TRUE,
                       split.data = TRUE
                       ) {
-  # parameters checks
+  suppressMessages(library(xbioc, quietly = TRUE))
+	# parameters checks
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
   }

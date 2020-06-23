@@ -62,7 +62,7 @@ deconvolute <- function(training.expr,
   if (is.null(bulks)) {
     # create validation bulks with known proportions
     if (verbose)
-      print("Creating bulks")
+      cat("creating artificial bulks for simulation\n")
     # remove cells whose type should not be in the bulks
     if (!is.null(exclude.from.bulks)) {
       if (length(which(unique(test.pheno[, "cell_type"]) %in% exclude.from.bulks)) > 0) {
@@ -96,16 +96,16 @@ deconvolute <- function(training.expr,
   
   # deconvolute bulks with all supplied algorithms
   if (verbose)
-    print("Deconvoluting...")
+    cat("deconvolving:\n")
   results.list <- list()
   # perform deconvolution several times
   for (i in seq_len(n.repeats)) {
     if (verbose && n.repeats > 1)
-      cat("Repetition ", i, "\n", sep = "")
+      cat("Repetition ", i, " of ", n.repeats, "\n", sep = "")
     results.list[[as.character(i)]] <- list()
     for (f in algorithms) {
       if (verbose)
-        print(f$name)
+        cat(f$name, "\t", sep = "")
       time <- system.time({
         results.list[[as.character(i)]][[f$name]] <- f$algorithm(
           training.expr,
@@ -138,6 +138,7 @@ deconvolute <- function(training.expr,
       	}
       }
     }
+    if(verbose) cat("\n")
   }
 
   return(list(results.list = results.list, bulk.props = real.props))

@@ -22,7 +22,6 @@
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_deconrnaseq(training.exprs, training.pheno, bulk.exprs)
 run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE) {
-  suppressMessages(library(DeconRNASeq, quietly = TRUE))
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
