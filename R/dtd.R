@@ -122,7 +122,7 @@ run_dtd <- function(exprs,
   names(start.tweak) <- top.features
 
   # train the DTD model
-  dtd.model <- suppressWarnings(try(DTD::train_deconvolution_model(
+  dtd.model <- suppressMessages(try(DTD::train_deconvolution_model(
     tweak = start.tweak,
     X.matrix = sig.matrix,
     train.data.list = training.bulks,
