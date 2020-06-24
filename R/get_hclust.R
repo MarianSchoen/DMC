@@ -31,7 +31,6 @@
 #'    "centroid" (= UPGMC).
 #'
 #' @return
-#' @export
 #'
 #' @examples
 get_hclust <- function(
@@ -89,7 +88,11 @@ get_hclust <- function(
   if(verbose){
     print(
       paste0(
-        "Detected ", length(cell.types), " cell.types. ", 
+        "Detected ", length(cell.types), " cell.types"
+      )
+    )
+    print(
+      paste0(
         "Starting to iteratively cluster them at " , Sys.time()
         )
       )
@@ -104,12 +107,21 @@ get_hclust <- function(
     profiles.of.this.type <- which(
       as.character(sc.pheno[[cell.type.column]]) == cell.type
       )
+    
     profile.names.of.this.type <- sc.pheno[[sample.name.column]][profiles.of.this.type]
     
     intersected.profile.names <- intersect(
       profile.names.of.this.type, 
       colnames(sc.counts)
       )
+    
+    if( verbose ) {
+      print(
+        paste0(
+          "There are ", length(intersected.profile.names), " profiles"
+          )
+        )
+    }    
     
     if(length(intersected.profile.names) == 0){
       warning(
