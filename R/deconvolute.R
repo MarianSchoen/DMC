@@ -6,8 +6,8 @@
 #' @param test.pheno data frame containing phenotype data of the single-cell test set. Has to contain column "cell_type"
 #' @param algorithms List containing a list for each algorithm. Each sublist contains 1) name  and 2) function
 #' @param verbose logical, default FALSE
-#' @param split.data logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
-#' the rest for feature selection/optimization
+#' @param split.data logical, if TRUE (default) then 10 \% of the training data will be used for reference profile creation and
+#' the rest for feature selection/optimization 
 #' @param exclude.from.bulks character vector containing cell types to be excluded from the bulks (if they are not supplied).
 #' If not specified, all will be used.
 #' @param exclude.from.signature character vector containing cell types to be excluded from the signature matrix.
@@ -44,7 +44,7 @@ deconvolute <- function(training.expr,
   if (nrow(training.pheno) != ncol(training.expr)) {
       stop("Number of columns in training.expr and rows in training.pheno do not match")
   }
-  if(!is.null(test.pheno) && !is.null(test.exprs)){
+  if(!is.null(test.pheno) && !is.null(test.expr)){
   	if (nrow(test.pheno) != ncol(test.expr)) {
       		stop("Number of columns in test.expr and rows in test.pheno do not match")
   	}
