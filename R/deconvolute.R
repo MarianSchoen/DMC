@@ -1,9 +1,13 @@
 #' deconvolute given bulks with all supplied algorithms and training data
 #'
-#' @param training.expr matrix containing single-cell expression profiles (training set, one cell per column)
-#' @param training.pheno data frame containing phenotype data of the single-cell training set. Has to contain column "cell_type"
-#' @param test.expr matrix containing single-cell expression profiles (test set, one cell per column)
-#' @param test.pheno data frame containing phenotype data of the single-cell test set. Has to contain column "cell_type"
+#' @param training.expr matrix containing single-cell expression profiles 
+#' (training set, one cell per column)
+#' @param training.pheno data frame containing phenotype data of the single-cell
+#'  training set. Has to contain column 'cell.type.column'
+#' @param test.expr matrix containing single-cell expression profiles 
+#' (test set, one cell per column)
+#' @param test.pheno data frame containing phenotype data of the single-cell
+#'  test set. Has to contain column 'cell.type.column'
 #' @param algorithms List containing a list for each algorithm. Each sublist contains 1) name  and 2) function
 #' @param verbose logical, default FALSE
 #' @param split.data logical, if TRUE (default) then 10 \% of the training data will be used for reference profile creation and
@@ -14,29 +18,35 @@
 #' If not specified, all will be used.
 #' @param optimize logical, should the signature matrix be optimized by condition number? If FALSE, max.genes genes will be used
 #' @param max.genes maximum number of genes that will be included in the signature for each celltype
-#' @param n.bulks number of bulks to build if they are not supplied to the function, default 50
+#' @param n.bulks number of bulks to build if they are not supplied to the function, default 500
 #' @param bulks matrix containing expression profiles of bulks in the columns. If not supplied, bulks will be created
 #' @param n.repeats integer determining the number of times deconvolution should be repeated for each algorithm, default 1
+#' @param cell.type.column string, which column of 'training.pheno'/'test.pheno'
+#' holds the cell type information? 
 #' @param subtypes boolean, are simulated subtypes used for deconvolution?
+#'
 #' @return list with two entries:
 #' 1) results.list: list containing deconvolution results for all algorithms and repetitions as returned by the algorithm functions
 #' 2) bulk.props: matrix containing the real proportions / quantities for all cell types in all bulks (cell type x bulk)
 
-deconvolute <- function(training.expr,
-                        training.pheno,
-                        test.expr,
-                        test.pheno,
-                        algorithms,
-                        verbose = FALSE,
-                        split.data = FALSE,
-                        exclude.from.bulks = NULL,
-                        exclude.from.signature = NULL,
-                        optimize = TRUE,
-                        max.genes = 500,
-                        n.bulks = 500,
-                        bulks = NULL,
-                        n.repeats = 1,
-                        subtypes = FALSE) {
+deconvolute <- function(
+  training.expr,
+  training.pheno,
+  test.expr,
+  test.pheno,
+  cell.type.column = "cell_type", 
+  algorithms,
+  verbose = FALSE,
+  split.data = FALSE,
+  exclude.from.bulks = NULL,
+  exclude.from.signature = NULL,
+  optimize = TRUE,
+  max.genes = 500,
+  n.bulks = 500,
+  bulks = NULL,
+  n.repeats = 1,
+  subtypes = FALSE
+  ) {
   # parameter checks
   if (n.repeats < 1) {
     n.repeats <- 1
@@ -65,14 +75,14 @@ deconvolute <- function(training.expr,
       cat("creating artificial bulks for simulation\n")
     # remove cells whose type should not be in the bulks
     if (!is.null(exclude.from.bulks)) {
-      if (length(which(unique(test.pheno[, "cell_type"]) %in% exclude.from.bulks)) > 0) {
+      if (length(which(unique(test.pheno[, cell.type.column]) %in% exclude.from.bulks)) > 0) {
         include.in.bulks <-
-          unique(test.pheno[, "cell_type"])[-which(unique(test.pheno[, "cell_type"]) %in% exclude.from.bulks)]
+          unique(test.pheno[, cell.type.column])[-which(unique(test.pheno[, cell.type.column]) %in% exclude.from.bulks)]
       }else{
-        include.in.bulks <- unique(test.pheno[, "cell_type"])
+        include.in.bulks <- unique(test.pheno[, cell.type.column])
       }
     } else {
-      include.in.bulks <- unique(test.pheno[, "cell_type"])
+      include.in.bulks <- unique(test.pheno[, cell.type.column])
     }
     validation.data <- create_bulks(test.expr,
                                     test.pheno,
@@ -112,6 +122,7 @@ deconvolute <- function(training.expr,
           training.pheno,
           bulks.expr,
           exclude.from.signature,
+          cell.type.column = cell.type.column,
           max.genes = max.genes,
           optimize = optimize,
           split.data = split.data

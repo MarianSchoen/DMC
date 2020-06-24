@@ -16,21 +16,23 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
+#' @param cell.type.column string, which column of 'training.pheno'/'test.pheno'
+#' holds the cell type information? 
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_dtd_baseline(training.exprs, training.pheno, bulks)
-
-
-run_least_squares <- function(exprs,
-                             pheno,
-                             bulks,
-                             exclude.from.signature = NULL,
-                             max.genes = 500,
-                             optimize = TRUE,
-                             split.data = TRUE
-                             ) {
+run_least_squares <- function(
+  exprs,
+  pheno,
+  bulks,
+  exclude.from.signature = NULL,
+  max.genes = 500,
+  optimize = TRUE,
+  split.data = TRUE, 
+  cell.type.column = "cell_type"
+) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -48,7 +50,7 @@ run_least_squares <- function(exprs,
   # prepare phenotype data and cell types to use
   exprs <- scale_to_count(exprs)
   
-  cell.types <- as.character(pheno[, "cell_type"])
+  cell.types <- as.character(pheno[, cell.type.column])
   names(cell.types) <- colnames(exprs)
 
   # exclude samples of types contained in exclude.from.signature
