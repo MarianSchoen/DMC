@@ -4,7 +4,7 @@
 #' features as rows
 #' @param pheno data.frame, phenotype data containing
 #' cell type labels for the expression matrix,
-#' label column must be named 'cell_type',
+#' must contain 'cell.type.column',
 #' ordering of cells must be the same as in exprs
 #' @param n.bulks integer, the number of bulks to be created, defaults to 500
 #' @param include.in.bulks vector of strings, cell types to be used for bulk 
@@ -13,15 +13,17 @@
 #' drawn for each bulk; default 0.1
 #' @param sum.to.count boolean, should all bulks be normalized
 #' to a fixed total count number? default TRUE
+#' @param cell.type.column string, which column of 'pheno'
+#' holds the cell type information? 
 #' @return list with 
 #'    - "bulks": matrix containing bulk expression profiles (features x bulks)
 #'    - "props" matrix containing quantities (cell type x bulks)
 #'    - "sub.props": TODO
 #' @example create_bulks(training.exprs, training.pheno, n.bulks = 1000)
-
 create_bulks <- function(
     exprs, 
     pheno, 
+    cell.type.column = "cell_type",
     n.bulks = 500, 
     include.in.bulks = NULL, 
     fraction.per.bulk = 0.1, 
@@ -45,13 +47,13 @@ create_bulks <- function(
 
     # keep only specified cell types
     if (is.null(include.in.bulks)) {
-        include.in.bulks <- unique(pheno[, "cell_type"])
+        include.in.bulks <- unique(pheno[, cell.type.column])
     }
 
-    if (length(which(pheno[, "cell_type"] %in% include.in.bulks)) > 0) {
-        pheno <- pheno[which(pheno[, "cell_type"] %in% include.in.bulks), , drop = F]
+    if (length(which(pheno[, cell.type.column] %in% include.in.bulks)) > 0) {
+        pheno <- pheno[which(pheno[, cell.type.column] %in% include.in.bulks), , drop = FALSE]
     }
-    exprs <- exprs[, rownames(pheno), drop = F]
+    exprs <- exprs[, rownames(pheno), drop = FALSE]
 
     # scale to fixed total count per profile
     exprs <- scale_to_count(exprs)
@@ -66,8 +68,8 @@ create_bulks <- function(
     colnames(bulk.exprs) <- as.character(1:n.bulks)
 
     # create a matrix to contain true proportions for each simulated bulk
-    props <- matrix(0, nrow = length(unique(pheno[, "cell_type"])), ncol = n.bulks)
-    rownames(props) <- unique(pheno[, "cell_type"])
+    props <- matrix(0, nrow = length(unique(pheno[, cell.type.column])), ncol = n.bulks)
+    rownames(props) <- unique(pheno[, cell.type.column])
     colnames(props) <- colnames(bulk.exprs)
     
     # if column subtypes exists create a matrix containing proportions of subtypes
@@ -111,7 +113,7 @@ create_bulks <- function(
         sub.props[,i] <- sub.props[,i] / length(bulk.samples)
         props[,i] <- props[,i] / length(bulk.samples)
       }else{
-        types <- unique(pheno$cell_type)
+        types <- unique(pheno[, cell.type.column])
         # sample random weights for each type
         weights <- sample(0:100, size = length(types), replace = TRUE) #
         # determine, how many samples of each type should be drawn
@@ -119,7 +121,7 @@ create_bulks <- function(
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
-          coarse.samples <- sample(which(pheno$cell_type == t), size = sum(n.samples == t), replace = TRUE)
+          coarse.samples <- sample(which(pheno[,cell.type.column] == t), size = sum(n.samples == t), replace = TRUE)
           bulk.samples <- c(bulk.samples, coarse.samples)
           props[t, i] <- length(coarse.samples)
         }

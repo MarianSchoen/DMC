@@ -84,11 +84,14 @@ deconvolute <- function(
     } else {
       include.in.bulks <- unique(test.pheno[, cell.type.column])
     }
-    validation.data <- create_bulks(test.expr,
-                                    test.pheno,
-                                    n.bulks,
-                                    include.in.bulks,
-                                    sum.to.count = TRUE)
+    validation.data <- create_bulks(
+      exprs = test.expr
+      , pheno = test.pheno
+      , cell.type.column = cell.type.column 
+      , n.bulks = n.bulks
+      , include.in.bulks = include.in.bulks
+      , sum.to.count = TRUE
+      )
     real.props <- validation.data$props
     bulks.expr <- validation.data$bulks
   } else {

@@ -16,7 +16,7 @@
 #' the signature matrix and the rest will be used to estimate the optimal
 #' features
 #' @param verbose boolean
-#' @param cell.type.column string, which column of 'training.pheno'/'test.pheno'
+#' @param cell.type.column string, which column of 'pheno'
 #' holds the cell type information? 
 #' @return list with four entries: 
 #' 1) est.props - matrix containing for each bulk the
