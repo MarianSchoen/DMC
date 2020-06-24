@@ -488,5 +488,19 @@ benchmark <- function(
 	if(dir.exists("CIBERSORT")){
 	  unlink("CIBERSORT", recursive = TRUE)
 	}
-	if(verbose) tictoc::toc()
+	if(verbose) {
+		t <- tictoc::toc(quiet = TRUE)
+		time <- t$toc - t$tic
+		if(time > 3600) {
+			time <- time / 3600
+			cat(t$msg, ": ", as.integer(time), "h ", as.integer((time-as.integer(time))*60), "m elapsed\n", sep = "")
+		}else{
+			if(time > 60) {
+				time <- time / 60
+				cat(t$msg, ": ", as.integer(time), "m ", as.integer((time-as.integer(time))*60), "s elapsed\n", sep = "")
+			} else {
+				cat(t$msg, ": ", time, "s elapsed\n", sep = "")
+			}
+		}
+	}
 }
