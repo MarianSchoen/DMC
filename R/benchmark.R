@@ -21,7 +21,7 @@
 #' For predefined algorithms it is sufficient to supply only the name instead of the sublist,
 #' e.g. \code{algorithms = list(list(name = 'DTD', algorithm = run_dtd), "DTD")}. \cr
 #' If no list is supplied, all implemented algorithms 
-#' (CIBERSORT, DeconRNASeq, DTD, Least Squares, BSEQ-sc and MuSiC) are selected.
+#' (CIBERSORT, DeconRNASeq, DTD, Least_Squares, BSEQ-sc and MuSiC) are selected.
 #' @param simulation.bulks boolean, should deconvolution of simulated bulks be
 #' performed? default: FALSE
 #' @param simulation.genes boolean, should deconvolution of simulated bulks with 
@@ -210,8 +210,8 @@ benchmark <- function(
 		for(a in input.algorithms) {
 			if(is.list(a)){
 				# for now check only whether algorithm exists, not its output
-				if(is.function(a$algorithm) && is.character(a$name)){
-					new.algos <- c(new.algos, a)
+				if(exists(as.character(substitute(a$algorithm))) && is.character(a$name)){
+					new.algos <- c(new.algos, list(a))
 				}else{
 					stop("Invalid algorithm")
 				}
