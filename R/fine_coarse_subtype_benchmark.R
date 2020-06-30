@@ -17,7 +17,6 @@
 #' @param algorithm.list 
 #'
 #' @return
-#' @export
 #'
 #' @examples
 fine_coarse_subtype_benchmark <- function(
@@ -91,21 +90,24 @@ fine_coarse_subtype_benchmark <- function(
   # (this holds as many entries as there are 'subtype.columns')
   # each entry holds the following entries: 
   #  1. a list entry for each 'subtype.column'
-  #  2. then, there are two entries "plot.list", and "cor.list". 
-  #  3. there each algorithm has an entry
-  #  4a) for the cor.list path there are 2 entries: 
-  #      a vector holding per cell type correlations
-  #      and a single value averaged over all cell types
-  #  4b) for the "plot.list" there is a ggplot object scatter plot for each cell type
+  #  2. There are four entries: 
+  #   - 'c.true': matrix, true cell compositions, for all subtypes
+  #   - 'c.true.coarsly': matrix, true cell compositions, for the 
+  #                       'cell.type.column'cell types
+  #   - 'c.estimaed.list': a list, with a matrix entry for each algorithm. 
+  #          There, the estimated cell compositions, for all subtypes are stored
+  #   - 'c.estimaed.coarsly.list': a list, with a matrix entry for each algorithm. 
+  #          There, the estimated cell compositions, for the 
+  #          'cell.type.column'cell types are stored.
   column.list <- vector(
     mode = "list"
     , length = length(subtype.columns)
   )
   names(column.list) <- subtype.columns
   
+  
   # go through each 'subtype.column' 
   for(column in subtype.columns){
-    
     # simulate bulks, and deconvolute them 
     # (currently, I don't seperate test/train)
     some.estimates <- deconvolute(
@@ -115,21 +117,21 @@ fine_coarse_subtype_benchmark <- function(
       , test.pheno = sc.pheno
       , cell.type.column = column
       , algorithms = algorithm.list
-      , verbose = TRUE
+      , verbose = verbose
       , split.data = FALSE
       , n.repeats = 1 # don't yet increase this please
     ) 
     
-    # extract the true c
+    # extract the true c (with all subtype quantities)... 
     c.true <- some.estimates$bulk.props
     # this C is quite deep. I need the coarse C, therefore:
     c.true.coarsly <- matrix(
       data = NA
-      , nrow = length(unique(sc.pheno[, original.cell.type.column]))
+      , nrow = length(unique(sc.pheno[, cell.type.column]))
       , ncol = ncol(c.true)
     )
     colnames(c.true.coarsly) <- colnames(c.true)
-    rownames(c.true.coarsly) <- unique(sc.pheno[, original.cell.type.column])
+    rownames(c.true.coarsly) <- unique(sc.pheno[, cell.type.column])
     for(major.cell.type in rownames(c.true.coarsly)){
       associated.subtypes <- rownames(c.true)[
         which(
@@ -144,62 +146,41 @@ fine_coarse_subtype_benchmark <- function(
       )
     }
     
+    # store the true C matrices: 
+    column.list[[column]][["c.true"]] <- c.true
+    column.list[[column]][["c.true.coarsly"]] <- c.true.coarsly
+    
     # TODO: manage the "n.repeats = 1" problem
     algorithms <- names(some.estimates$results.list$`1`)
     
-    # initialise an empty list entry for 'cor.list' and ...
-    column.list[[column]][["cor.list"]] <- vector(
+    # for the estimated C, initialise two list entries: 
+    column.list[[column]][["c.estimaed.list"]] <- vector(
       mode = "list"
       , length = length(algorithms)
     )
-    names(column.list[[column]][["cor.list"]]) <- algorithms
-    # (add an empty vector to 'per.ct'. (because, I c(...) later on.))
-    column.list[[column]][["cor.list"]] <- lapply(
-      X = column.list[[column]][["cor.list"]]
-      , FUN = function(algorithm){
-        return(list("per.ct" = c()))
-      })
+    names(column.list[[column]][["c.estimaed.list"]]) <- algorithms
     
     
+    column.list[[column]][["c.estimaed.coarsly.list"]] <- vector(
+      mode = "list"
+      , length = length(algorithms)
+    )
+    names(column.list[[column]][["c.estimaed.coarsly.list"]]) <- algorithms
     
-    # ... 'coarse.cor.list', ...
-    column.list[[column]][["coarse.cor.list"]] <- column.list[[column]][["cor.list"]]
-    
-    # ... 'plot.list' ...
-    column.list[[column]][["plot.list"]] <- column.list[[column]][["cor.list"]] # false friend, but structure is the same
-    
-    # and 'coarse.plot.list' ...
-    column.list[[column]][["coarse.plot.list"]] <- column.list[[column]][["cor.list"]] # false friend, but structure is the same
-    
-    
+    # go through all provided algorithms
     for(algorithm in algorithms){
       # for the current algorithm, extract the estimated 'C's
       c.estimated <- some.estimates$results.list$`1`[[algorithm]]$est.props
-      for(cell.subtype in unique(sc.pheno[, column])){
-        a.frame <- data.frame(
-          "true" = c.true[cell.subtype, ],
-          "estimated" = c.estimated[cell.subtype, ]
-        )
-        cor.tmp <- cor(a.frame$true,a.frame$estimated)
-        column.list[[column]][["cor.list"]][[algorithm]][["per.ct"]][[cell.subtype]] <- cor.tmp
-        column.list[[column]][["plot.list"]][[algorithm]][[cell.subtype]] <- ggplot(
-          data = a.frame
-          , aes(x = true, y = estimated)
-        ) + 
-          geom_point() + 
-          ggtitle(
-            paste0(
-              cell.subtype, 
-              ", Cor: ", 
-              round(cor.tmp, digits = 2)
-            )
-          )
-      }
+      # store it: 
+      column.list[[column]][["c.estimaed.list"]][[algorithm]] <- c.estimated
       
-      column.list[[column]][["cor.list"]][[algorithm]][["avg.cor"]] <- mean(
-        x = column.list[[column]][["cor.list"]][[algorithm]][["per.ct"]]
+      # add up those subtypes, that origin from the same cell type:       
+      c.estimated.coarsly <- matrix(
+        data = NA
+        , nrow = nrow(c.true.coarsly)
+        , ncol = ncol(c.true.coarsly)
       )
-      
+      dimnames(c.estimated.coarsly) <- dimnames(c.true.coarsly)
       for(major.cell.type in rownames(c.true.coarsly)){
         associated.subtypes <- rownames(c.estimated)[
           which(
@@ -209,31 +190,12 @@ fine_coarse_subtype_benchmark <- function(
             )
           )
           ]
-        a.frame <- data.frame(
-          "true" = c.true.coarsly[major.cell.type, ],
-          "estimated" = colSums(
+        c.estimated.coarsly[major.cell.type, ] <- colSums(
             x = c.estimated[associated.subtypes, , drop = FALSE]
           )
-        )
-        cor.tmp <- cor(a.frame$true, a.frame$estimated)      
-        column.list[[column]][["coarse.cor.list"]][[algorithm]][["per.ct"]][[cell.subtype]] <- cor.tmp
-        
-        column.list[[column]][["coarse.plot.list"]][[algorithm]][[cell.subtype]] <- ggplot(
-          data = a.frame
-          , aes(x = true, y = estimated)
-        ) + 
-          geom_point() + 
-          ggtitle(
-            paste0(
-              cell.subtype, 
-              ", Cor: ", 
-              round(cor.tmp, digits = 2)
-            )
-          )
       }
-      column.list[[column]][["coarse.cor.list"]][[algorithm]][["avg.cor"]] <- mean(
-        x = column.list[[column]][["coarse.cor.list"]][[algorithm]][["per.ct"]]
-      )
+      # and store again
+      column.list[[column]][["c.estimaed.coarsly.list"]][[algorithm]] <- c.estimated.coarsly
     }
   }
   return(column.list)
