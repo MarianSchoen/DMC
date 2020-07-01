@@ -94,9 +94,9 @@ fine_coarse_subtype_benchmark <- function(
   #   - 'c.true': matrix, true cell compositions, for all subtypes
   #   - 'c.true.coarsly': matrix, true cell compositions, for the 
   #                       'cell.type.column'cell types
-  #   - 'c.estimaed.list': a list, with a matrix entry for each algorithm. 
+  #   - 'c.estimated.list': a list, with a matrix entry for each algorithm. 
   #          There, the estimated cell compositions, for all subtypes are stored
-  #   - 'c.estimaed.coarsly.list': a list, with a matrix entry for each algorithm. 
+  #   - 'c.estimated.coarsly.list': a list, with a matrix entry for each algorithm. 
   #          There, the estimated cell compositions, for the 
   #          'cell.type.column'cell types are stored.
   column.list <- vector(
@@ -154,25 +154,25 @@ fine_coarse_subtype_benchmark <- function(
     algorithms <- names(some.estimates$results.list$`1`)
     
     # for the estimated C, initialise two list entries: 
-    column.list[[column]][["c.estimaed.list"]] <- vector(
+    column.list[[column]][["c.estimated.list"]] <- vector(
       mode = "list"
       , length = length(algorithms)
     )
-    names(column.list[[column]][["c.estimaed.list"]]) <- algorithms
+    names(column.list[[column]][["c.estimated.list"]]) <- algorithms
     
     
-    column.list[[column]][["c.estimaed.coarsly.list"]] <- vector(
+    column.list[[column]][["c.estimated.coarsly.list"]] <- vector(
       mode = "list"
       , length = length(algorithms)
     )
-    names(column.list[[column]][["c.estimaed.coarsly.list"]]) <- algorithms
+    names(column.list[[column]][["c.estimated.coarsly.list"]]) <- algorithms
     
     # go through all provided algorithms
     for(algorithm in algorithms){
       # for the current algorithm, extract the estimated 'C's
       c.estimated <- some.estimates$results.list$`1`[[algorithm]]$est.props
       # store it: 
-      column.list[[column]][["c.estimaed.list"]][[algorithm]] <- c.estimated
+      column.list[[column]][["c.estimated.list"]][[algorithm]] <- c.estimated
       
       # add up those subtypes, that origin from the same cell type:       
       c.estimated.coarsly <- matrix(
@@ -195,7 +195,7 @@ fine_coarse_subtype_benchmark <- function(
           )
       }
       # and store again
-      column.list[[column]][["c.estimaed.coarsly.list"]][[algorithm]] <- c.estimated.coarsly
+      column.list[[column]][["c.estimated.coarsly.list"]][[algorithm]] <- c.estimated.coarsly
     }
   }
   return(column.list)
