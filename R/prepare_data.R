@@ -157,7 +157,6 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
                             temp.score <- 0
                         }
                         scores <- c(scores, temp.score)
-                        print(scores)
                         df <- rbind(df, c(a, temp.score, t, NA, metric.name, NA, NA, NA, coarse, avg.cells))
                     }
                     df <- rbind(df, c(a, mean(scores), "overall", NA, metric.name, NA, NA, NA, coarse, avg.cells))
@@ -178,7 +177,6 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
                             temp.score <- 0
                         }
                         scores <- c(scores, temp.score)
-                        print(scores)
                         df <- rbind(df, c(a, temp.score, t, NA, metric.name, NA, NA, NA, coarse, avg.cells))
                     }
                     df <- rbind(df, c(a, mean(scores), "overall", NA, metric.name, NA, NA, NA, coarse, avg.cells))
