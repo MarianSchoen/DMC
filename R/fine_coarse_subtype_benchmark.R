@@ -25,7 +25,8 @@ fine_coarse_subtype_benchmark <- function(
   subtype.pattern = "subtype",
   cell.type.column = "cell_type", 
   sample.name.column = "sample.name", 
-  avg.profiles.per.subcluster =  c(2, 5, 10, 20, 50, 100), 
+  avg.profiles.per.subcluster =  c(#2, 5, 10, 
+  20, 50, 100), 
   verbose = TRUE, 
   algorithm.list = list(
     list(algorithm = run_dtd, name = "DTD"),
@@ -110,6 +111,7 @@ fine_coarse_subtype_benchmark <- function(
   for(column in subtype.columns){
     # simulate bulks, and deconvolute them 
     # (currently, I don't seperate test/train)
+    if(verbose) cat(column, "\n")
     some.estimates <- deconvolute(
       training.expr = sc.counts
       , training.pheno = sc.pheno

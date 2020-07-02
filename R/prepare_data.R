@@ -144,6 +144,7 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
             c.est.list <- results.list[["c.estimated.list"]]
             c.est.list.coarse <- results.list[["c.estimated.coarsly.list"]]
 
+
             # fine cell types
             for(a in names(c.est.list)){
                 a.est <- c.est.list[[a]]
@@ -156,6 +157,7 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
                             temp.score <- 0
                         }
                         scores <- c(scores, temp.score)
+                        print(scores)
                         df <- rbind(df, c(a, temp.score, t, NA, metric.name, NA, NA, NA, coarse, avg.cells))
                     }
                     df <- rbind(df, c(a, mean(scores), "overall", NA, metric.name, NA, NA, NA, coarse, avg.cells))
@@ -176,6 +178,7 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
                             temp.score <- 0
                         }
                         scores <- c(scores, temp.score)
+                        print(scores)
                         df <- rbind(df, c(a, temp.score, t, NA, metric.name, NA, NA, NA, coarse, avg.cells))
                     }
                     df <- rbind(df, c(a, mean(scores), "overall", NA, metric.name, NA, NA, NA, coarse, avg.cells))
@@ -186,7 +189,6 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
             }
         
         df <- as.data.frame(df)
-        print(str(df))
         # if a column is missing, something was wrong with the data
         if(ncol(df) != 10) 
             return(data.frame())

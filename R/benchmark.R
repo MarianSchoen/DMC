@@ -20,6 +20,8 @@
 #' holds the cell type information?
 #' @param patient.column string, which column of 'pheno'
 #' holds the patient information; optional, default NULL
+#' @param sample.name.column string, which column of 'pheno'
+#' holds the sample name information; optional, default NULL
 #' @param input.algorithms list containing a list for each algorithm. 
 #' Each sublist contains \cr 1) name: character \cr 2) algorithm: function \cr
 #' For predefined algorithms it is sufficient to supply only the name instead of the sublist,
@@ -66,7 +68,8 @@ benchmark <- function(
   benchmark.name,
   grouping,
   cell.type.column = "cell_type",
-  patient.column = NULL,
+  patient.column = "patient",
+  sample.name.column = "sample.name",
   input.algorithms = NULL,
   simulation.bulks = FALSE,
   simulation.genes = FALSE,
@@ -283,18 +286,18 @@ benchmark <- function(
 		}
 		# create subtypes via tsne embedding even if subtype benchmark is not TRUE
 		# user might want to add it later on
-		if(verbose) cat("simulating subtypes\n")
-		celltypes <- unique(sc.pheno[[cell.type.column]])
-		if(any(exclude.from.bulks %in% celltypes)){
-			celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
-		}
-		k <- list()
+		#if(verbose) cat("simulating subtypes\n")
+		#celltypes <- unique(sc.pheno[[cell.type.column]])
+		#if(any(exclude.from.bulks %in% celltypes)){
+		#	celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
+		#}
+		#k <- list()
 		# list containing for each cell type the number of subtype (same for all types)
-		for(ct in celltypes){
-			k[[ct]] <- n.subtypes
-		}
-		subtype.return <- assign_subtypes(sc.counts, sc.pheno, k, cell.type.column = cell.type.column)
-		sc.pheno <- subtype.return$sc.pheno
+		#for(ct in celltypes){
+		#	k[[ct]] <- n.subtypes
+		#}
+		#subtype.return <- assign_subtypes(sc.counts, sc.pheno, k, cell.type.column = cell.type.column)
+		#sc.pheno <- subtype.return$sc.pheno
 
 		# split data into test and validation set
 		if(length(unique(grouping)) == 2){
@@ -475,7 +478,16 @@ benchmark <- function(
 			}
 			if(s == "subtypes"){
 				cat("subtype simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.subtype.benchmark <- subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column)
+				if(!is.null(test.exprs) && !is.null(test.pheno)){
+					all.exprs <- cbind(training.exprs, test.exprs)
+					all.pheno <- rbind(training.pheno, test.pheno)
+				}else{
+					all.exprs <- training.exprs
+					all.pheno <- training.pheno
+				}
+				
+				sim.subtype.benchmark <- fine_coarse_subtype_benchmark(all.exprs, all.pheno, cell.type.column = cell.type.column, sample.name.column = sample.name.column, verbose = verbose, algorithm.list = algorithms[to.run])
+				#subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column)
 				benchmark.results <- sim.subtype.benchmark
 			}
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){

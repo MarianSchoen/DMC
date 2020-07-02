@@ -8,6 +8,7 @@
 write_result_list <- function(results.all, filename, group = NULL){
   # results.all has to be output of deconvolute/simulation functions or function will fail
 
+  # any other case, try the usual structure
   if(!file.exists(filename)) rhdf5::h5createFile(filename)
   # if any object in the list is a list, call recursively
   if(any(sapply(results.all, function(x){is.list(x)}))){
@@ -25,7 +26,17 @@ write_result_list <- function(results.all, filename, group = NULL){
       }else{
         # top level: there is one list (results.all) and a matrix (bulk.props)
         if(name == "bulk.props"){
-	  rhdf5::h5write(as.matrix(results.all[[name]]), filename, paste(groupname, "data", sep = "/"))
+	        rhdf5::h5write(as.matrix(results.all[[name]]), filename, paste(groupname, "data", sep = "/"))
+          rhdf5::h5write(as.vector(rownames(results.all[[name]])), filename, paste(groupname, "celltypeids", sep = "/"))
+          rhdf5::h5write(as.vector(colnames(results.all[[name]])), filename, paste(groupname, "bulkids", sep = "/"))
+        }
+        if(name == "c.true"){
+          rhdf5::h5write(as.matrix(results.all[[name]]), filename, paste(groupname, "data", sep = "/"))
+          rhdf5::h5write(as.vector(rownames(results.all[[name]])), filename, paste(groupname, "celltypeids", sep = "/"))
+          rhdf5::h5write(as.vector(colnames(results.all[[name]])), filename, paste(groupname, "bulkids", sep = "/"))
+        }
+        if(name == "c.true.coarsly"){
+          rhdf5::h5write(as.matrix(results.all[[name]]), filename, paste(groupname, "data", sep = "/"))
           rhdf5::h5write(as.vector(rownames(results.all[[name]])), filename, paste(groupname, "celltypeids", sep = "/"))
           rhdf5::h5write(as.vector(colnames(results.all[[name]])), filename, paste(groupname, "bulkids", sep = "/"))
         }
@@ -46,8 +57,23 @@ write_result_list <- function(results.all, filename, group = NULL){
       rhdf5::h5write(as.vector(rownames(results.all[["sig.matrix"]])), filename, paste(group, "sig.matrix", "geneids", sep = "/"))
       rhdf5::h5write(as.vector(colnames(results.all[["sig.matrix"]])), filename, paste(group, "sig.matrix", "celltypeids", sep = "/"))
     }
-    # these are always in the lists
-    rhdf5::h5write(results.all[["name"]], filename, paste(group, "name", sep = "/"))
-    rhdf5::h5write(results.all[["times"]], filename, paste(group, "times", sep = "/"))
+    if(!is.null(results.all[["name"]])){
+      rhdf5::h5write(results.all[["name"]], filename, paste(group, "name", sep = "/"))
+    }
+    if(!is.null(results.all[["times"]])){
+      rhdf5::h5write(results.all[["times"]], filename, paste(group, "times", sep = "/"))
+    }
+    if(strsplit(group, "/")[[1]][length(strsplit(group, "/")[[1]])] == "c.estimated.list" || 
+    strsplit(group, "/")[[1]][length(strsplit(group, "/")[[1]])] == "c.estimated.coarsly.list"){
+      for(n in names(results.all)){
+        print(n)
+        if(!is.null(results.all[[n]])){
+          rhdf5::h5createGroup(filename, paste(group, n, sep = "/"))
+          rhdf5::h5write(as.matrix(results.all[[n]]), filename, paste(group, n, "data", sep = "/"))
+          rhdf5::h5write(as.vector(rownames(results.all[[n]])), filename, paste(group, n, "celltypeids", sep = "/"))
+          rhdf5::h5write(as.vector(colnames(results.all[[n]])), filename, paste(group, n, "bulkids", sep = "/"))
+        }
+      }
+    }
   }
 }

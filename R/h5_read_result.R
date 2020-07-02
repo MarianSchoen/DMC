@@ -29,13 +29,17 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
       temp <- as.matrix(content[["data"]])
       # assign dimnames according to the data (groupname)
       if(!is.null(groupname)){
-        if(groupname == "est.props" || groupname == "bulk.props"){
+        if(groupname == "est.props" || groupname == "bulk.props" || groupname == "c.true" || groupname == "c.true.coarsly"){
           rownames(temp) <- content[["celltypeids"]]
           colnames(temp) <- content[["bulkids"]]
         }else{
           if(groupname == "sig.matrix" || groupname == "ref.profiles"){
             rownames(temp) <- content[["geneids"]]
             colnames(temp) <- content[["celltypeids"]]
+          }else{
+            # fallback
+            rownames(temp) <- content[["celltypeids"]]
+            colnames(temp) <- content[["bulkids"]]
           }
         }
       }
