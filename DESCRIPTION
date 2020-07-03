@@ -17,5 +17,5 @@ Encoding: UTF-8
 LazyData: true
 biocViews:
 Depends: ggplot2
-Imports: DTD, DeconRNASeq, e1071, rhdf5, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest, Rtsne, tictoc, umap
+Imports: DTD, DeconRNASeq, e1071, rhdf5, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest, Rtsne, tictoc, umap, uwot, reshape2
 RoxygenNote: 7.1.0
