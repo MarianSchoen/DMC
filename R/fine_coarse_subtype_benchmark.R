@@ -25,8 +25,7 @@ fine_coarse_subtype_benchmark <- function(
   subtype.pattern = "subtype",
   cell.type.column = "cell_type", 
   sample.name.column = "sample.name", 
-  avg.profiles.per.subcluster =  c(#2, 5, 10, 
-  20, 50, 100), 
+  avg.profiles.per.subcluster =  c(2, 5, 10, 20, 50, 100), 
   verbose = TRUE, 
   algorithm.list = list(
     list(algorithm = run_dtd, name = "DTD"),
@@ -143,9 +142,14 @@ fine_coarse_subtype_benchmark <- function(
           )
         )
         ]
-      c.true.coarsly[major.cell.type, ] <- colSums(
-        x = c.true[associated.subtypes, , drop = FALSE]
-      )
+        if(length(associated.subtypes) > 0){
+          c.true.coarsly[major.cell.type, ] <- colSums(
+                  x = c.true[associated.subtypes, , drop = FALSE]
+                )
+        }else{
+          c.true.coarsly[major.cell.type, ] <- 0
+        }
+      
     }
     
     # store the true C matrices: 
@@ -192,9 +196,14 @@ fine_coarse_subtype_benchmark <- function(
             )
           )
           ]
-        c.estimated.coarsly[major.cell.type, ] <- colSums(
-            x = c.estimated[associated.subtypes, , drop = FALSE]
-          )
+          if(length(associated.subtypes) > 0){
+            c.estimated.coarsly[major.cell.type, ] <- colSums(
+              x = c.estimated[associated.subtypes, , drop = FALSE]
+            )
+          }else{
+            c.estimated.coarsly[major.cell.type, ] <- 0
+          }
+        
       }
       # and store again
       column.list[[column]][["c.estimated.coarsly.list"]][[algorithm]] <- c.estimated.coarsly
