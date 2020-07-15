@@ -129,8 +129,10 @@ benchmark <- function(
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
+	if(!is.null(real.counts) && !is.null(real.props)){
 	if(ncol(real.counts) != ncol(real.props)){
 		stop("Number of bulks in real.counts and real.props do not match")
+	}
 	}
 	if(is.null(genesets)){
 		warning("No gene sets provided; skipping that benchmark")
@@ -282,22 +284,9 @@ benchmark <- function(
 		if(cpm){
 			if(verbose) cat("scaling expression profiles to cpm\n")
 			sc.counts <- scale_to_count(sc.counts)
-			real.counts <- scale_to_count(real.counts)
+			if(!is.null(real.counts))
+				real.counts <- scale_to_count(real.counts)
 		}
-		# create subtypes via tsne embedding even if subtype benchmark is not TRUE
-		# user might want to add it later on
-		#if(verbose) cat("simulating subtypes\n")
-		#celltypes <- unique(sc.pheno[[cell.type.column]])
-		#if(any(exclude.from.bulks %in% celltypes)){
-		#	celltypes <- celltypes[-which(celltypes %in% exclude.from.bulks)]
-		#}
-		#k <- list()
-		# list containing for each cell type the number of subtype (same for all types)
-		#for(ct in celltypes){
-		#	k[[ct]] <- n.subtypes
-		#}
-		#subtype.return <- assign_subtypes(sc.counts, sc.pheno, k, cell.type.column = cell.type.column)
-		#sc.pheno <- subtype.return$sc.pheno
 
 		# split data into test and validation set
 		if(length(unique(grouping)) == 2){
@@ -334,7 +323,6 @@ benchmark <- function(
 		}else{
 			sim.bulks <- list(bulks = NULL, props = NULL, sub.props = NULL)
 		}
-			
 		# save processed data for later use and repeated benchmarks
 		suppressMessages(suppressWarnings(write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))))
 		suppressMessages(suppressWarnings(write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))))
@@ -392,7 +380,7 @@ benchmark <- function(
 		to.run <- which(! algorithm.names %in% present.algorithms)
 	}
 	res.no <- length(previous.results) + 1
-
+	if(!is.null(real.counts) && !is.null(real.props)){
 	# deconvolute real bulks
 	cat("deconvolve real bulks...\t", as.character(Sys.time()), "\n", sep = "")
 	if(length(to.run)>0){
@@ -425,6 +413,7 @@ benchmark <- function(
 		props <- list(real = real.props, est = estimates)
 		bootstrap.real <- bootstrap_bulks(props)
 		h5_write_mat(bootstrap.real, paste(output.folder, "/results/real/bootstrap_bulks",res.no,".h5",sep=""))
+	}
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
