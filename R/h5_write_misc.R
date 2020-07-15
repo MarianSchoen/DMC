@@ -19,8 +19,10 @@ write_misc_input <- function(genesets, algorithm.names, function.call, grouping,
   if(!is.factor(grouping) || length(levels(grouping)) != 2){
     stop("grouping is not valid. Must be factor with two levels")
   }
+  if(!is.null(genesets)){
   if(!is.list(genesets) || !all(sapply(genesets, function(x) is.character(x)))){
     stop("genesets must be a list of character vectors")
+  }
   }
   
   rhdf5::h5createFile(filename)

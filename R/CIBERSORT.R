@@ -41,10 +41,6 @@
 
 
 #dependencies
-library(e1071, quietly =TRUE)
-library(parallel, quietly = TRUE)
-library(preprocessCore, quietly = TRUE)
-
 #Core algorithm
 CoreAlg <- function(X, y, absolute, abs_method){
     
@@ -127,7 +123,11 @@ doPerm <- function(perm, X, Y, absolute, abs_method){
 
 #main function
 CIBERSORT <- function(sig_matrix, mixture_file, perm=0, QN=TRUE, absolute=FALSE, abs_method='sig.score'){
-    
+    library(e1071, quietly =TRUE)
+library(parallel, quietly = TRUE)
+library(preprocessCore, quietly = TRUE)
+
+
     if(absolute && abs_method != 'no.sumto1' && abs_method != 'sig.score') stop("abs_method must be set to either 'sig.score' or 'no.sumto1'")
     
     #read in data
