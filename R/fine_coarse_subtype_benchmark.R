@@ -25,13 +25,22 @@ fine_coarse_subtype_benchmark <- function(
   subtype.pattern = "subtype",
   cell.type.column = "cell_type", 
   sample.name.column = "sample.name", 
-  avg.profiles.per.subcluster =  c(2, 5, 10, 20, 50, 100), 
+  avg.profiles.per.subcluster =  NULL,
+  n.cluster.sizes = 5,
   verbose = TRUE, 
   algorithm.list = list(
     list(algorithm = run_dtd, name = "DTD"),
     list(algorithm = run_least_squares, name = "Least_Squares")
   )
 ){
+  if(is.null(avg.profiles.per.subcluster)){
+    min.profiles <- max(2, as.integer(min(table(sc.pheno[[cell.type.column]])) / 2))
+    max.profiles <- as.integer(nrow(sc.pheno) / 4)
+
+    avg.profiles.per.subcluster <- as.integer(seq(min.profiles, max.profiles, length.out = 5))
+  }else{
+    n.cluster.sizes <- length(avg.profiles.per.subcluster)
+  }
   if(ncol(sc.counts) != nrow(sc.pheno)){
     stop(
       "In DAB::fine_coarse_subtype_benchmark: 'sc.counts' does not fit 'sc.pheno'

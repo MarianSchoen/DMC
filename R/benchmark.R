@@ -54,7 +54,9 @@
 #' @param cpm boolean, should the sc profiles and bulks be scaled to counts
 #' per million? default: TRUE
 #' @param verbose boolean, should progress information be printed to the screen? default: FALSE
-#' @param n.subtypes numeric > 0, number of subtypes to be simulated for each cell type. default: 3
+#' @param avg.profiles.per.subcluster integer vector specifying the average number of profiles assigned to each subtype in each simulation step. 
+#' If not specified, a vector of length 'n.cluster.sizes'  will be automatically generated based on the data.
+#' @param n.cluster.sizes integer, number of subtype cluster sizes to generate if avg.profiles.per.subcluster is not specified
 #'
 #' @return NULL, results are stored via hdf5 to 'temp.dir'
 #' @export
@@ -85,11 +87,12 @@ benchmark <- function(
   n.bulks = 500, 
   cpm = TRUE, 
   verbose = FALSE,
-  n.subtypes = 3
+  avg.profiles.per.subcluster = NULL,
+  n.cluster.sizes = 5
   ){
 	  if(verbose) tictoc::tic("Benchmark")
 	if(verbose) cat("calculating checksum\n")
-	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.subtypes, genesets))
+	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.cluster.sizes, genesets, avg.profiles.per.subcluster))
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
@@ -169,16 +172,15 @@ benchmark <- function(
 	if(!is.numeric(n.bulks)){
 		stop("Invalid input. n.bulks must be numeric.")
 	}
-	if(!is.numeric(n.subtypes)){
-		stop("Invalid input. n.subtypes must be numeric")
+	if(!is.numeric(n.cluster.sizes)){
+		stop("Invalid input. n.cluster.sizes must be integer")
 	}
 	if(repeats < 1){
 		warning("Repeats must be greater than 0. Setting to 1.")
 		repeats <- 1
 	}
-	if(n.subtypes < 1){
-		warning("Number of subtypes must be greater than 0. Setting to 1")
-		n.subtypes <- 1
+	if(n.cluster.sizes < 1 || as.integer(n.cluster.sizes) != n.cluster.sizes){
+		stop("n.cluster.sizes must be integer > 0")
 	}
 	if(n.bulks < 1){
 		warning("Number of bulks must be greater than 0. Setting to default.")
@@ -196,6 +198,14 @@ benchmark <- function(
 	}
 	if(!rmarkdown::pandoc_available()){
 		warning("pandoc was not found on your system. you can perform the benchmark but will not be able to render the report until this dependency is fulfilled.")
+	}
+	if(!is.null(avg.profiles.per.subcluster)){
+		if(!is.numeric(avg.profiles.per.subcluster)){
+			stop("avg.profiles.per.subcluster must be a vector of integers")
+		}
+		if(any(as.integer(avg.profiles.per.subcluster) != avg.profiles.per.subcluster)){
+			stop("avg.profiles.per.subcluster must be a vector of integers")
+		}
 	}
 
 	# check and process algorithms input
@@ -475,8 +485,16 @@ benchmark <- function(
 					all.pheno <- training.pheno
 				}
 				
-				sim.subtype.benchmark <- fine_coarse_subtype_benchmark(all.exprs, all.pheno, cell.type.column = cell.type.column, sample.name.column = sample.name.column, verbose = verbose, algorithm.list = algorithms[to.run])
-				#subtype_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column)
+				sim.subtype.benchmark <- fine_coarse_subtype_benchmark(
+					all.exprs, all.pheno, 
+					cell.type.column = cell.type.column, 
+					sample.name.column = sample.name.column, 
+					verbose = verbose, 
+					algorithm.list = algorithms[to.run],
+					avg.profiles.per.subcluster = avg.profiles.per.subcluster, 
+					n.cluster.sizes = n.cluster.sizes
+				)
+
 				benchmark.results <- sim.subtype.benchmark
 			}
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
