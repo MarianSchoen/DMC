@@ -57,6 +57,7 @@
 #' @param avg.profiles.per.subcluster integer vector specifying the average number of profiles assigned to each subtype in each simulation step. 
 #' If not specified, a vector of length 'n.cluster.sizes'  will be automatically generated based on the data.
 #' @param n.cluster.sizes integer, number of subtype cluster sizes to generate if avg.profiles.per.subcluster is not specified
+#' @param cibersort.path string, path to CIBERSORT source code. Necesssary, if cibersort or bseq-sc wrappers are used.
 #'
 #' @return NULL, results are stored via hdf5 to 'temp.dir'
 #' @export
@@ -88,7 +89,8 @@ benchmark <- function(
   cpm = TRUE, 
   verbose = FALSE,
   avg.profiles.per.subcluster = NULL,
-  n.cluster.sizes = 5
+  n.cluster.sizes = 5,
+  cibersort.path = NULL
   ){
 	  if(verbose) tictoc::tic("Benchmark")
 	if(verbose) cat("calculating checksum\n")
@@ -208,6 +210,24 @@ benchmark <- function(
 		}
 	}
 
+	use.cibersort <- FALSE
+	if(exists("CIBERSORT") && is.function(CIBERSORT)){
+		use.cibersort <- TRUE
+	}else{
+		if(!is.null(cibersort.path)){
+			if(file.exists(cibersort.path)){
+				source(cibersort.path)
+				if(!exists("CIBERSORT")){
+					warning("Could not source CIBERSORT.")
+				}else{
+					use.cibersort <- TRUE
+				}
+			}else{
+				warning(paste("Specified file not found:", cibersort.path))
+			}
+		}
+	}
+
 	# check and process algorithms input
 	algorithms <- list(
 			   list(algorithm = run_dtd, name = "DTD"),
@@ -258,6 +278,13 @@ benchmark <- function(
 			stop("No algorithms selected")
 		}
 		algorithm.names <- sapply(algorithms, function(x) x$name)
+	}
+
+	if(("CIBERSORT" %in% algorithm.names || "BSEQ-sc" %in% algorithm.names) && !use.cibersort){
+		warning("CIBERSORT and/or BSEQ-sc are among the specified algorithms but CIBERSORT is not available. Removing these algorithms...")
+		to.use <- which(!algorithm.names %in% c("BSEQ-sc", "CIBERSORT"))
+		algorithms <- algorithms[to.use]
+		algorithm.names <- algorithm.names[to.use]
 	}
 
 	check_algorithms(algorithms)

@@ -38,7 +38,9 @@
 # Input: signature matrix and mixture file, formatted as specified at http://cibersort.stanford.edu/tutorial.php
 # Output: matrix object containing all results and tabular data written to disk 'CIBERSORT-Results.txt'
 # License: http://cibersort.stanford.edu/CIBERSORT_License.txt
-
+suppressMessages(library(e1071, quietly =TRUE))
+suppressMessages(library(parallel, quietly = TRUE))
+suppressMessages(library(preprocessCore, quietly = TRUE))
 
 #dependencies
 #Core algorithm
@@ -123,11 +125,6 @@ doPerm <- function(perm, X, Y, absolute, abs_method){
 
 #main function
 CIBERSORT <- function(sig_matrix, mixture_file, perm=0, QN=TRUE, absolute=FALSE, abs_method='sig.score'){
-    library(e1071, quietly =TRUE)
-library(parallel, quietly = TRUE)
-library(preprocessCore, quietly = TRUE)
-
-
     if(absolute && abs_method != 'no.sumto1' && abs_method != 'sig.score') stop("abs_method must be set to either 'sig.score' or 'no.sumto1'")
     
     #read in data
