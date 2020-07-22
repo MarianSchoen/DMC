@@ -8,10 +8,26 @@ subtype_plot <- function(results.df){
     geom_line(aes(linetype = coarse)) +
     scale_x_reverse() +
     facet_grid(rows = vars(algorithm))
+
+  results.df$coarse <- ifelse(as.logical(results.df$coarse), "coarse", "fine")
+
   coarse.plot <- ggplot(results.df, aes(x = cluster_size, y = score, col = algorithm)) +
     scale_x_reverse() +
     geom_line() +
-    facet_grid(cols = vars(coarse))
+    facet_grid(
+      cols = vars(coarse)
+    ) +
+    theme(
+        legend.text = element_text(size = 20),
+        legend.title = element_text(size = 22),
+        title = element_text(size = 24),
+        axis.title.x = element_text(size = 22),
+        axis.text.x = element_text(size = 20),
+        axis.title.y = element_text(size = 22),
+        axis.text.y = element_text(size = 20),
+        strip.text.x = element_text(size = 20)
+      ) +
+      xlab("average number of profiles per subtype")
 
   return(list(overall = overall.plot, algorithm = algorithm.plot, coarse = coarse.plot))
 }

@@ -291,8 +291,8 @@ if(dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
 		for(i in 1:length(results.lists)){
 			scatter.plots.list.sim[[i]] <- create_scatterplots(results.lists[[i]], celltype.order = celltypes.ordered, algorithm.order = algorithms.ordered)
 		}
-		score.width <- 3*length(unique(bulks.df$cell_type))
-		score.height <- 3 * length(unique(bulks.df$algorithm))
+		score.width <- 2*length(unique(bulks.df$cell_type))
+		score.height <- 2 * length(unique(bulks.df$algorithm))
 	}
 }else{
   algorithms.ordered = NULL
@@ -444,12 +444,12 @@ Performance of algorithms depending ont the gene set supplied for deconvolution.
 ### Score plot
 ```{r subtype_sim, fig.width = score.width, fig.height = score.height}
 if(exists("score.plot.subtype")){
-  plot(score.plot.subtype$overall)
-  plot(score.plot.subtype$algorithm)
+  #plot(score.plot.subtype$overall)
+  #plot(score.plot.subtype$algorithm)
   plot(score.plot.subtype$coarse)
   pdf(paste(plot.dir, "subtype_plot.pdf", sep = "/"), width = score.width, height = score.height)
-  plot(score.plot.subtype$overall)
-  plot(score.plot.subtype$algorithm)
+  #plot(score.plot.subtype$overall)
+  #plot(score.plot.subtype$algorithm)
   plot(score.plot.subtype$coarse)
   invisible(dev.off())
 }else{
