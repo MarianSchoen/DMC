@@ -436,7 +436,8 @@ benchmark <- function(
 			0, 
 			list(bulks = real.counts, props = real.props), 
 			repeats,
-			cell.type.column = cell.type.column
+			cell.type.column = cell.type.column,
+			patient.column = patient.column
 		)
 		suppressMessages(suppressWarnings(write_result_list(real.benchmark, paste(output.folder, "/results/real/deconv_output_",res.no,".h5",sep=""))))
 
@@ -489,17 +490,17 @@ benchmark <- function(
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				cat("bulk simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats, cell.type.column = cell.type.column)
+				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats, cell.type.column = cell.type.column, patient.column = patient.column)
 				benchmark.results <- sim.bulk.benchmark
 			}
 			if(s == "genes"){
 				cat("geneset simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column)
+				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column, patient.column = patient.column)
 				benchmark.results <- sim.genes.benchmark
 			}
 			if(s == "samples"){
 				cat("sample simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = FALSE, cell.type.column = cell.type.column)
+				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = FALSE, cell.type.column = cell.type.column, patient.column = patient.column)
 				benchmark.results <- sim.sample.benchmark
 			}
 			if(s == "subtypes"){
@@ -519,7 +520,8 @@ benchmark <- function(
 					verbose = verbose, 
 					algorithm.list = algorithms[to.run],
 					avg.profiles.per.subcluster = avg.profiles.per.subcluster, 
-					n.cluster.sizes = n.cluster.sizes
+					n.cluster.sizes = n.cluster.sizes,
+					patient.column = patient.column
 				)
 
 				benchmark.results <- sim.subtype.benchmark

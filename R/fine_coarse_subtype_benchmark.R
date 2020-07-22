@@ -31,7 +31,8 @@ fine_coarse_subtype_benchmark <- function(
   algorithm.list = list(
     list(algorithm = run_dtd, name = "DTD"),
     list(algorithm = run_least_squares, name = "Least_Squares")
-  )
+  ),
+  patient.column = NULL
 ){
   if(is.null(avg.profiles.per.subcluster)){
     min.profiles <- max(2, as.integer(min(table(sc.pheno[[cell.type.column]])) / 2))
@@ -130,6 +131,7 @@ fine_coarse_subtype_benchmark <- function(
       , verbose = verbose
       , split.data = FALSE
       , n.repeats = 1 # don't yet increase this please
+      , patient.column = patient.column
     ) 
     
     # extract the true c (with all subtype quantities)... 
