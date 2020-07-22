@@ -146,7 +146,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", metric.nam
         size = value,
         col = value,
         fill = value
-      ), shape = 22) +
+      ), shape = 22)  +
       geom_point(
         shape = 22,
         fill = NA,
@@ -165,7 +165,7 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", metric.nam
       theme(
         axis.text.x = element_text(size = 14),
         axis.text.y = element_text(size = 14),
-        title = element_text(size = 18),
+        title = element_text(size = 18, hjust = 0.5),
         axis.title.x = element_text(size = 16),
         axis.title.y = element_text(size = 16),
         legend.title = element_text(size = 16),
@@ -185,11 +185,11 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", metric.nam
           sep = ""
         ),
         minor_breaks = seq(
-          0.5,
+          0.,
           length(levels(
             quality.scores$algorithm
-          )) + 0.5,
-          0.1)
+          )) + 1,
+          0.01)
       ) +
       scale_x_continuous(
         breaks = 1:length(levels(quality.scores$cell_type)),
@@ -198,24 +198,31 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", metric.nam
         )) + 0.5),
         labels = labels,
         minor_breaks = seq(
-          0.5,
+          0.,
           length(levels(
             quality.scores$cell_type
-          )) + 0.5,
-          0.1)
+          )) + 1.,
+          0.01)
       ) +
+      labs(fill = "Score")+
       scale_color_gradient2(
         low = "red",
         mid = "orange",
         high = "green",
-        midpoint = 0.5
+        midpoint = 0.5,
+        limits = c(0,1),
+        guide = "none"
       ) +
       scale_fill_gradient2(
         low = "red",
         mid = "orange",
         high = "green",
-        midpoint = 0.5
-      )
+        midpoint = 0.5,
+        limits = c(0,1)
+      ) +
+      geom_vline(xintercept = 1.5) +
+      coord_cartesian(
+        xlim = c(0.75, length(levels(quality.scores$cell_type)) + 0.25))
     # return the plot and the ordering of the axes
     return(list(plot = score.plot, celltype.order = levels(quality.scores$cell_type), algorithm.order = levels(quality.scores$algorithm)))
 }

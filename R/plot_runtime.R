@@ -40,24 +40,24 @@ plot_runtime <- function(results.df, title = NULL, algorithm.order = NULL) {
     runtime.plot <- ggplot(runtimes) +
     geom_bar(
         aes(
-        x = algorithm,
-        y = log10(as.numeric(as.character(runtime)) + 1),
+        y = algorithm,
+        x = log10(as.numeric(as.character(runtime)) + 1),
         fill = algorithm
         ),
         stat = "identity",
         position = "dodge"
     ) +
-    xlab("algorithm") + ylab("time (s)") + ggtitle(title) +
+    ylab("algorithm") + xlab("time (s)") + ggtitle(title) +
     theme(
-        legend.position = "None",
-        title = element_text(size = 16),
-        axis.title.x = element_text(size = 14),
-        axis.text.x = element_text(size = 12, angle = 90),
-        axis.title.y = element_text(size = 14),
-        axis.text.y = element_text(size = 12)
-    ) +
-        scale_y_continuous(
-            labels = function(x){round(10^as.numeric(x) - 1,2)}
+        legend.position = "none",
+        title = element_text(size = 24),
+        axis.title.x = element_text(size = 22),
+        axis.text.x = element_text(size = 20),
+        axis.title.y = element_text(size = 22),
+        axis.text.y = element_text(size = 20)
+      ) +
+        scale_x_continuous(
+            labels = function(x){round(10^as.numeric(x) - 1)},
         )
     return(runtime.plot)
 }

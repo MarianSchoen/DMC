@@ -95,11 +95,12 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
     # create scatter plot
     scatter.plot <- ggplot(df, aes(x = real, y = estimate, col = type, group = real)) +
       geom_boxplot(position = "dodge", varwidth = T) +
-      geom_point(alpha = 0.1) +
+      geom_point(alpha = 0.4) +
       facet_grid(
         rows = NULL,
         cols = vars(type),
         labeller = labeller(type = labs)
+        #scales = "free"
       ) +
       xlab("real") + ylab("estimate") +
       labs(col = 'cell type') +
@@ -108,18 +109,23 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
         legend.title = element_text(size = 22),
         title = element_text(size = 24),
         axis.title.x = element_text(size = 22),
-        axis.text.x = element_text(size = 20),
+        axis.text.x = element_text(size = 20, angle = 90),
         axis.title.y = element_text(size = 22),
-        axis.text.y = element_text(size = 20)
+        axis.text.y = element_text(size = 20),
+        strip.text.x = element_text(size = 14)
       ) + 
-      ggtitle(name)
+      ggtitle(name) +
+      geom_abline(slope = 1, intercept = 0, linetype = 2) +
+      ylim(min(df$estimate), 1) +
+      scale_x_continuous(limits = c(0,1), n.breaks = 4)
+      
       scatter.plots[[name]] <- scatter.plot
   }
 
   # order list of plots by algorithm.order
   if(!is.null(algorithm.order)){
     if(all(algorithm.order %in% names(scatter.plots)) && length(scatter.plots) == length(algorithm.order)){
-      scatter.plots <- scatter.plots[algorithm.order]
+      scatter.plots <- scatter.plots[rev(algorithm.order)]
     }
   }
   

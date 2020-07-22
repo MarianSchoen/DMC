@@ -93,22 +93,48 @@ plot_cond_num <- function(results.df, metric = "cor", metric.name = NULL, algori
         ggtitle("average signature matrix condition number") +
         ylab("condition number") +
         xlab("algorithm") +
-        scale_x_discrete(limits = levels(overall.df$algorithm), labels = cond_labs)
+        scale_x_discrete(limits = levels(overall.df$algorithm), labels = cond_labs) +
+        theme(
+            legend.text = element_text(size = 20),
+            legend.title = element_text(size = 22),
+            title = element_text(size = 24),
+            axis.title.x = element_text(size = 22),
+            axis.text.x = element_text(size = 20),
+            axis.title.y = element_text(size = 22),
+            axis.text.y = element_text(size = 20)
+      )
 
     # plot score vs condition number
     cond_vs_score <- ggplot(overall.df) +
         geom_point(aes(x = condition_number, y = score, col = algorithm), size = 3, na.rm = T) +
         ggtitle("score vs condition number") +
         xlab("condition number") +
-        ylab("score")
-    cond_vs_score <- cond_vs_score + ylim(0,1)
+        ylab("score") + ylim(0,1) +
+        theme(
+            legend.text = element_text(size = 20),
+            legend.title = element_text(size = 22),
+            title = element_text(size = 24),
+            axis.title.x = element_text(size = 22),
+            axis.text.x = element_text(size = 20),
+            axis.title.y = element_text(size = 22),
+            axis.text.y = element_text(size = 20)
+      )
 
     # plot sd of score vs sd of condition number
     variation_plot <- ggplot(overall.df) +
         geom_point(aes(x = condition_variation, y = score_variation, col = algorithm), size = 3, na.rm = T) +
         ggtitle("SDs of score vs SDs of condition number") +
         xlab("condition number SD") +
-        ylab("score SD")
+        ylab("score SD") +
+        theme(
+            legend.text = element_text(size = 20),
+            legend.title = element_text(size = 22),
+            title = element_text(size = 24),
+            axis.title.x = element_text(size = 22),
+            axis.text.x = element_text(size = 20),
+            axis.title.y = element_text(size = 22),
+            axis.text.y = element_text(size = 20)
+      )
 
     return(list(cond_num_plot = cond_num_plot, cond_vs_score = cond_vs_score, variation_plot = variation_plot))
 }
