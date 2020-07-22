@@ -97,7 +97,7 @@ create_bulks <- function(
         weights <- sample(0:100, size = length(types), replace = TRUE)
         
         # determine, how many samples of each type should be drawn
-        n.samples <- sample(types, size = ceiling(fraction.per.bulk * ncol(exprs)), replace = TRUE)
+        n.samples <- sample(types, size = ceiling(fraction.per.bulk * ncol(exprs)), replace = TRUE, prob = weights)
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
@@ -117,7 +117,7 @@ create_bulks <- function(
         # sample random weights for each type
         weights <- sample(0:100, size = length(types), replace = TRUE) #
         # determine, how many samples of each type should be drawn
-        n.samples <- sample(types, size = ceiling(fraction.per.bulk * ncol(exprs)), replace = TRUE) #
+        n.samples <- sample(types, size = ceiling(fraction.per.bulk * ncol(exprs)), replace = TRUE, prob = weights) #
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
