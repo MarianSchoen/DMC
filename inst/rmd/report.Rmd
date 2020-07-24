@@ -102,7 +102,9 @@ Ground-truth cell type quantities were available for `r nrow(real.props)` cell t
 
 
 ```{r real_props, echo = FALSE}
-  print(t(apply(real.props, 1, summary)))
+	if(exists("real.props") && !is.null(real.props) && length(real.props) > 0){  
+print(t(apply(real.props, 1, summary)))
+	}
 ```
 \pagebreak
 </div>
