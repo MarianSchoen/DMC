@@ -36,6 +36,9 @@ run_cibersort <- function(exprs,
                           cell.type.column = "cell_type",
                           patient.column = NULL
                           ) {
+	suppressMessages(library(e1071, quietly =TRUE))
+	suppressMessages(library(parallel, quietly = TRUE))
+	suppressMessages(library(preprocessCore, quietly = TRUE))
     # error checking
     if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
