@@ -537,7 +537,7 @@ benchmark <- function(
 
 	# deconvolution step is over
 	# create results markdown
-	report.path <- render_results(output.folder, metric, metric.name)
+	report.path <- render_results(output.folder, metric, metric.name, benchmark.name, cell.type.column)
 	cat("Done\t\t\t\t", as.character(Sys.time()), "\n\n", sep = "")
 	cat("Report generated: ", report.path, "\n", sep = "")
 	if(dir.exists("CIBERSORT")){
