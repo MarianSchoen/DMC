@@ -178,9 +178,9 @@ evaluation_plot <- function(results.df, title = NULL, metric = "cor", metric.nam
         )) + 0.5),
         labels = paste(
           levels(quality.scores$algorithm),
-          "\nr=",
+          "\nscore=",
           round(ranking, 2),
-          " +/- ",
+          "\n+/- ",
           round(sds, 2),
           sep = ""
         ),
