@@ -27,6 +27,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
   for(n in names(results.list[[1]])){
     dfs[[n]] <- c()
   }
+  
   # iterate over repetitions
   for (j in 1:length(results.list)) {
     # iterate over algorithms
@@ -81,6 +82,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
         }
       }
     }
+    
     # join type names with corresponding mean correlation across all repetitions for plot titles
     df$type <- as.factor(df$type)
     labs <- unique(as.character(df$type))
@@ -116,8 +118,8 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
       ) + 
       ggtitle(name) +
       geom_abline(slope = 1, intercept = 0, linetype = 2) +
-      ylim(min(df$estimate), 1) +
-      scale_x_continuous(limits = c(0,1), n.breaks = 4)
+      ylim(min(df$estimate), max(df$estimate)) +
+      scale_x_continuous(limits = c(min(df$real),max(df$real)), n.breaks = 4)
       
       scatter.plots[[name]] <- scatter.plot
   }
