@@ -144,7 +144,7 @@ In case of multiple repetitions, the plotted scores are averages over all repeti
 </div>
 
 ### Scatter plots of quantities
-```{r scatter_plots, echo = FALSE, fig.width = 18, fig.height = 5}
+```{r scatter_plots, echo = FALSE, fig.width = score.width, fig.height = 6}
 if(exists("scatter.plots.list")){
 for(l in scatter.plots.list){
 	if(!is.null(l)){
@@ -154,7 +154,7 @@ for(l in scatter.plots.list){
 			}
 	}
 }
-pdf(paste(plot.dir, "scatter_plots_real.pdf", sep = "/"), width = 18, height = 5)
+pdf(paste(plot.dir, "scatter_plots_real.pdf", sep = "/"), width = score.width, height = 6)
 for(l in scatter.plots.list){
 	if(!is.null(l)){
 		for(p in l){
@@ -359,14 +359,14 @@ Bulks were simulated by taking the sum over a fixed number of randomly sampled s
 </div>
 
 ### Scatter plot of quantities
-```{r bulk_sim_scatter, fig.width = 18, fig.height = 5}
+```{r bulk_sim_scatter, fig.width = score.width, fig.height = 6}
 if(exists("scatter.plots.list.sim")){
 	for(l in scatter.plots.list.sim){
 		for(p in l){
 			plot(p)
 		}
 	}
-  pdf(paste(plot.dir, "scatter_plots_simulated.pdf", sep = "/"), width = 18, height = 5)
+  pdf(paste(plot.dir, "scatter_plots_simulated.pdf", sep = "/"), width = score.width, height = 6)
 	for(l in scatter.plots.list.sim){
 		for(p in l){
 			plot(p)

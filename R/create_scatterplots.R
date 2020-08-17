@@ -19,6 +19,9 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
     }
     real.props <- results.list$bulk.props
   }
+  if(any(colSums(real.props) != 1)){
+	  real.props <- apply(real.props, 2, function(x) {x / sum(x)})
+  }
 
   results.list <- results.list[["results.list"]]
   scatter.plots <- list()
@@ -119,7 +122,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
       ggtitle(name) +
       geom_abline(slope = 1, intercept = 0, linetype = 2) +
       ylim(min(df$estimate), max(df$estimate)) +
-      scale_x_continuous(limits = c(min(df$real),max(df$real)), n.breaks = 4)
+      scale_x_continuous(limits = c(0, 1), n.breaks = 4)
       
       scatter.plots[[name]] <- scatter.plot
   }

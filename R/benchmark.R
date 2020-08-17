@@ -365,6 +365,9 @@ benchmark <- function(
 		suppressMessages(suppressWarnings(write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))))
 	}
 
+	# rescale real props to be between 0 and 1
+	real.props <- apply(real.props, 2, function(x) {x / sum(x)})
+
 	# assume that samples in expression and pheno data are in the correct order
 	# if names do not match, assign sample names from expression to pheno data
 	if(!identical(rownames(training.pheno), colnames(training.exprs))){
