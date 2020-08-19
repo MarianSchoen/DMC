@@ -6,10 +6,10 @@
 #'  in columns. \code{nrow(sc.pheno)} must equal \code{ncol(sc.counts)}. Cell types need 
 #'  to be specified in a column named `cell.type.column` and the patient/origin
 #'  (if available) in a column named 'patient'
-#' @param real.counts non-negative numeric matrix, with features as rows, and 
+#' @param bulk.counts non-negative numeric matrix, with features as rows, and 
 #' bulk RNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal 
-#' \code{nrow(real.props)}
-#' @param real.props non-negative numeric matrix specifying the amount of each
+#' \code{nrow(bulk.props)}
+#' @param bulk.props non-negative numeric matrix specifying the amount of each
 #' cell type in all each bulk, with cell types as rows and bulk RNA-Seq profiles as columns.
 #' @param benchmark.name string, name of the benchmark. Will be used as name
 #' for the results directory
@@ -68,8 +68,8 @@
 benchmark <- function(
   sc.counts, 
   sc.pheno, 
-  real.counts, 
-  real.props,
+  bulk.counts, 
+  bulk.props,
   benchmark.name,
   grouping,
   cell.type.column = "cell_type",
@@ -97,7 +97,7 @@ benchmark <- function(
   ){
 	  if(verbose) tictoc::tic("Benchmark")
 	if(verbose) cat("calculating checksum\n")
-	hash <- digest::digest(list(sc.counts, sc.pheno, real.counts, real.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.cluster.sizes, genesets, avg.profiles.per.subcluster))
+	hash <- digest::digest(list(sc.counts, sc.pheno, bulk.counts, bulk.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.cluster.sizes, genesets, avg.profiles.per.subcluster))
 	# check whether temporary directory is available and writeable
 	# if not specified use .tmp in working directory
 	if(is.null(temp.dir)){
@@ -137,9 +137,9 @@ benchmark <- function(
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
-	if(!is.null(real.counts) && !is.null(real.props)){
-	if(ncol(real.counts) != ncol(real.props)){
-		stop("Number of bulks in real.counts and real.props do not match")
+	if(!is.null(bulk.counts) && !is.null(bulk.props)){
+	if(ncol(bulk.counts) != ncol(bulk.props)){
+		stop("Number of bulks in bulk.counts and bulk.props do not match")
 	}
 	}
 	if(is.null(genesets)){
@@ -312,7 +312,7 @@ benchmark <- function(
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
 	if(!file.exists(paste(output.folder, "input_data/raw.h5", sep = "/"))){
-	  suppressMessages(suppressWarnings(write_data(sc.counts, sc.pheno, real.counts, real.props, filename = paste(output.folder,"input_data/raw.h5", sep = "/"))))
+	  suppressMessages(suppressWarnings(write_data(sc.counts, sc.pheno, bulk.counts, bulk.props, filename = paste(output.folder,"input_data/raw.h5", sep = "/"))))
 	}
 	if(!file.exists(paste(output.folder, "input_data/params.h5", sep = "/"))){
 	  suppressMessages(suppressWarnings(write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))))
@@ -324,8 +324,8 @@ benchmark <- function(
 		if(cpm){
 			if(verbose) cat("scaling expression profiles to cpm\n")
 			sc.counts <- scale_to_count(sc.counts)
-			if(!is.null(real.counts))
-				real.counts <- scale_to_count(real.counts)
+			if(!is.null(bulk.counts))
+				bulk.counts <- scale_to_count(bulk.counts)
 		}
 
 		# split data into test and validation set
@@ -369,7 +369,7 @@ benchmark <- function(
 	}
 
 	# rescale real props to be between 0 and 1
-	real.props <- apply(real.props, 2, function(x) {x / sum(x)})
+	bulk.props <- apply(bulk.props, 2, function(x) {x / sum(x)})
 
 	# assume that samples in expression and pheno data are in the correct order
 	# if names do not match, assign sample names from expression to pheno data
@@ -423,7 +423,7 @@ benchmark <- function(
 		to.run <- which(! algorithm.names %in% present.algorithms)
 	}
 	res.no <- length(previous.results) + 1
-	if(!is.null(real.counts) && !is.null(real.props)){
+	if(!is.null(bulk.counts) && !is.null(bulk.props)){
 	# deconvolute real bulks
 	cat("deconvolve real bulks...\t", as.character(Sys.time()), "\n", sep = "")
 	if(length(to.run)>0){
@@ -440,7 +440,7 @@ benchmark <- function(
 			TRUE, 
 			NULL, 
 			0, 
-			list(bulks = real.counts, props = real.props), 
+			list(bulks = bulk.counts, props = bulk.props), 
 			repeats,
 			cell.type.column = cell.type.column,
 			patient.column = patient.column
@@ -454,7 +454,7 @@ benchmark <- function(
 		for(a in algorithms[to.run]){
 			estimates[[a$name]] <- real.benchmark$results.list[["1"]][[a$name]]$est.props
 		}
-		props <- list(real = real.props, est = estimates)
+		props <- list(real = bulk.props, est = estimates)
 		bootstrap.real <- bootstrap_bulks(props)
 		h5_write_mat(bootstrap.real, paste(output.folder, "/results/real/bootstrap_bulks",res.no,".h5",sep=""))
 	}
