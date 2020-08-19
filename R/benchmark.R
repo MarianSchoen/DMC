@@ -58,7 +58,9 @@
 #' If not specified, a vector of length 'n.cluster.sizes'  will be automatically generated based on the data.
 #' @param n.cluster.sizes integer, number of subtype cluster sizes to generate if avg.profiles.per.subcluster is not specified
 #' @param cibersort.path string, path to CIBERSORT source code. Necesssary, if cibersort or bseq-sc wrappers are used.
-#'
+#' @param ncells.per.bulk positive numeric, number of samples to be randomly
+#' drawn for each simulated bulk; default 1000;
+#' 
 #' @return NULL, results are stored via hdf5 to 'temp.dir'
 #' @export
 #' 
@@ -81,7 +83,7 @@ benchmark <- function(
   genesets = NULL, 
   metric = "cor",
   metric.name = NULL,
-  repeats = 3, 
+  repeats = 5, 
   temp.dir = NULL, 
   exclude.from.bulks = NULL, 
   exclude.from.signature = NULL, 
@@ -90,7 +92,8 @@ benchmark <- function(
   verbose = FALSE,
   avg.profiles.per.subcluster = NULL,
   n.cluster.sizes = 5,
-  cibersort.path = NULL
+  cibersort.path = NULL,
+  ncells.per.bulk = 1000
   ){
 	  if(verbose) tictoc::tic("Benchmark")
 	if(verbose) cat("calculating checksum\n")
@@ -356,7 +359,7 @@ benchmark <- function(
 		# create simulated bulks if test data is available
 		if(!is.null(test.exprs)){
 			cat("creating artificial bulks for simulation\n")
-			sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm, cell.type.column = cell.type.column)
+			sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm, cell.type.column = cell.type.column, ncells.per.bulk = ncells.per.bulk)
 		}else{
 			sim.bulks <- list(bulks = NULL, props = NULL, sub.props = NULL)
 		}

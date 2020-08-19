@@ -26,6 +26,8 @@
 #' @param patient.column string, which column of 'pheno'
 #' holds the patient information; optional, default NULL
 #' @param subtypes boolean, are simulated subtypes used for deconvolution?
+#' @param ncells.per.bulk positive numeric, number of samples to be randomly
+#' drawn for each simulated bulk; default 1000; only needed when bulks=NULL
 #'
 #' @return list with two entries:
 #' 1) results.list: list containing deconvolution results for all algorithms and repetitions as returned by the algorithm functions
@@ -48,7 +50,8 @@ deconvolute <- function(
   n.repeats = 1,
   subtypes = FALSE,
   cell.type.column = "cell_type",
-  patient.column = NULL
+  patient.column = NULL,
+  ncells.per.bulk = 1000
   ) {
   # parameter checks
   if (n.repeats < 1) {
@@ -94,6 +97,7 @@ deconvolute <- function(
       , n.bulks = n.bulks
       , include.in.bulks = include.in.bulks
       , sum.to.count = TRUE
+      , ncells.per.bulk = ncells.per.bulk
       )
     real.props <- validation.data$props
     bulks.expr <- validation.data$bulks
