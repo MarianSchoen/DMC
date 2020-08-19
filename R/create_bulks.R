@@ -15,6 +15,8 @@
 #' to a fixed total count number? default TRUE
 #' @param cell.type.column string, which column of 'pheno'
 #' holds the cell type information? 
+#' @param d numeric >= 1; determines the distribution of cell types within the simulated bulks;
+#' higher d means more extreme distributions
 #' @return list with 
 #'    - "bulks": matrix containing bulk expression profiles (features x bulks)
 #'    - "props" matrix containing quantities (cell type x bulks)
@@ -27,7 +29,8 @@ create_bulks <- function(
     n.bulks = 500, 
     include.in.bulks = NULL, 
     ncells.per.bulk = 1000, 
-    sum.to.count = TRUE
+    sum.to.count = TRUE,
+    d = 1
     ) {
     # parameter checks
     if (nrow(pheno) != ncol(exprs)) {
@@ -37,7 +40,7 @@ create_bulks <- function(
         stop("n.bulks must be numeric")
     }
     if(!is.numeric(ncells.per.bulk)){
-        stop("ncells.per.bulk must be numeric (0,1)")
+        stop("ncells.per.bulk must be numeric > 0")
     }else{
         if(ncells.per.bulk <= 0){
             stop("ncells.per.bulk must be numeric > 0")
@@ -94,7 +97,7 @@ create_bulks <- function(
         types <- unique(combined.type)
         
         # sample random weights for each type
-        weights <- sample(0:100, size = length(types), replace = TRUE)
+        weights <- (1 / sample(0:100, size = length(types), replace = TRUE))**d
         
         # determine, how many samples of each type should be drawn
         n.samples <- sample(types, size = ceiling(ncells.per.bulk), replace = TRUE, prob = weights)
@@ -115,9 +118,9 @@ create_bulks <- function(
       }else{
         types <- unique(pheno[, cell.type.column])
         # sample random weights for each type
-        weights <- sample(0:100, size = length(types), replace = TRUE) #
+        weights <- 1 / (sample(0:100, size = length(types), replace = TRUE))**d 
         # determine, how many samples of each type should be drawn
-        n.samples <- sample(types, size = ceiling(ncells.per.bulk), replace = TRUE, prob = weights) #
+        n.samples <- sample(types, size = ceiling(ncells.per.bulk), replace = TRUE, prob = weights) 
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
