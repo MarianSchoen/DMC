@@ -9,7 +9,7 @@
 #' @param n.bulks integer, the number of bulks to be created, defaults to 500
 #' @param include.in.bulks vector of strings, cell types to be used for bulk 
 #' simulation; if not supplied, all will be used
-#' @param ncells.per.bulk positive numeric, number of samples to be randomly
+#' @param n.profiles.per.bulk positive numeric, number of samples to be randomly
 #' drawn for each bulk; default 1000
 #' @param sum.to.count boolean, should all bulks be normalized
 #' to a fixed total count number? default TRUE
@@ -28,7 +28,7 @@ create_bulks <- function(
     cell.type.column = "cell_type",
     n.bulks = 500, 
     include.in.bulks = NULL, 
-    ncells.per.bulk = 1000, 
+    n.profiles.per.bulk = 1000, 
     sum.to.count = TRUE,
     d = 1
     ) {
@@ -39,11 +39,11 @@ create_bulks <- function(
     if(!is.numeric(n.bulks)){
         stop("n.bulks must be numeric")
     }
-    if(!is.numeric(ncells.per.bulk)){
-        stop("ncells.per.bulk must be numeric > 0")
+    if(!is.numeric(n.profiles.per.bulk)){
+        stop("n.profiles.per.bulk must be numeric > 0")
     }else{
-        if(ncells.per.bulk <= 0){
-            stop("ncells.per.bulk must be numeric > 0")
+        if(n.profiles.per.bulk <= 0){
+            stop("n.profiles.per.bulk must be numeric > 0")
         }
     }
     rownames(pheno) <- colnames(exprs)
@@ -100,7 +100,7 @@ create_bulks <- function(
         weights <- (1 / sample(0:100, size = length(types), replace = TRUE))**d
         
         # determine, how many samples of each type should be drawn
-        n.samples <- sample(types, size = ceiling(ncells.per.bulk), replace = TRUE, prob = weights)
+        n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights)
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
@@ -120,7 +120,7 @@ create_bulks <- function(
         # sample random weights for each type
         weights <- 1 / (sample(0:100, size = length(types), replace = TRUE))**d 
         # determine, how many samples of each type should be drawn
-        n.samples <- sample(types, size = ceiling(ncells.per.bulk), replace = TRUE, prob = weights) 
+        n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights) 
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
