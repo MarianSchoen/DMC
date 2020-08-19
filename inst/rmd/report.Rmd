@@ -424,7 +424,7 @@ if(exists("gene.plots")){
 	plot(gene.plots$runtime.plot)
   
   pdf(paste(plot.dir, "gene_time_plot_simulated.pdf", sep = "/"), width = 16, height = 9)
-  plot(score.plot.sim)
+  plot(gene.plots$runtime.plot)
   invisible(dev.off())
 }else{
 	cat("No data available for plotting.\n")
