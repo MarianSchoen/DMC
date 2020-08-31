@@ -72,7 +72,7 @@ run_least_squares <- function(
     included.in.X = include.in.x,
     pheno = cell.types,
     expr.data = exprs,
-    percentage.of.all.cells = 0.3,
+    percentage.of.all.cells = 0.9999,
     normalize.to.count = TRUE
   )
   sig.matrix <- sample.X$X.matrix
