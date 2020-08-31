@@ -90,6 +90,7 @@ deconvolute <- function(
     } else {
       include.in.bulks <- unique(test.pheno[, cell.type.column])
     }
+    set.seed(1)
     validation.data <- create_bulks(
       exprs = test.expr
       , pheno = test.pheno
