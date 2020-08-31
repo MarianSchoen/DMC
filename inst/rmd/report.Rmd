@@ -84,6 +84,9 @@ grouping <- input_params$grouping
    		}
   	}
   }
+  if(length(unique(real.df$algorithm)) > length(algorithm.names)){
+	  algorithm.names <- unique(real.df$algorithm)
+  }
   
   files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "bootstrap.*.h5")
   if(length(files) > 0){
@@ -475,9 +478,9 @@ Performance of algorithms depending on the gene set supplied for deconvolution. 
 ### Score plot
 ```{r subtype_sim, fig.width = score.width, fig.height = score.height}
 if(exists("score.plot.subtype")){
-  plot(score.plot.subtype$coarse)
-  pdf(paste(plot.dir, "subtype_plot.pdf", sep = "/"), width = score.width, height = score.height)
-  plot(score.plot.subtype$coarse)
+  plot(score.plot.subtype$overall)
+  pdf(paste(plot.dir, "subtype_plot.pdf", sep = "/"), width = 20, height = 10)
+  plot(score.plot.subtype$overall)
   invisible(dev.off())
 }else{
 	cat("No data available for plotting.\n")

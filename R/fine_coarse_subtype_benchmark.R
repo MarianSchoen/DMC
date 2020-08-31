@@ -114,8 +114,14 @@ fine_coarse_subtype_benchmark <- function(
     , length = length(subtype.columns)
   )
   names(column.list) <- subtype.columns
-  
-  
+ 
+  # add original cell type classification as new column for benchmark
+  profiles.per.ct <- 27000
+	  #as.integer(nrow(sc.pheno) / length(unique(sc.pheno[[cell.type.column]]))) 
+  sc.pheno <- cbind(sc.pheno, sc.pheno[[cell.type.column]])
+  colnames(sc.pheno)[ncol(sc.pheno)] <- paste0("subtype.avg.", profiles.per.ct)
+  subtype.columns <- c(paste0("subtype.avg.", profiles.per.ct), subtype.columns)
+
   # go through each 'subtype.column' 
   for(column in subtype.columns){
     # simulate bulks, and deconvolute them 

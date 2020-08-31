@@ -1,8 +1,8 @@
 subtype_plot <- function(results.df){
   
   results.df <- results.df[which(results.df$cell_type == "overall"),]
-  overall.plot <- ggplot(results.df, aes(x = cluster_size, y = score, col = algorithm)) + 
-    geom_line(aes(linetype = coarse)) +
+  overall.plot <- ggplot(results.df[which(!as.logical(results.df$coarse)),], aes(x = cluster_size, y = score, col = algorithm)) + 
+    geom_line() +
     scale_x_reverse()
   algorithm.plot <- ggplot(results.df, aes(x = cluster_size, y = score, col = algorithm)) + 
     geom_line(aes(linetype = coarse)) +
