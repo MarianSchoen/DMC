@@ -97,7 +97,7 @@ create_bulks <- function(
         types <- unique(combined.type)
         
         # sample random weights for each type
-        weights <- (1 / sample(0:100, size = length(types), replace = TRUE))**d
+        weights <- (1 / sample(1:100, size = length(types), replace = TRUE))**d
         
         # determine, how many samples of each type should be drawn
         n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights)
@@ -118,7 +118,7 @@ create_bulks <- function(
       }else{
         types <- unique(pheno[, cell.type.column])
         # sample random weights for each type
-        weights <- 1 / (sample(0:100, size = length(types), replace = TRUE))**d 
+        weights <- 1 / (sample(1:100, size = length(types), replace = TRUE))**d 
         # determine, how many samples of each type should be drawn
         n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights) 
         

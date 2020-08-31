@@ -228,6 +228,8 @@ benchmark <- function(
 			}else{
 				warning(paste("Specified file not found:", cibersort.path))
 			}
+		}else{
+			warning("No CIBERSORT source file supplied. Any wrappers depending on CIBERSORT can not be used.")
 		}
 	}
 
@@ -257,7 +259,11 @@ benchmark <- function(
 				if(exists(as.character(substitute(a$algorithm))) && is.character(a$name)){
 					new.algos <- c(new.algos, list(a))
 				}else{
-					stop("Invalid algorithm")
+					if(!is.character(a$name)){
+						stop("Invalid algorithm.")
+					}else{
+						stop(paste0("Invalid algorithm: ", a$name))
+					}
 				}
 			}else{
 				if(is.character(a) && a %in% algorithm.names){
@@ -369,7 +375,9 @@ benchmark <- function(
 	}
 
 	# rescale real props to be between 0 and 1
-	bulk.props <- apply(bulk.props, 2, function(x) {x / sum(x)})
+	if(!is.null(bulk.props)){
+		bulk.props <- apply(bulk.props, 2, function(x) {x / sum(x)})
+	}
 
 	# assume that samples in expression and pheno data are in the correct order
 	# if names do not match, assign sample names from expression to pheno data

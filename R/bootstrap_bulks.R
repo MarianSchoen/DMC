@@ -30,8 +30,11 @@ bootstrap_bulks <- function(props, metric = "cor") {
   estimates <- props$est
   real.props <- props$real
   n.bulks <- ncol(estimates[[1]])
-  cts <- intersect(rownames(estimates[[1]]), rownames(real.props))
 
+  cts <- rownames(real.props)
+  for(i in 1:length(estimates)){
+	  cts <- intersect(cts, rownames(estimates[[i]]))
+  }
   bootstrap.mat <- c()
   for(i in 1:1000){
     # draw n.bulks bulks randomly with replacement
