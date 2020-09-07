@@ -62,13 +62,11 @@ create_sig_matrix <- function(
 
   # only split data if there are at least 3 samples for each cell type
   # otherwise the testing in the sig. matrix building will fail
-  type.counts <- c()
-  for (t in unique(pheno[, cell.type.column])) {
-    type.counts <- c(type.counts, length(which(pheno[, cell.type.column] == t)))
-  }
+
+  type.counts <- table(pheno[, cell.type.column])
 
   if (split.data && !any(type.counts < 3)) {
-    # create reference profiles from 10% of the cells of each type
+    # create reference profiles from 30% of the cells of each type
     cell.types <- pheno[, cell.type.column]
     names(cell.types) <- colnames(exprs)
 
@@ -81,6 +79,7 @@ create_sig_matrix <- function(
     )
     sig.matrix <- sample.X$X.matrix
     samples.to.remove <- sample.X$samples.to.remove
+    rm(sample.X)
     exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove), drop = F]
     pheno <- pheno[-which(rownames(pheno) %in% samples.to.remove), , drop = F]
   }
@@ -104,7 +103,7 @@ create_sig_matrix <- function(
       p.vals <- 2 * pt(abs(t.test.result), length(labs) - 2, lower.tail = FALSE)
 
       # apparently an error occurs when qvalue calls pi0est, which calls smooth.spline; input does not contain
-      # missing or infinite values, thereforce catch the error and try to compensate in some way -> adj.p
+      # missing or infinite values, therefore catch the error and try to compensate in some way -> adj.p
       q.vals <- try(qvalue::qvalue(p.vals)$qvalues, silent = TRUE)
       if (class(q.vals) == "try-error") {
         q.vals <- p.adjust(p.vals, "BH")
@@ -154,6 +153,7 @@ create_sig_matrix <- function(
       exprs[, which(pheno[, cell.type.column] == t), drop = F]
     )
   }
+  
   # again following Newman et al.:
   # take top g genes for every cell type, create signature matrices
   # choose the gene set that minimizes condition number
@@ -195,8 +195,10 @@ create_sig_matrix <- function(
   # once again depending on whether split.data is true and possible
   if (split.data && !any(type.counts < 3)) {
     ref.mat <- sig.matrix[optimal.genes, ]
+    rm(sig.matrix)
   } else {
     ref.mat <- ref.profiles[optimal.genes, ]
+    rm(ref.profiles)
   }
 
   # remove any duplicate genes that might be in the matrix
@@ -205,5 +207,5 @@ create_sig_matrix <- function(
     ref.mat <- ref.mat[-which(duplicated(rownames(ref.mat))),]
   }
 
-  return(sig.matrix = ref.mat)
+  return(ref.mat)
 }

@@ -76,7 +76,7 @@ run_least_squares <- function(
     normalize.to.count = TRUE
   )
   sig.matrix <- sample.X$X.matrix
-  full.mat <- sig.matrix
+  rm(sample.X)
 
   # remove used samples from expression matrix and pheno data
   #samples.to.remove <- sample.X$samples.to.remove

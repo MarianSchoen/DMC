@@ -123,6 +123,7 @@ benchmark <- function(
 					}
 				}
 				saveRDS(hash, paste(temp.dir, benchmark.name, "hash.rds",sep="/"))
+				rm("hash")
 			}else{
 				flag <- dir.create(paste(temp.dir, "/", benchmark.name, sep = ""))
 				if(!flag) {
@@ -297,7 +298,7 @@ benchmark <- function(
 	}
 
 	check_algorithms(algorithms)
-
+	
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
 
@@ -311,7 +312,10 @@ benchmark <- function(
 		training.pheno <- training_set$sc.pheno
 		test.exprs <- validation_set$sc.counts
 		test.pheno <- validation_set$sc.pheno
-		sim.bulks <- list(bulks = validation_set$bulk.counts, props = validation_set$bulk.props, sub.props = validation_set$sub.props)
+		sim.bulks <- list(bulks = validation_set$bulk.counts, props = validation_set$bulk.props)
+		
+		# don't need these any more
+		rm(list = c("training_set", "validation_set"))
 	}else{
 		dir.create(paste(output.folder,"/input_data",sep=""), recursive = TRUE)
 	}
@@ -322,7 +326,16 @@ benchmark <- function(
 	}
 	if(!file.exists(paste(output.folder, "input_data/params.h5", sep = "/"))){
 	  suppressMessages(suppressWarnings(write_misc_input(algorithm.names = algorithm.names, genesets = genesets, function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))))
+	}else{
+	  # join list of algorithms and genesets from previous function calls
+	  input_params <- read_misc_input(paste(output.folder, "input_data/params.h5", sep = "/"))
+	  suppressMessages(suppressWarnings(write_misc_input(algorithm.names = unique(c(algorithm.names, input_params$algorithms)), genesets = unique(c(genesets, input_params$genesets)), function.call = function.call, grouping = grouping, file = paste(output.folder,"input_data/params.h5",sep="/"))))
+	  # don't need this any more
+	  rm("input_params")
 	}
+	
+	# free ram
+	gc()
 
 	# if any of the required data is missing preprocess input data for deconvolution
 	if(!exists("training.exprs") || !exists("training.pheno") || !exists("test.exprs") || !exists("test.pheno") || !exists("sim.bulks")){
@@ -330,10 +343,12 @@ benchmark <- function(
 		if(cpm){
 			if(verbose) cat("scaling expression profiles to cpm\n")
 			sc.counts <- scale_to_count(sc.counts)
+			gc()
 			if(!is.null(bulk.counts))
 				bulk.counts <- scale_to_count(bulk.counts)
 		}
 
+		if(verbose) cat("splitting into test and training data\n")
 		# split data into test and validation set
 		if(length(unique(grouping)) == 2){
 			split.data <- split_dataset(sc.counts, sc.pheno, method = "predefined", grouping = grouping)
@@ -341,6 +356,9 @@ benchmark <- function(
 			training.pheno <- split.data$training$pheno
 			test.exprs <- split.data$test$exprs
 			test.pheno <- split.data$test$pheno
+			
+			# remove unnecessary variable
+			rm("split.data")
 		}else if(length(unique(grouping)) == 1){
 			message("Grouping vector contains only one group. Disabling all simulations.")
 			training.exprs <- sc.counts
@@ -354,6 +372,10 @@ benchmark <- function(
 		}else{
 			stop("Invalid grouping vector")
 		}
+	  
+	  # this is not needed any more
+	  rm(list = c("sc.counts", "sc.pheno"))
+	  gc()
 
 		# exclude.from.bulks is a parameter of benchmark(), create_bulks expects the opposite
 		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno[[cell.type.column]]), exclude.from.bulks)) > 0){
@@ -362,19 +384,29 @@ benchmark <- function(
 			include.in.bulks <- NULL
 		}
 
-		# create simulated bulks if test data is available
-		if(!is.null(test.exprs)){
+		# create simulated bulks if test data is available and they are needed
+	  # they are only needed if bulk/geneset/training set simulations are performed
+	  # subtype simulation generates its own bulks
+		if(!is.null(test.exprs) && any(c(simulation.bulks, simulation.genes, simulation.samples))){
 			cat("creating artificial bulks for simulation\n")
-			sim.bulks <- create_bulks(test.exprs, test.pheno, n.bulks, include.in.bulks, sum.to.count = cpm, cell.type.column = cell.type.column, n.profiles.per.bulk = n.profiles.per.bulk)
+			sim.bulks <- create_bulks(
+			  test.exprs, 
+			  test.pheno, 
+			  n.bulks, 
+			  include.in.bulks, 
+			  sum.to.count = cpm, 
+			  cell.type.column = cell.type.column, 
+			  n.profiles.per.bulk = n.profiles.per.bulk
+			)
 		}else{
-			sim.bulks <- list(bulks = NULL, props = NULL, sub.props = NULL)
+			sim.bulks <- list(bulks = NULL, props = NULL)
 		}
 		# save processed data for later use and repeated benchmarks
 		suppressMessages(suppressWarnings(write_data(training.exprs, training.pheno, filename = paste(output.folder, "/input_data/training_set.h5", sep = ""))))
-		suppressMessages(suppressWarnings(write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, sim.bulks$sub.props, paste(output.folder, "/input_data/validation_set.h5", sep=""))))
+		suppressMessages(suppressWarnings(write_data(test.exprs, test.pheno, sim.bulks$bulks, sim.bulks$props, paste(output.folder, "/input_data/validation_set.h5", sep=""))))
 	}
 
-	# rescale real props to be between 0 and 1
+	# rescale real quantities to be between 0 and 1
 	if(!is.null(bulk.props)){
 		bulk.props <- apply(bulk.props, 2, function(x) {x / sum(x)})
 	}
@@ -429,7 +461,13 @@ benchmark <- function(
 		}
 		if(verbose) print(present.algorithms)
 		to.run <- which(! algorithm.names %in% present.algorithms)
+		rm(list = c("previous.results", "present.algorithms"))
+		gc()
 	}
+	
+	# remove variables
+	
+	
 	res.no <- length(previous.results) + 1
 	if(!is.null(bulk.counts) && !is.null(bulk.props)){
 	# deconvolute real bulks
@@ -439,7 +477,7 @@ benchmark <- function(
 		real.benchmark <- deconvolute(
 			training.exprs, 
 			training.pheno, 
-			NULL, NULL, 
+			NULL, NULL, # do not need test data to deconvolve real bulks
 			algorithms[to.run], 
 			verbose, 
 			TRUE, 
@@ -467,6 +505,10 @@ benchmark <- function(
 		h5_write_mat(bootstrap.real, paste(output.folder, "/results/real/bootstrap_bulks",res.no,".h5",sep=""))
 	}
 	}
+	
+	# remove real bulk results from RAM
+	rm(list = c("real.benchmark", "estimates", "props", "bootstrap.real"))
+	gc()
 
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)
@@ -499,23 +541,24 @@ benchmark <- function(
 			to.run <- which(! algorithm.names %in% present.algorithms)
 		}
 		res.no <- length(previous.results) + 1
+		
+		# remove variables containing previous results
+		rm(list = c("previous.results", "present.algorithms"))
+		gc()
 
 		# execute benchmark corresponding to s and save results
 		if(length(to.run)>0){
 			if(s == "bulks"){
 				cat("bulk simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.bulk.benchmark <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats, cell.type.column = cell.type.column, patient.column = patient.column)
-				benchmark.results <- sim.bulk.benchmark
+				benchmark.results <- deconvolute(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], verbose, FALSE, NULL, exclude.from.signature, TRUE, NULL, 0, sim.bulks, repeats, cell.type.column = cell.type.column, patient.column = patient.column)
 			}
 			if(s == "genes"){
 				cat("geneset simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.genes.benchmark <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column, patient.column = patient.column)
-				benchmark.results <- sim.genes.benchmark
+			  benchmark.results <- geneset_benchmark(training.exprs, training.pheno, NULL, NULL, genesets, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, verbose, split.data = FALSE, cell.type.column = cell.type.column, patient.column = patient.column)
 			}
 			if(s == "samples"){
 				cat("sample simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
-				sim.sample.benchmark <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = FALSE, cell.type.column = cell.type.column, patient.column = patient.column)
-				benchmark.results <- sim.sample.benchmark
+			  benchmark.results <- sample_size_benchmark(training.exprs, training.pheno, NULL, NULL, algorithms[to.run], sim.bulks, repeats, exclude.from.signature, 0.25, verbose, split.data = FALSE, cell.type.column = cell.type.column, patient.column = patient.column)
 			}
 			if(s == "subtypes"){
 				cat("subtype simulation...\t\t", as.character(Sys.time()), "\n", sep = "")
@@ -527,7 +570,7 @@ benchmark <- function(
 					all.pheno <- training.pheno
 				}
 				
-				sim.subtype.benchmark <- fine_coarse_subtype_benchmark(
+			  benchmark.results <- fine_coarse_subtype_benchmark(
 					all.exprs, all.pheno, 
 					cell.type.column = cell.type.column, 
 					sample.name.column = sample.name.column, 
@@ -537,26 +580,31 @@ benchmark <- function(
 					n.cluster.sizes = n.cluster.sizes,
 					patient.column = patient.column
 				)
-
-				benchmark.results <- sim.subtype.benchmark
+			  
+			  rm(list = c("all.exprs", "all.pheno"))
 			}
+		  
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
 		 		dir.create(paste(output.folder, "/results/simulation/", s, sep = ""), recursive = TRUE)
 			}
-		  	suppressMessages(suppressWarnings(write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = ""))))
+		  suppressMessages(suppressWarnings(write_result_list(benchmark.results, paste(output.folder, "/results/simulation/", s, "/deconv_output_", res.no, ".h5", sep = ""))))
+		  rm("benchmark.results")
 		}
 	}
 
 	cat("preparing results...\t\t", as.character(Sys.time()), "\n", sep = "")
-
 	# deconvolution step is over
 	# create results markdown
-	report.path <- render_results(output.folder, metric, metric.name, benchmark.name, cell.type.column)
+	
+	report.path <- suppressWarnings(render_results(output.folder, metric, metric.name, benchmark.name, cell.type.column))
 	cat("Done\t\t\t\t", as.character(Sys.time()), "\n\n", sep = "")
 	cat("Report generated: ", report.path, "\n", sep = "")
+	cat("Created plots can be found in: ", output.folder, "/report_plots/\n", sep = "")
+	
 	if(dir.exists("CIBERSORT")){
 	  unlink("CIBERSORT", recursive = TRUE)
 	}
+	
 	if(verbose) {
 		t <- tictoc::toc(quiet = TRUE)
 		time <- t$toc - t$tic

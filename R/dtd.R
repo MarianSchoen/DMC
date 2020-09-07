@@ -78,7 +78,7 @@ run_dtd <- function(
     normalize.to.count = TRUE
   )
   sig.matrix <- sample.X$X.matrix
-  full.mat <- sig.matrix
+  rm(sample.X)
 
   # remove used samples from expression matrix and pheno data
   # do no remove samples right now; try keeping reference samples
@@ -150,9 +150,6 @@ run_dtd <- function(
       estimate.c.type = "direct"
     )
 
-    g_vec <- dtd.model$best.model$Tweak
-    sig.mat.effective <- apply(sig.matrix, 2, function(x){x * g_vec})
-
     # if any cell types dropped out during estimation complete the matrix
     if(!all(include.in.x %in% rownames(est.props))){
       est.props <- complete_estimates(est.props, include.in.x)
@@ -160,7 +157,6 @@ run_dtd <- function(
   } else {
     # if the model building failed, 
     est.props <- NULL
-    sig.mat.effective <- NULL
   }
 
   # return estimated proportions and the effective signature matrix used

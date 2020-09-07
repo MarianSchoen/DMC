@@ -9,14 +9,12 @@
 #'  as columns
 #' @param bulk.props numeric matrix containing cell type proportions, cell types as rows, 
 #' bulks as columns
-#' @param sub.props numeric matrix containing cell type proportions of simulated subtypes, 
-#' cell types as rows, bulks as columns
 #' @param filename string, where should the data be stored?
 #'
 #' @return NULL, function saves into ‘filename‘
 #' @export
 
-write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, sub.props = NULL, filename) {
+write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bulk.props = NULL, filename) {
   rhdf5::h5createFile(filename)
   # write sc counts and pheno data if present
   # assume that sc.counts and sc.pheno are never written independently...
@@ -53,14 +51,5 @@ write_data <- function(sc.counts = NULL, sc.pheno = NULL, bulk.counts = NULL, bu
     rhdf5::h5write(as.vector(rownames(bulk.props)), filename, "proportions/celltypeids")
     rhdf5::h5write(as.vector(colnames(bulk.props)), filename, "proportions/sampleids")
     rhdf5::h5write(as.matrix(bulk.props), filename, "proportions/data")
-  }
-  if(!is.null(sub.props)){
-    if(!is.matrix(sub.props) || is.null(rownames(sub.props)) || is.null(colnames(sub.props))){
-      stop("Invalid bulk sub-proportion data. Must be matrix with colnames and rownames.")
-    }
-    rhdf5::h5createGroup(filename, "fine_proportions")
-    rhdf5::h5write(as.vector(rownames(sub.props)), filename, "fine_proportions/celltypeids")
-    rhdf5::h5write(as.vector(colnames(sub.props)), filename, "fine_proportions/sampleids")
-    rhdf5::h5write(as.matrix(sub.props), filename, "fine_proportions/data")
   }
 }

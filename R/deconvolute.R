@@ -118,6 +118,7 @@ deconvolute <- function(
   # deconvolute bulks with all supplied algorithms
   if (verbose)
     cat("deconvolving:\n")
+  
   results.list <- list()
   # perform deconvolution several times
   for (i in seq_len(n.repeats)) {
@@ -143,23 +144,23 @@ deconvolute <- function(
       results.list[[as.character(i)]][[f$name]]$name <- f$name
       results.list[[as.character(i)]][[f$name]]$times <- time
       
-      if(subtypes){
-        if(! "coarse_type" %in% colnames(training.pheno)){
-          stop("'subtypes' is TRUE, but column 'coarse_type' is missing from pheno data")
-        }
-        # change the est.props to coarse types by combining subtypes
-        if(!is.null(results.list[[as.character(i)]][[f$name]]$est.props)){
-        	coarse.rnames <- sapply(strsplit(rownames(results.list[[as.character(i)]][[f$name]]$est.props), ".", fixed = TRUE), function(x){x[1]})
-        	temp.props <- matrix(0, nrow = length(unique(coarse.rnames)), ncol = ncol(results.list[[as.character(i)]][[f$name]]$est.props))
-        	rownames(temp.props) <- unique(coarse.rnames)
-        	colnames(temp.props) <- colnames(bulks.expr)
-        	for(t in rownames(temp.props)){
-          	idx <- which(coarse.rnames == t)
-          	temp.props[t,] <- colSums(results.list[[as.character(i)]][[f$name]]$est.props[idx,,drop=F])
-        	}
-        	results.list[[as.character(i)]][[f$name]]$est.props <- temp.props
-      	}
-      }
+      # if(subtypes){
+      #   if(! "coarse_type" %in% colnames(training.pheno)){
+      #     stop("'subtypes' is TRUE, but column 'coarse_type' is missing from pheno data")
+      #   }
+      #   # change the est.props to coarse types by combining subtypes
+      #   if(!is.null(results.list[[as.character(i)]][[f$name]]$est.props)){
+      #   	coarse.rnames <- sapply(strsplit(rownames(results.list[[as.character(i)]][[f$name]]$est.props), ".", fixed = TRUE), function(x){x[1]})
+      #   	temp.props <- matrix(0, nrow = length(unique(coarse.rnames)), ncol = ncol(results.list[[as.character(i)]][[f$name]]$est.props))
+      #   	rownames(temp.props) <- unique(coarse.rnames)
+      #   	colnames(temp.props) <- colnames(bulks.expr)
+      #   	for(t in rownames(temp.props)){
+      #     	idx <- which(coarse.rnames == t)
+      #     	temp.props[t,] <- colSums(results.list[[as.character(i)]][[f$name]]$est.props[idx,,drop=F])
+      #   	}
+      #   	results.list[[as.character(i)]][[f$name]]$est.props <- temp.props
+      # 	}
+      # }
     }
     if(verbose) cat("\n")
   }

@@ -9,7 +9,6 @@
 #'  - bulk.counts: numeric matrix, features as rows, bulk measurements as 
 #'  columns\cr
 #'  - bulk.props: numeric matrix, cell types as rows, bulks as columns\cr
-#'  - sub.props: numeric matrix, cell types (subtypes) as rows, bulks as columns\cr
 #'  - bulk.pheno: dataframe containing pheno data for bulks in columns, bulks as rows
 #'@export
 #'  
@@ -72,23 +71,6 @@ read_data <- function(filename){
     bulk.props <- NULL
   }
 
-  if("fine_proportions" %in% content$name){
-    sub.props <- rhdf5::h5read(filename, "fine_proportions/data")
-    celltypeids <- rhdf5::h5read(filename, "fine_proportions/celltypeids")
-    sampleids <- rhdf5::h5read(filename, "fine_proportions/sampleids")
-
-    # make sure the matrix dimensions are in the right order
-    if(length(sampleids) == ncol(sub.props) && length(celltypeids) == nrow(sub.props)){
-	    rownames(sub.props) <- celltypeids
-	    colnames(sub.props) <- sampleids
-    }else{
-	    rownames(sub.props) <- sampleids
-	    colnames(sub.props) <- celltypeids
-	    sub.props <- t(sub.props)
-    }
-  }else{
-    sub.props <- NULL
-  }
   if("singlecell" %in% content$name){
     sc.counts <- rhdf5::h5read(filename, "singlecell/data")
     geneids <- rhdf5::h5read(filename, "singlecell/geneids")
@@ -121,5 +103,5 @@ read_data <- function(filename){
   }else{
     sc.pheno <- NULL
   }
-  return(list(sc.counts = sc.counts, sc.pheno = sc.pheno, bulk.counts = bulk.counts, bulk.props = bulk.props, sub.props = sub.props, bulk.pheno = bulk.pheno))
+  return(list(sc.counts = sc.counts, sc.pheno = sc.pheno, bulk.counts = bulk.counts, bulk.props = bulk.props, bulk.pheno = bulk.pheno))
 }

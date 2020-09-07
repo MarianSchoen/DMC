@@ -71,6 +71,7 @@ run_music <- function(exprs,
     phenoData = Biobase::AnnotatedDataFrame(pheno)
   )
   bulk.pheno <- data.frame(sample = colnames(bulks))
+  rm(exprs)
 
   # equality check of sample names may fail due to different attributes
   rownames(bulk.pheno) <- colnames(bulks)
@@ -101,6 +102,7 @@ run_music <- function(exprs,
   }
 
   est.props <- as.matrix(t(est.prop.music$Est.prop.weighted))
+  rm(est.prop.music)
 
   # complete the estimation matrix in case of cell type dropouts
   if(!all(include.in.x %in% rownames(est.props))){

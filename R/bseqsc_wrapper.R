@@ -125,6 +125,7 @@ run_bseqsc <- function(
     assayData = exprs,
     phenoData = Biobase::AnnotatedDataFrame(pheno)
   )
+  rm(exprs)
 
   # create reference matrix based on single cell data and DEGs
   B <- try({
@@ -149,9 +150,8 @@ run_bseqsc <- function(
 
   # complete the estimation matrix in case of dropout cell types
   if(!all(unique(pheno[[cell.type.column]]) %in% rownames(fit$coefficients))){
-    est.props <- bseqsc::complete_estimates(fit$coefficients, unique(pheno[[cell.type.column]]))
+    return(list(est.props = complete_estimates(fit$coefficients, unique(pheno[[cell.type.column]])), sig.matrix = B))
   }else{
-    est.props <- fit$coefficients
+    return(list(est.props = fit$coefficients, sig.matrix = B))
   }
-  return(list(est.props = est.props, sig.matrix = B))
 }

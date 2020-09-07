@@ -20,7 +20,6 @@
 #' @return list with 
 #'    - "bulks": matrix containing bulk expression profiles (features x bulks)
 #'    - "props" matrix containing quantities (cell type x bulks)
-#'    - "sub.props" matrix containing quantities of fine cell types (cell type x bulk)
 #' @example create_bulks(training.exprs, training.pheno, n.bulks = 1000)
 create_bulks <- function(
     exprs, 
@@ -58,9 +57,6 @@ create_bulks <- function(
     }
     exprs <- exprs[, rownames(pheno), drop = FALSE]
 
-    # scale to fixed total count per profile
-    exprs <- scale_to_count(exprs)
-
     # create a matrix to contain the bulk expression profiles
     bulk.exprs <- matrix(
         0,
@@ -74,62 +70,28 @@ create_bulks <- function(
     props <- matrix(0, nrow = length(unique(pheno[, cell.type.column])), ncol = n.bulks)
     rownames(props) <- unique(pheno[, cell.type.column])
     colnames(props) <- colnames(bulk.exprs)
-    
-    # if column subtypes exists create a matrix containing proportions of subtypes
-    if("subtype" %in% colnames(pheno)){
-        subtypes <- unique(pheno$subtype)
-        n.subtypes <- length(subtypes)
-        combined.type <- paste(pheno[[cell.type.column]], pheno$subtype, sep = ".")
-        sub.props <- matrix(0, length(unique(combined.type)), ncol = n.bulks)
-        rownames(sub.props) <- unique(combined.type)
-        colnames(sub.props) <- colnames(bulk.exprs)
-    }else{
-        sub.props <- NULL
-        n.subtypes <- 0
-    }
 
     # if no subtype, sample with random distribution from cell_types
     # if subtypes, sample with random distribution from combined.type
     
-    for(i in 1:ncol(bulk.exprs)){
+    for(i in seq_len(ncol(bulk.exprs))){
       bulk.samples <- c()
-      if("subtype" %in% colnames(pheno)){
-        types <- unique(combined.type)
-        
-        # sample random weights for each type
-        weights <- (1 / sample(1:100, size = length(types), replace = TRUE))**d
-        
-        # determine, how many samples of each type should be drawn
-        n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights)
-        
-        # draw samples for each type, store the proportions and the expression
-        for(t in types){
-          sub.samples <- sample(which(combined.type == t), size = sum(n.samples == t), replace = TRUE)
-          coarse.types <- pheno[[cell.type.column]][sub.samples]
-          bulk.samples <- c(bulk.samples, sub.samples)
-          
-          sub.props[t, i] <- length(sub.samples)
-          for(ct in unique(coarse.types)){
-            props[ct, i] <- props[ct, i] + sum(coarse.types == ct)
-          }
-        }
-        sub.props[,i] <- sub.props[,i] / length(bulk.samples)
-        props[,i] <- props[,i] / length(bulk.samples)
-      }else{
+
         types <- unique(pheno[, cell.type.column])
         # sample random weights for each type
         weights <- 1 / (sample(1:100, size = length(types), replace = TRUE))**d 
         # determine, how many samples of each type should be drawn
-        n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights) 
+    
+    n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights) 
+        type.table <- table(n.samples)
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
-          coarse.samples <- sample(which(pheno[,cell.type.column] == t), size = sum(n.samples == t), replace = TRUE)
+          coarse.samples <- sample(which(pheno[,cell.type.column] == t), size = type.table[t], replace = TRUE)
           bulk.samples <- c(bulk.samples, coarse.samples)
           props[t, i] <- length(coarse.samples)
         }
         props[,i] <- props[,i] / length(bulk.samples)
-      }
       
       bulk.exprs[,i] <- rowSums(exprs[, bulk.samples, drop = F])
     }
@@ -142,10 +104,14 @@ create_bulks <- function(
 
     # sum bulks to fixed total count per profile if sum.to.count is true
     if (sum.to.count) {
-        bulk.exprs <- apply(bulk.exprs, 2, function(x) {
-            (x / sum(x)) * length(x)
-        })
+        # bulk.exprs <- apply(bulk.exprs, 2, function(x) {
+        #     (x / sum(x)) * length(x)
+        # })
+      # use for-loops instead of apply for better memory efficiency
+      for(i in seq_len(ncol(bulk.exprs))){
+        bulk.exprs[,i] <- (bulk.exprs[,i] / sum(bulk.exprs[,i])) * nrow(bulk.exprs)
+      }
     }
 
-    return(list(bulks = bulk.exprs, props = props, sub.props = sub.props))
+    return(list(bulks = bulk.exprs, props = props))
 }
