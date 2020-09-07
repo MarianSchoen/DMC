@@ -578,7 +578,8 @@ benchmark <- function(
 					algorithm.list = algorithms[to.run],
 					avg.profiles.per.subcluster = avg.profiles.per.subcluster, 
 					n.cluster.sizes = n.cluster.sizes,
-					patient.column = patient.column
+					patient.column = patient.column,
+					n.bulks = n.bulks
 				)
 			  
 			  rm(list = c("all.exprs", "all.pheno"))
