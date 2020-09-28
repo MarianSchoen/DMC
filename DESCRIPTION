@@ -19,3 +19,7 @@ biocViews:
 Depends: ggplot2
 Imports: DTD, DeconRNASeq, e1071, rhdf5, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest, Rtsne, tictoc, umap, uwot, reshape2
 RoxygenNote: 7.1.0
+Remotes: spang-lab/DTD,
+	renozao/xbioc,
+	xuranw/MuSiC,
+	shenorrLab/bseqsc
