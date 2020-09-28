@@ -61,7 +61,7 @@ run_cibersort_lm22 <- function(
         exprs <- scale_to_count(exprs)
     }
     
-    lm22 <- read.table("development/LM22.txt", sep = "\t", header = TRUE)
+    lm22 <- read.table(system.file("./", "LM22.txt", package = "DAB"), sep = "\t", header = TRUE)
     lm22.genes <- lm22$Gene.symbol
     lm22 <- as.matrix(lm22[,-1])
     rownames(lm22) <- lm22.genes

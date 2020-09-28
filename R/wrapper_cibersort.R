@@ -36,7 +36,7 @@ run_cibersort <- function(
     split.data = FALSE,
     cell.type.column = "cell_type",
     patient.column = NULL, 
-    scale.cpm 
+    scale.cpm = FALSE 
     ) {
 	suppressMessages(library(e1071, quietly =TRUE))
 	suppressMessages(library(parallel, quietly = TRUE))
