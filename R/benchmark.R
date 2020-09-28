@@ -245,6 +245,19 @@ benchmark <- function(
 	)
 	algorithm.names <- sapply(algorithms, function(x) x$name)
 
+	if("BSEQ-sc" %in% algorithm.names){
+		if(!is.null(cibersort.path)){
+			if(file.exists(cibersort.path)){
+				bseqsc::bseqsc_config(file = cibersort.path)
+			}else{
+				warning("Could not find CIBERSORT source file. If BSEQ-sc is not already correctly configured, errors may occur.")
+			}
+		}else{
+			warning("No path for CIBERSORT source file supplied. This is needed by BSEQ-sc. If BSEQ-sc has already been configured 
+					(the CIBERSORT source code is present in ~/R-data/bseqsc/) you may ignore this warning. Otherwise, BSEQ-sc will likely fail.")
+		}
+	}
+
 	if(!is.null(input.algorithms)){
 		# input.algorithms must be a list
 		if(!is.list(input.algorithms)){
