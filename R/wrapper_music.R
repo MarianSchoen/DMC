@@ -26,16 +26,18 @@
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_music(training.exprs, training.pheno, bulks[,1:5])
 #'
-run_music <- function(exprs,
-                      pheno,
-                      bulks,
-                      exclude.from.signature = NULL,
-                      max.genes = NULL,
-                      optimize = TRUE,
-                      split.data = TRUE,
-                      cell.type.column = "cell_type",
-                      patient.column = NULL
-                      ) {
+run_music <- function(
+  exprs,
+  pheno,
+  bulks,
+  exclude.from.signature = NULL,
+  max.genes = NULL,
+  optimize = TRUE,
+  split.data = TRUE,
+  cell.type.column = "cell_type",
+  patient.column = NULL, 
+  scale.cpm = FALSE
+  ) {
   suppressMessages(library(xbioc, quietly = TRUE))
 	# parameters checks
   if (nrow(pheno) != ncol(exprs)) {
@@ -57,7 +59,11 @@ run_music <- function(exprs,
   if(!patient.column %in% colnames(pheno)){
     return(list(est.props = NULL, sig.matrix = NULL))
   }
-
+  
+  if(scale.cpm){
+    # prepare phenotype data and cell types to use
+    exprs <- scale_to_count(exprs)
+  }
   # MuSiC uses all supplied genes
   n.genes <- nrow(exprs)
 

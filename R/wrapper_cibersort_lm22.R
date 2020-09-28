@@ -24,17 +24,20 @@
 #' 1) est.props - matrix containing for each bulk the
 #' estimated fractions of the cell types contained
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
+#' @export
 
 # source the CIBERSORT function (not available as package)
-run_cibersort <- function(exprs,
-                          pheno,
-                          bulks,
-                          exclude.from.signature = NULL,
-                          max.genes = 500,
-                          optimize = TRUE,
-                          split.data = FALSE,
-                          cell.type.column = "cell_type",
-                          patient.column = NULL
+run_cibersort_lm22 <- function(
+    exprs,
+    pheno,
+    bulks,
+    exclude.from.signature = NULL,
+    max.genes = 500,
+    optimize = TRUE,
+    split.data = FALSE,
+    cell.type.column = "cell_type",
+    patient.column = NULL, 
+    scale.cpm = FALSE
                           ) {
 	suppressMessages(library(e1071, quietly =TRUE))
 	suppressMessages(library(parallel, quietly = TRUE))
@@ -52,19 +55,21 @@ run_cibersort <- function(exprs,
         max.genes <- NULL
     }
 
-    # normalize cell profiles to fixed counts
-    exprs <- scale_to_count(exprs)
     
-    # create signature matrix
-    ref.profiles <- create_sig_matrix(
-	exprs,
-        pheno,
-        exclude.from.signature,
-        max.genes = max.genes,
-        optimize = optimize,
-        split.data = split.data,
-        cell.type.column = cell.type.column
-    )
+    if(scale.cpm){
+        # prepare phenotype data and cell types to use
+        exprs <- scale_to_count(exprs)
+    }
+    
+    lm22 <- read.table("development/LM22.txt", sep = "\t", header = TRUE)
+    lm22.genes <- lm22$Gene.symbol
+    lm22 <- as.matrix(lm22[,-1])
+    rownames(lm22) <- lm22.genes
+    
+    lm22.genes <- intersect(lm22.genes, rownames(exprs))
+    
+    ref.profiles <- lm22[lm22.genes,]
+    
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
     df.sig <- cbind(df.sig, ref.profiles)
 
@@ -98,6 +103,22 @@ run_cibersort <- function(exprs,
     if(!all(colnames(ref.profiles) %in% rownames(est.props))){
         est.props <- complete_estimates(est.props, colnames(ref.profiles))
     }
+    
+    # fit estimations of LM22 to available cell types (a little hardcoded, but for now it has to suffice)
+    est.props.fitted <- matrix(0, nrow = 16, ncol = ncol(est.props))
+    colnames(est.props.fitted) <- colnames(est.props)
+    est.props.fitted[1,] <- colSums(est.props[c(1,2),]) # B
+    est.props.fitted[2,] <- colSums(est.props[c(5,6,7),]) # CD4
+    est.props.fitted[3,] <- colSums(est.props[c(11,12),])
+    est.props.fitted[4,] <- colSums(est.props[c(13,14,15,16),])
+    est.props.fitted[5,] <- est.props[4,]
+    used <- c(1,2,4,5,6,7,11,12,13,14,15,16)
+    est.props <- est.props[-used,]
+    est.props.fitted[6:15,] <- est.props
+    rownames(est.props.fitted) <- c("B", "cd4+", "nk", "mono", "cd8+", rownames(est.props), "malignant")
+    est.props <- est.props.fitted
+    
+    
     # CIBERSORT automatically stores the results in a file,
     # but we do not need it
     file.remove("CIBERSORT-Results.txt")

@@ -24,7 +24,18 @@
 #' estimated fractions of the cell types contained
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_deconrnaseq(training.exprs, training.pheno, bulk.exprs)
-run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, max.genes = 500, optimize = TRUE, split.data = TRUE, cell.type.column = "cell_type", patient.column = NULL) {
+run_deconrnaseq <- function(
+  exprs, 
+  pheno, 
+  bulks, 
+  exclude.from.signature = NULL, 
+  max.genes = 500, 
+  optimize = TRUE, 
+  split.data = TRUE, 
+  cell.type.column = "cell_type", 
+  patient.column = NULL, 
+  scale.cpm = FALSE
+  ) {
   library(DeconRNASeq)
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
@@ -38,9 +49,11 @@ run_deconrnaseq <- function(exprs, pheno, bulks, exclude.from.signature = NULL, 
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-
-  # scale to counts
-  exprs <- scale_to_count(exprs)
+  
+  if(scale.cpm){
+    # prepare phenotype data and cell types to use
+    exprs <- scale_to_count(exprs)
+  }
   
   # create signature matrix (DeconRNASeq needs data frames)
   ref.profiles <- create_sig_matrix(exprs,

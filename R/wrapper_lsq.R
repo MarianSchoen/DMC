@@ -34,7 +34,8 @@ run_least_squares <- function(
   optimize = TRUE,
   split.data = TRUE, 
   cell.type.column = "cell_type",
-  patient.column = NULL
+  patient.column = NULL, 
+  scale.cpm = FALSE
 ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
@@ -50,8 +51,10 @@ run_least_squares <- function(
         max.genes <- NULL
     }
   }
-  # prepare phenotype data and cell types to use
-  exprs <- scale_to_count(exprs)
+  if(scale.cpm){
+    # prepare phenotype data and cell types to use
+    exprs <- scale_to_count(exprs)
+  }
   
   cell.types <- as.character(pheno[, cell.type.column])
   names(cell.types) <- colnames(exprs)

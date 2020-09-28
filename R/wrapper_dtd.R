@@ -36,7 +36,8 @@ run_dtd <- function(
   optimize = TRUE,
   split.data = TRUE,
   verbose = FALSE,
-  patient.column = NULL
+  patient.column = NULL, 
+  scale.cpm = FALSE
 ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
@@ -52,9 +53,11 @@ run_dtd <- function(
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-
-  exprs <- scale_to_count(exprs)
-
+  if(scale.cpm){
+    # prepare phenotype data and cell types to use
+    exprs <- scale_to_count(exprs)
+  }
+  
   # prepare phenotype data and cell types to use
   cell.types <- as.character(pheno[, cell.type.column])
   names(cell.types) <- colnames(exprs)

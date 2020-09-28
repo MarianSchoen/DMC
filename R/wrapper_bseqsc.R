@@ -35,7 +35,8 @@ run_bseqsc <- function(
   split.data = TRUE,
   verbose = FALSE,
   cell.type.column = "cell_type",
-  patient.column = NULL
+  patient.column = NULL, 
+  scale.cpm = FALSE
   ) {
 	suppressMessages(library(Biobase, quietly = T))
 	suppressMessages(library(xbioc, quietly = T))
@@ -65,6 +66,11 @@ run_bseqsc <- function(
   # ExpressionSet creation may fail in some cases without this
   rownames(exprs) <- make.names(rownames(exprs))
   rownames(bulks) <- make.names(rownames(bulks))
+  
+  if(scale.cpm){
+    # prepare phenotype data and cell types to use
+    exprs <- scale_to_count(exprs)
+  }
   
   bulk.pheno <- data.frame(colnames(bulks))
   rownames(bulk.pheno) <- colnames(bulks)

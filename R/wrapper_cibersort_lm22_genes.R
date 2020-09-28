@@ -27,16 +27,18 @@
 #' @export
 
 # source the CIBERSORT function (not available as package)
-run_cibersort_random_genes <- function(exprs,
-                          pheno,
-                          bulks,
-                          exclude.from.signature = NULL,
-                          max.genes = 500,
-                          optimize = TRUE,
-                          split.data = FALSE,
-                          cell.type.column = "cell_type",
-                          patient.column = NULL
-                          ) {
+run_cibersort_lm22_genes <- function(
+    exprs,
+    pheno,
+    bulks,
+    exclude.from.signature = NULL,
+    max.genes = 500,
+    optimize = TRUE,
+    split.data = FALSE,
+    cell.type.column = "cell_type",
+    patient.column = NULL, 
+    scale.cpm = FALSE
+    ) {
 	suppressMessages(library(e1071, quietly =TRUE))
 	suppressMessages(library(parallel, quietly = TRUE))
 	suppressMessages(library(preprocessCore, quietly = TRUE))
@@ -52,19 +54,22 @@ run_cibersort_random_genes <- function(exprs,
     if (!is.null(max.genes) && max.genes == 0) {
         max.genes <- NULL
     }
-
-    # normalize cell profiles to fixed counts
-    exprs <- DAB:::scale_to_count(exprs)
+    
+    if(scale.cpm){
+        # prepare phenotype data and cell types to use
+        exprs <- scale_to_count(exprs)
+    }
+    
+    lm22.genes <- read.table("development/LM22.txt", sep = "\t", header = TRUE)$Gene.symbol
+    lm22.genes <- intersect(lm22.genes, rownames(exprs))
     
     # create signature matrix
-    random.genes <- sample(rownames(exprs), size = 750, replace = FALSE)
-    ref.profiles <- matrix(0, nrow = length(random.genes), ncol = length(unique(pheno[[cell.type.column]])))
-    rownames(ref.profiles) <- random.genes
+    ref.profiles <- matrix(0, nrow = length(lm22.genes), ncol = length(unique(pheno[[cell.type.column]])))
+    rownames(ref.profiles) <- lm22.genes
     colnames(ref.profiles) <- unique(pheno[[cell.type.column]])
     for(ct in colnames(ref.profiles)){
         ref.profiles[,ct] <- rowMeans(exprs[rownames(ref.profiles),which(pheno[[cell.type.column]] == ct), drop = F])
     }
-    
     
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
     df.sig <- cbind(df.sig, ref.profiles)
