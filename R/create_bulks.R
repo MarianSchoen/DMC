@@ -87,7 +87,7 @@ create_bulks <- function(
         
         # draw samples for each type, store the proportions and the expression
         for(t in types){
-            if(t in names(type.table)){
+            if(t %in% names(type.table)){
                 coarse.samples <- sample(which(pheno[,cell.type.column] == t), size = type.table[t], replace = TRUE)
                 bulk.samples <- c(bulk.samples, coarse.samples)
                 props[t, i] <- length(coarse.samples)
