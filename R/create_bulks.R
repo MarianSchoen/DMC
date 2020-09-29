@@ -91,9 +91,6 @@ create_bulks <- function(
                 coarse.samples <- sample(which(pheno[,cell.type.column] == t), size = type.table[t], replace = TRUE)
                 bulk.samples <- c(bulk.samples, coarse.samples)
                 props[t, i] <- length(coarse.samples)
-            }else{
-                print(t)
-                print(type.table)
             }
         }
         props[,i] <- props[,i] / length(bulk.samples)
