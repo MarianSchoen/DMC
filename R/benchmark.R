@@ -474,7 +474,7 @@ benchmark <- function(
 		}
 		if(verbose) print(present.algorithms)
 		to.run <- which(! algorithm.names %in% present.algorithms)
-		rm(list = c("previous.results", "present.algorithms"))
+		rm("present.algorithms")
 		gc()
 	}
 	

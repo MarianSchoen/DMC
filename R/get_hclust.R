@@ -45,7 +45,7 @@ get_hclust <- function(
   linkage.method = "average"
 ) {
   
-  library(uwot)
+  #library(uwot)
   
   # few basic safety checks (all default values are just ideas):
   if (!is.numeric(n.features.pre.pca)) {
