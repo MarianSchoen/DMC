@@ -36,8 +36,8 @@ fine_coarse_subtype_benchmark <- function(
   n.bulks = 500
 ){
   if(is.null(avg.profiles.per.subcluster)){
-    min.profiles <- max(2, as.integer(min(table(sc.pheno[[cell.type.column]])) / 2))
-    max.profiles <- as.integer(nrow(sc.pheno) / 4)
+    min.profiles <- max(2, as.integer(min(table(sc.pheno[[cell.type.column]])) / 2) - 1)
+    max.profiles <- as.integer(max(table(sc.pheno[[cell.type.column]])) / 2) + 1
 
     avg.profiles.per.subcluster <- as.integer(seq(min.profiles, max.profiles, length.out = 5))
   }else{
@@ -117,11 +117,11 @@ fine_coarse_subtype_benchmark <- function(
   names(column.list) <- subtype.columns
  
   # add original cell type classification as new column for benchmark
-  profiles.per.ct <- nrow(sc.pheno)
+  #profiles.per.ct <- as.integer(max(table(sc.pheno[[cell.type.column]]))/2) + 1
 	  #as.integer(nrow(sc.pheno) / length(unique(sc.pheno[[cell.type.column]]))) 
-  sc.pheno <- cbind(sc.pheno, sc.pheno[[cell.type.column]])
-  colnames(sc.pheno)[ncol(sc.pheno)] <- paste0("subtype.avg.", profiles.per.ct)
-  subtype.columns <- c(paste0("subtype.avg.", profiles.per.ct), subtype.columns)
+  #sc.pheno <- cbind(sc.pheno, sc.pheno[[cell.type.column]])
+  #colnames(sc.pheno)[ncol(sc.pheno)] <- paste0("subtype.avg.", profiles.per.ct)
+  #subtype.columns <- c(paste0("subtype.avg.", profiles.per.ct), subtype.columns)
 
   # go through each 'subtype.column' 
   for(column in subtype.columns){
