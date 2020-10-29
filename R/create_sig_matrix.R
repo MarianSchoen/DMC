@@ -51,8 +51,9 @@ create_sig_matrix <- function(
   }
 
   # exclude genes with zero variance
-  if (any(apply(exprs, 1, var) == 0)) {
-    exprs <- exprs[-which(apply(exprs, 1, var) == 0), , drop = F]
+  vars <- apply(exprs, 1, var)
+  if (any(vars == 0)) {
+    exprs <- exprs[-which(vars == 0), , drop = F]
   }
 
   # make sure that not more genes than available are selected

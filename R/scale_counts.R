@@ -15,13 +15,12 @@ scale_to_count <- function(exprs, count = NULL) {
   if (is.null(count)) {
     count <- nrow(exprs)
   }
-  for(i in seq_len(ncol(exprs))){
-    exprs[,i] <- count * (exprs[,i] / sum(exprs[,i])) 
-  }
+  csums <- colSums(exprs)
+  return(sweep(exprs, 2, csums / count, "/"))
 
   # remove NAs; they occur if a gene is not expressed in any sample
-  if (any(is.na(exprs))) {
-    exprs[is.na(exprs)] <- 0
-  }
-  return(exprs)
+  #if (any(is.na(exprs))) {
+  #  exprs[is.na(exprs)] <- 0
+  #}
+  #return(exprs)
 }

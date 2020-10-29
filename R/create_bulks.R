@@ -110,9 +110,10 @@ create_bulks <- function(
         #     (x / sum(x)) * length(x)
         # })
       # use for-loops instead of apply for better memory efficiency
-      for(i in seq_len(ncol(bulk.exprs))){
-        bulk.exprs[,i] <- (bulk.exprs[,i] / sum(bulk.exprs[,i])) * nrow(bulk.exprs)
-      }
+      #for(i in seq_len(ncol(bulk.exprs))){
+      #  bulk.exprs[,i] <- (bulk.exprs[,i] / sum(bulk.exprs[,i])) * nrow(bulk.exprs)
+      #}
+	    bulk.exprs <- scale_to_count(bulk.exprs)
     }
 
     return(list(bulks = bulk.exprs, props = props))

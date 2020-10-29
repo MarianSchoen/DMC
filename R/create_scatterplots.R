@@ -20,7 +20,7 @@ create_scatterplots <- function(results.list, real.props = NULL, training.pheno 
     real.props <- results.list$bulk.props
   }
   if(any(colSums(real.props) != 1)){
-	  real.props <- apply(real.props, 2, function(x) {x / sum(x)})
+	  real.props <- sweep(real.props, 2, colSums(real.props), "/")
   }
 
   results.list <- results.list[["results.list"]]

@@ -38,7 +38,7 @@ marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cel
   rownames(fano.per.celltype) <- rownames(exprs)
 
   for(t in sig.types){
-    sums.per.celltype[,t] <- apply(exprs[,which(pheno[,cell.type.column] == t),drop=F], 1, sum) / geneSums
+    sums.per.celltype[,t] <- rowSums(exprs[,which(pheno[,cell.type.column] == t),drop=F]) / geneSums
     fano.per.celltype[,t] <- apply(exprs[,which(pheno[,cell.type.column] == t),drop=F], 1, var)
   }
   

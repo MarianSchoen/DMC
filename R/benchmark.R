@@ -138,6 +138,12 @@ benchmark <- function(
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
+	# remove empty profiles
+	if(any(colSums(sc.counts) == 0)){
+		to.remove <- which(colSums(sc.counts) == 0)
+		sc.pheno <- sc.pheno[-to.remove, ]
+		sc.counts <- sc.counts[,-to.remove]
+	}
 	if(!is.null(bulk.counts) && !is.null(bulk.props)){
 	if(ncol(bulk.counts) != ncol(bulk.props)){
 		stop("Number of bulks in bulk.counts and bulk.props do not match")
@@ -421,7 +427,7 @@ benchmark <- function(
 
 	# rescale real quantities to be between 0 and 1
 	if(!is.null(bulk.props)){
-		bulk.props <- apply(bulk.props, 2, function(x) {x / sum(x)})
+		bulk.props <- sweep(bulk.props, 2, colSums(bulk.props), "/")
 	}
 
 	# assume that samples in expression and pheno data are in the correct order
