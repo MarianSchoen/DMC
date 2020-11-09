@@ -522,13 +522,11 @@ benchmark <- function(
 		props <- list(real = bulk.props, est = estimates)
 		bootstrap.real <- bootstrap_bulks(props)
 		h5_write_mat(bootstrap.real, paste(output.folder, "/results/real/bootstrap_bulks",res.no,".h5",sep=""))
+		rm(list = c("real.benchmark", "estimates", "props", "bootstrap.real"))
+		gc()
 	}
 	}
 	
-	# remove real bulk results from RAM
-	rm(list = c("real.benchmark", "estimates", "props", "bootstrap.real"))
-	gc()
-
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)
 	names(available.sims) <- c("genes", "samples", "bulks", "subtypes")
@@ -558,11 +556,12 @@ benchmark <- function(
 			}
 			if(verbose) print(present.algorithms)
 			to.run <- which(! algorithm.names %in% present.algorithms)
+			rm("present.algorithms")
 		}
 		res.no <- length(previous.results) + 1
 		
 		# remove variables containing previous results
-		rm(list = c("previous.results", "present.algorithms"))
+		rm(list = c("previous.results"))
 		gc()
 
 		# execute benchmark corresponding to s and save results

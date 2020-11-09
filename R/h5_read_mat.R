@@ -9,7 +9,9 @@ h5_read_mat <- function(filename){
         warning("Invalid filename, returning NULL")
         return(NULL)
     }
-
+	if(exists("rnames")){
+		rm("rnames")
+	}
     # list the content and load the data
     content <- rhdf5::h5ls(filename)
     if("rownames" %in%  content$name){
@@ -19,7 +21,9 @@ h5_read_mat <- function(filename){
     m <- rhdf5::h5read(filename, "data")
     colnames(m) <- cnames
     if(exists("rnames")){
-        rownames(m) <- rnames
+	    if(length(rnames) == nrow(m)){
+        	rownames(m) <- rnames
+	    }
     }
     
     return(m)
