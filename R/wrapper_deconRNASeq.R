@@ -66,7 +66,7 @@ run_deconrnaseq <- function(
   )
 
   # create bulk data frame
-  df.mix <- as.data.frame(bulks)
+  df.mix <- as.data.frame(Matrix::as.matrix(bulks))
   rownames(df.mix) <- rownames(bulks)
 
   # there is no option to switch the output of this function off

@@ -74,7 +74,7 @@ create_sig_matrix <- function(
     sample.X <- DTD::sample_random_X(
       included.in.X = unique(cell.types),
       pheno = cell.types,
-      expr.data = exprs,
+      expr.data = Matrix::as.matrix(exprs),
       percentage.of.all.cells = 0.3,
       normalize.to.count = TRUE
     )
@@ -113,7 +113,7 @@ create_sig_matrix <- function(
       sig.genes <- rownames(exprs[-no.var.genes, , drop = F])[which(q.vals < 0.3)]
       # the genes are ordered by decreasing fold changes compared to other cell subsets
       temp.exprs <- exprs[-no.var.genes, , drop = F]
-      fold.changes <- log2(rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 0), drop = F])) - log2(rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 1), drop = F]))
+      fold.changes <- log2(Matrix::rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 0), drop = F])) - log2(Matrix::rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 1), drop = F]))
     } else {
       t.test.result <- multtest::mt.teststat(
         X = exprs,
@@ -132,9 +132,9 @@ create_sig_matrix <- function(
       sig.genes <- rownames(exprs)[which(q.vals < 0.3)]
       genes.to.remove <- which(q.vals >= 0.3)
       if (length(genes.to.remove) > 0) {
-        fold.changes <- log2(rowMeans(exprs[-genes.to.remove, which(labs == 0), drop = F])) - log2(rowMeans(exprs[-genes.to.remove, which(labs == 1), drop = F]))
+        fold.changes <- log2(Matrix::rowMeans(exprs[-genes.to.remove, which(labs == 0), drop = F])) - log2(Matrix::rowMeans(exprs[-genes.to.remove, which(labs == 1), drop = F]))
       } else {
-        fold.changes <- log2(rowMeans(exprs[, which(labs == 0), drop = F])) - log2(rowMeans(exprs[, which(labs == 1), drop = F]))
+        fold.changes <- log2(Matrix::rowMeans(exprs[, which(labs == 0), drop = F])) - log2(Matrix::rowMeans(exprs[, which(labs == 1), drop = F]))
       }
     }
     # add genes for each type ordered by decreasing fold change
@@ -150,7 +150,7 @@ create_sig_matrix <- function(
   colnames(ref.profiles) <- unique(pheno[, cell.type.column])
   rownames(ref.profiles) <- rownames(exprs)
   for (t in colnames(ref.profiles)) {
-    ref.profiles[, t] <- rowMeans(
+    ref.profiles[, t] <- Matrix::rowMeans(
       exprs[, which(pheno[, cell.type.column] == t), drop = F]
     )
   }

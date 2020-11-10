@@ -95,7 +95,7 @@ create_bulks <- function(
         }
         props[,i] <- props[,i] / length(bulk.samples)
       
-      bulk.exprs[,i] <- rowSums(exprs[, bulk.samples, drop = F])
+      bulk.exprs[,i] <- Matrix::rowSums(exprs[, bulk.samples, drop = F])
     }
 
     # let no feature occur twice in the bulks

@@ -27,7 +27,7 @@ marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cel
 
   # calculate sum per gene per cell type and the fano factor (select by variance) per gene per cell type
   # see Baron et al., 2016 (Methods)
-  geneSums <- rowSums(exprs)
+  geneSums <- Matrix::rowSums(exprs)
 
   # create matrices for variance and sum per celltype and gene
   sums.per.celltype <- matrix(0, nrow = nrow(exprs), ncol = length(sig.types))
@@ -38,7 +38,7 @@ marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cel
   rownames(fano.per.celltype) <- rownames(exprs)
 
   for(t in sig.types){
-    sums.per.celltype[,t] <- rowSums(exprs[,which(pheno[,cell.type.column] == t),drop=F]) / geneSums
+    sums.per.celltype[,t] <- Matrix::rowSums(exprs[,which(pheno[,cell.type.column] == t),drop=F]) / geneSums
     fano.per.celltype[,t] <- apply(exprs[,which(pheno[,cell.type.column] == t),drop=F], 1, var)
   }
   

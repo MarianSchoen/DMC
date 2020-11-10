@@ -139,11 +139,12 @@ benchmark <- function(
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
 	# remove empty profiles
-	if(any(colSums(sc.counts) == 0)){
-		to.remove <- which(colSums(sc.counts) == 0)
+	if(any(Matrix::colSums(sc.counts) == 0)){
+		to.remove <- which(Matrix::colSums(sc.counts) == 0)
 		sc.pheno <- sc.pheno[-to.remove, ]
 		sc.counts <- sc.counts[,-to.remove]
 	}
+	print("test")
 	if(!is.null(bulk.counts) && !is.null(bulk.props)){
 	if(ncol(bulk.counts) != ncol(bulk.props)){
 		stop("Number of bulks in bulk.counts and bulk.props do not match")
@@ -320,6 +321,12 @@ benchmark <- function(
 	
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
+	cat("converting counts to sparse matrices...\n")
+	sc.counts <- Matrix(sc.counts, sparse = TRUE)
+	if(!is.null(bulk.counts)){
+	  bulk.counts <- Matrix(bulk.counts, sparse = TRUE)
+	}
+	gc()
 
 	# load / process / store data
 	# if it exists load previously processed data from temp

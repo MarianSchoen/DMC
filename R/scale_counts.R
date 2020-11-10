@@ -7,7 +7,7 @@
 
 scale_to_count <- function(exprs, count = NULL) {
   # parameter check
-  if(!is.matrix(exprs)){
+  if(!(is.matrix(exprs) || class(exprs) == "dgCMatrix")){
     stop("exprs must be a matrix")
   }
   # scale total sum either to given value (count)
@@ -15,7 +15,7 @@ scale_to_count <- function(exprs, count = NULL) {
   if (is.null(count)) {
     count <- nrow(exprs)
   }
-  csums <- colSums(exprs)
+  csums <- Matrix::colSums(exprs)
   return(sweep(exprs, 2, csums / count, "/"))
 
   # remove NAs; they occur if a gene is not expressed in any sample

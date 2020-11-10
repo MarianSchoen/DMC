@@ -74,7 +74,7 @@ run_least_squares <- function(
   sample.X <- DTD::sample_random_X(
     included.in.X = include.in.x,
     pheno = cell.types,
-    expr.data = exprs,
+    expr.data = Matrix::as.matrix(exprs),
     percentage.of.all.cells = 0.9999,
     normalize.to.count = TRUE
   )
@@ -90,7 +90,7 @@ run_least_squares <- function(
   n.genes <- min(4000, nrow(exprs))
   # use the top n.genes most variable genes
   top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
-  exprs <- exprs[top.features, ]
+  exprs <- exprs[which(rownames(exprs) %in% top.features), ]
   sig.matrix <- sig.matrix[top.features, ]
 
   # set the model without learning
@@ -100,7 +100,7 @@ run_least_squares <- function(
   # use the untrained model to estimate the composition of the supplied bulks
   est.props <- DTD::estimate_c(
     X.matrix = sig.matrix,
-    new.data = bulks[rownames(sig.matrix), , drop = FALSE],
+    new.data = Matrix::as.matrix(bulks[rownames(sig.matrix), , drop = FALSE]),
     DTD.model = start.tweak,
     estimate.c.type = "direct"
   )

@@ -73,7 +73,7 @@ run_music <- function(
 
   # create ExpressionSets from exprs, pheno and bulks
   sc.exprs <- Biobase::ExpressionSet(
-    assayData = exprs,
+    assayData = Matrix::as.matrix(exprs),
     phenoData = Biobase::AnnotatedDataFrame(pheno)
   )
   bulk.pheno <- data.frame(sample = colnames(bulks))
@@ -83,7 +83,7 @@ run_music <- function(
   rownames(bulk.pheno) <- colnames(bulks)
   colnames(bulks) <- rownames(bulk.pheno)
   bulks <- Biobase::ExpressionSet(
-    assayData = bulks,
+    assayData = Matrix::as.matrix(bulks),
     phenoData = Biobase::AnnotatedDataFrame(bulk.pheno)
   )
 
