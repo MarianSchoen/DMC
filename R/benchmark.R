@@ -95,6 +95,7 @@ benchmark <- function(
   cibersort.path = NULL,
   n.profiles.per.bulk = 1000
   ){
+	suppressWarnings(suppressMessages(library(Matrix, quietly = TRUE)))
 	  if(verbose) tictoc::tic("Benchmark")
 	if(verbose) cat("calculating checksum\n")
 	hash <- digest::digest(list(sc.counts, sc.pheno, bulk.counts, bulk.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.cluster.sizes, genesets, avg.profiles.per.subcluster))
@@ -144,7 +145,6 @@ benchmark <- function(
 		sc.pheno <- sc.pheno[-to.remove, ]
 		sc.counts <- sc.counts[,-to.remove]
 	}
-	print("test")
 	if(!is.null(bulk.counts) && !is.null(bulk.props)){
 	if(ncol(bulk.counts) != ncol(bulk.props)){
 		stop("Number of bulks in bulk.counts and bulk.props do not match")
