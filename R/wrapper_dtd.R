@@ -39,6 +39,7 @@ run_dtd <- function(
   patient.column = NULL, 
   scale.cpm = FALSE
 ) {
+  suppressMessages(suppressWarnings(library(Matrix, quietly = TRUE)))
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")

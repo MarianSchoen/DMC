@@ -15,8 +15,20 @@ scale_to_count <- function(exprs, count = NULL) {
   if (is.null(count)) {
     count <- nrow(exprs)
   }
-  csums <- Matrix::colSums(exprs)
-  return(sweep(exprs, 2, csums / count, "/"))
+  if(is.matrix(exprs)){
+    csums <- colSums(exprs)
+    return(sweep(exprs, 2, csums / count, "/"))
+  }else{
+    # for sparse matrices, the following is far more efficient
+    exprs@x <- unlist(
+      lapply(1:(length(exprs@p)-1), 
+             function(i, mat = exprs) {
+               (mat@x[(mat@p[i]+1):mat@p[i+1]] / sum(mat@x[(mat@p[i]+1):mat@p[i+1]])) * count
+             }
+      )
+    )
+    return(exprs)
+  }
 
   # remove NAs; they occur if a gene is not expressed in any sample
   #if (any(is.na(exprs))) {
