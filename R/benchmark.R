@@ -290,7 +290,7 @@ benchmark <- function(
 			   list(algorithm = run_music, name = "MuSiC"),
 			   list(algorithm = run_bseqsc, name = "BSEQ-sc")
 	)
-	algorithm.names <- sapply(algorithms, 
+	algorithm.names <- vapply(algorithms, 
 	                          FUN = function(x) x$name, 
 	                          FUN.VALUE = c("name")
 	                          )
@@ -373,10 +373,16 @@ benchmark <- function(
 	
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
-	cat("converting counts to sparse matrices...\n")
-	sc.counts <- Matrix(sc.counts, sparse = TRUE)
+	cat("converting counts to sparse matrices if necessary...\n")
+	if(class(sc.counts) != "dgCMatrix"){
+		sc.counts <- Matrix(sc.counts, sparse = TRUE)
+		class(sc.counts) <- "dgCMatrix"
+	}
 	if(!is.null(bulk.counts)){
-	  bulk.counts <- Matrix(bulk.counts, sparse = TRUE)
+		if(class(bulk.counts) != "dgCMatrix"){
+	  		bulk.counts <- Matrix(bulk.counts, sparse = TRUE)
+			class(bulk.counts) <- "dgCMatrix"
+		}
 	}
 	gc()
 

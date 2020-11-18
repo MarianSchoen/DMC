@@ -25,6 +25,7 @@ read_data <- function(filename){
 
   if("bulk" %in% content$name){
     bulk.counts <- Matrix(rhdf5::h5read(filename, "bulk/data"), sparse = TRUE)
+    class(bulk.counts) <- "dgCMatrix"
     geneids <- rhdf5::h5read(filename, "bulk/geneids")
     sampleids <- rhdf5::h5read(filename, "bulk/sampleids")
     if(nrow(bulk.counts) == length(geneids) && ncol(bulk.counts) == length(sampleids)){
@@ -73,6 +74,7 @@ read_data <- function(filename){
 
   if("singlecell" %in% content$name){
     sc.counts <- Matrix(rhdf5::h5read(filename, "singlecell/data"), sparse = TRUE)
+    class(sc.counts) <- "dgCMatrix"
     geneids <- rhdf5::h5read(filename, "singlecell/geneids")
     cellids <- rhdf5::h5read(filename, "singlecell/cellids")
 

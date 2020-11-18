@@ -135,7 +135,7 @@ run_bseqsc <- function(
 
   # create reference matrix based on single cell data and DEGs
   B <- try({
-	  bseqsc::bseqsc_basis(Matrix::as.matrix(sc.exprs), deg.per.type,
+	  bseqsc::bseqsc_basis(sc.exprs, deg.per.type,
       clusters = cell.type.column, samples = patient.column,
       ct.scale = TRUE
     )
@@ -147,7 +147,7 @@ run_bseqsc <- function(
   }
 
   # deconvolute bulks using reference matrix B
-  fit <- try(bseqsc::bseqsc_proportions(Matrix::as.matrix(bulks), B, log = F, verbose = verbose))
+  fit <- try(bseqsc::bseqsc_proportions(bulks, B, log = F, verbose = verbose))
 
   if (class(fit) == "try-error") {
     warning("BSEQ-sc estimation failed")
