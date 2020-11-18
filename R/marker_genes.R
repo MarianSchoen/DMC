@@ -23,9 +23,9 @@ marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cel
 
   # scale to total count number for testing
   exprs <- scale_to_count(exprs)
-  
 
-  # calculate sum per gene per cell type and the fano factor (select by variance) per gene per cell type
+  # calculate sum per gene per cell type and the fano 
+  # factor (select by variance) per gene per cell type
   # see Baron et al., 2016 (Methods)
   geneSums <- Matrix::rowSums(exprs)
 
@@ -38,8 +38,13 @@ marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cel
   rownames(fano.per.celltype) <- rownames(exprs)
 
   for(t in sig.types){
-    sums.per.celltype[,t] <- Matrix::rowSums(exprs[,which(pheno[,cell.type.column] == t),drop=F]) / geneSums
-    fano.per.celltype[,t] <- apply(exprs[,which(pheno[,cell.type.column] == t),drop=F], 1, var)
+    sums.per.celltype[,t] <- Matrix::rowSums(
+      exprs[,which(pheno[,cell.type.column] == t),drop=F]
+    ) / geneSums
+    fano.per.celltype[,t] <- apply(
+      exprs[,which(pheno[,cell.type.column] == t),drop=F], 
+      1, 
+      function(x) {var(x) / mean(x)})
   }
   
   fano.per.celltype[is.na(fano.per.celltype)] <- 0
@@ -53,7 +58,10 @@ marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cel
   # for each cell type, take the intersect of the first criteria
   genes.per.celltype <- list()
   for(t in sig.types){
-    temp.genes <- rownames(exprs)[intersect(which(sums.above.threshold[,t]), which(factors.above.theshold[,t]))]
+    temp.genes <- rownames(exprs)[intersect(
+        which(sums.above.threshold[,t]), 
+        which(factors.above.theshold[,t])
+      )]
     if(length(temp.genes) > 0){
 	    genes.per.celltype[[t]] <- temp.genes
     }else{
@@ -61,13 +69,23 @@ marker_genes <- function(exprs, pheno, sig.types = NULL, cell.type.column = "cel
   	}
   }
   
-  # calculate p-values for the genes that passed the first two criteria (using ks test) and keep only those with p<10^-5
+  # calculate p-values for the genes that passed the first two criteria 
+  # (using ks test) and keep only those with p<10^-5 (Baron et al. 2016)
   for(t in sig.types){
     grouping <- ifelse(pheno[, cell.type.column] == t, TRUE, FALSE)
     genes <- genes.per.celltype[[t]]
     if(length(genes)>0){
-      p.vals <- apply(exprs[genes,,drop=FALSE], 1, function(x){ks.test(x[grouping], x[!grouping], alternative = "two.sided")$p.value})
-      if(length(genes[p.vals < 10^(-5)]) > 0) genes.per.celltype[[t]] <- genes[p.vals < 10^(-5)]
+      p.vals <- apply(
+        exprs[genes,,drop=FALSE], 
+        1, 
+        function(x){
+          ks.test(x[grouping], x[!grouping], alternative = "two.sided")$p.value
+        }
+      )
+      top.genes <- genes[p.vals < 10^(-5)]
+      if(length(top.genes) > 0){
+        genes.per.celltype[[t]] <- top.genes
+      } 
     }
   }
 
