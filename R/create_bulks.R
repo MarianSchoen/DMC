@@ -58,11 +58,13 @@ create_bulks <- function(
     exprs <- exprs[, rownames(pheno), drop = FALSE]
 
     # create a matrix to contain the bulk expression profiles
-    bulk.exprs <- matrix(
+    bulk.exprs <- Matrix(
         0,
         nrow = nrow(exprs),
-        ncol = n.bulks
+        ncol = n.bulks,
+        sparse = TRUE
     )
+    class(bulk.exprs) <- "dgCMatrix"
     rownames(bulk.exprs) <- rownames(exprs)
     colnames(bulk.exprs) <- as.character(1:n.bulks)
 
@@ -75,44 +77,41 @@ create_bulks <- function(
     # if subtypes, sample with random distribution from combined.type
     
     for(i in seq_len(ncol(bulk.exprs))){
-      bulk.samples <- c()
-
         types <- unique(pheno[, cell.type.column])
-        # sample random weights for each type
-        weights <- 1 / (sample(1:100, size = length(types), replace = TRUE))**d 
-        # determine, how many samples of each type should be drawn
-    
-    n.samples <- sample(types, size = ceiling(n.profiles.per.bulk), replace = TRUE, prob = weights) 
-        type.table <- table(n.samples)
+        # sample random weights / number of cells for each type
+        weights <- sample(1:100, size = length(types), replace = TRUE)**d
+        weights <- as.integer(weights / sum(weights) * ceiling(n.profiles.per.bulk))
+        names(weights) <- types
+        
+        bulk.samples <- rep(-1,sum(weights))
         
         # draw samples for each type, store the proportions and the expression
+        idx <- 1
         for(t in types){
-            if(t %in% names(type.table)){
-                coarse.samples <- sample(which(pheno[,cell.type.column] == t), size = type.table[t], replace = TRUE)
-                bulk.samples <- c(bulk.samples, coarse.samples)
-                props[t, i] <- length(coarse.samples)
+            n.types <- weights[t]
+            if(n.types > 0){
+                samples <- sample(which(pheno[,cell.type.column] == t), 
+                                    size = n.types, 
+                                    replace = TRUE
+                )
+                props[t, i] <- length(samples)
+                bulk.samples[idx:(idx+n.types-1)] <- samples
             }
+            idx <- idx + n.types
         }
-        props[,i] <- props[,i] / length(bulk.samples)
-      
-      bulk.exprs[,i] <- Matrix::rowSums(exprs[, bulk.samples, drop = F])
+        bulk.exprs[,i] <- Matrix::rowSums(exprs[, bulk.samples, drop = F])
     }
+    # quantities sum to one within each bulk
+    props <- sweep(props, 2, colSums(props), "/")
 
     # let no feature occur twice in the bulks
     if(any(duplicated(rownames(bulk.exprs)))){
         warning("Found duplicate features in simulated bulks. Removing...")
-        bulk.exprs <- bulk.exprs[-which(duplicated(bulk.exprs)), ]
+        bulk.exprs <- bulk.exprs[-which(duplicated(rownames(bulk.exprs))), ]
     }
 
     # sum bulks to fixed total count per profile if sum.to.count is true
     if (sum.to.count) {
-        # bulk.exprs <- apply(bulk.exprs, 2, function(x) {
-        #     (x / sum(x)) * length(x)
-        # })
-      # use for-loops instead of apply for better memory efficiency
-      #for(i in seq_len(ncol(bulk.exprs))){
-      #  bulk.exprs[,i] <- (bulk.exprs[,i] / sum(bulk.exprs[,i])) * nrow(bulk.exprs)
-      #}
 	    bulk.exprs <- scale_to_count(bulk.exprs)
     }
 
