@@ -23,6 +23,7 @@
 #' holds the cell type information? 
 #' @return numeric matrix, holding reference profiles in its column, 
 #' features in its rows
+
 create_sig_matrix <- function(
   exprs,
   pheno,
@@ -50,20 +51,14 @@ create_sig_matrix <- function(
     }
   }
 
-  # exclude genes with zero variance
-  vars <- apply(exprs, 1, var)
-  if (any(vars == 0)) {
-    exprs <- exprs[-which(vars == 0), , drop = F]
-  }
-
   # make sure that not more genes than available are selected
   if (is.null(max.genes)) {
     max.genes <- floor(nrow(exprs) / length(unique(pheno[, cell.type.column])))
   }
 
+  
   # only split data if there are at least 3 samples for each cell type
   # otherwise the testing in the sig. matrix building will fail
-
   type.counts <- table(pheno[, cell.type.column])
 
   if (split.data && !any(type.counts < 3)) {
@@ -90,30 +85,41 @@ create_sig_matrix <- function(
   deg.per.type <- list()
   for (t in unique(pheno[, cell.type.column])) {
     labs <- ifelse(pheno[, cell.type.column] == t, 0, 1)
-    no.var.genes <- which(
-      apply(exprs[, which(labs == 0), drop = F], 1, var) == 0
+    no.var.genes <- unique(
+      c(
+        which(apply(exprs[, which(labs == 0), drop = F], 1, var) == 0),
+        which(apply(exprs[, which(labs == 1), drop = F], 1, var) == 0)   
+      )
     )
     if (length(no.var.genes) > 0) {
+      temp.exprs <- exprs[-no.var.genes, , drop = F]
       t.test.result <- multtest::mt.teststat(
-        X = exprs[-no.var.genes, , drop = F],
+        X = temp.exprs,
         classlabel = labs,
         test = "t"
       )
 
       # calc p-values and adjust for multiple testing, in accordance with Newman et al. 2015 significant if q < 0.3
       p.vals <- 2 * pt(abs(t.test.result), length(labs) - 2, lower.tail = FALSE)
-
-      # apparently an error occurs when qvalue calls pi0est, which calls smooth.spline; input does not contain
-      # missing or infinite values, therefore catch the error and try to compensate in some way -> adj.p
-      q.vals <- try(qvalue::qvalue(p.vals)$qvalues, silent = TRUE)
-      if (class(q.vals) == "try-error") {
-        q.vals <- p.adjust(p.vals, "BH")
+      q.vals <- p.adjust(p.vals, "BH")
+      sig.entries <- which(q.vals < 0.3)
+      sig.genes <- rownames(temp.exprs)[sig.entries]
+      # catch possible errors related to sig.genes
+      if(any(is.na(sig.genes))){
+        sig.entries <- sig.entries[!is.na(sig.genes)]
+        sig.genes <- sig.genes[!is.na(sig.genes)]
       }
-
-      sig.genes <- rownames(exprs[-no.var.genes, , drop = F])[which(q.vals < 0.3)]
+      if(!length(sig.genes) > 0) break
+      temp.exprs <- temp.exprs[sig.entries, ]
+      
       # the genes are ordered by decreasing fold changes compared to other cell subsets
-      temp.exprs <- exprs[-no.var.genes, , drop = F]
-      fold.changes <- log2(Matrix::rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 0), drop = F])) - log2(Matrix::rowMeans(temp.exprs[which(q.vals < 0.3), which(labs == 1), drop = F]))
+      fold.changes <- 
+        log2(Matrix::rowMeans(
+          temp.exprs[, which(labs == 0), drop = F]
+        )) - 
+        log2(Matrix::rowMeans(
+          temp.exprs[, which(labs == 1), drop = F]
+        ))
     } else {
       t.test.result <- multtest::mt.teststat(
         X = exprs,
@@ -121,21 +127,25 @@ create_sig_matrix <- function(
         test = "t"
       )
       p.vals <- 2 * pt(abs(t.test.result), length(labs) - 2, lower.tail = FALSE)
-
-      # catch same error as above
-      q.vals <- try(qvalue::qvalue(p.vals)$qvalues, silent = TRUE)
-      if (class(q.vals) == "try-error") {
-        q.vals <- p.adjust(p.vals, "BH")
+      q.vals <- p.adjust(p.vals, "BH")
+      sig.entries <- which(q.vals < 0.3)
+      sig.genes <- rownames(exprs)[sig.entries]
+      
+      # catch possible errors related to sig.genes
+      if(any(is.na(sig.genes))){
+        sig.entries <- sig.entries[!is.na(sig.genes)]
+        sig.genes <- sig.genes[!is.na(sig.genes)]
       }
-
+      if(!length(sig.genes) > 0) break
+      
       # calculate fold changes
-      sig.genes <- rownames(exprs)[which(q.vals < 0.3)]
-      genes.to.remove <- which(q.vals >= 0.3)
-      if (length(genes.to.remove) > 0) {
-        fold.changes <- log2(Matrix::rowMeans(exprs[-genes.to.remove, which(labs == 0), drop = F])) - log2(Matrix::rowMeans(exprs[-genes.to.remove, which(labs == 1), drop = F]))
-      } else {
-        fold.changes <- log2(Matrix::rowMeans(exprs[, which(labs == 0), drop = F])) - log2(Matrix::rowMeans(exprs[, which(labs == 1), drop = F]))
-      }
+      fold.changes <- 
+        log2(Matrix::rowMeans(
+          exprs[sig.entries, which(labs == 0), drop = F]
+        )) - 
+        log2(Matrix::rowMeans(
+          exprs[sig.entries, which(labs == 1), drop = F]
+        ))
     }
     # add genes for each type ordered by decreasing fold change
     deg.per.type[[t]] <- sig.genes[order(abs(fold.changes), decreasing = TRUE)]
@@ -143,12 +153,13 @@ create_sig_matrix <- function(
 
   # reduce to one reference profile per cell type
   ref.profiles <- matrix(
-    NA,
+    0,
     nrow = nrow(exprs),
     ncol = length(unique(pheno[, cell.type.column]))
   )
   colnames(ref.profiles) <- unique(pheno[, cell.type.column])
   rownames(ref.profiles) <- rownames(exprs)
+  
   for (t in colnames(ref.profiles)) {
     ref.profiles[, t] <- Matrix::rowMeans(
       exprs[, which(pheno[, cell.type.column] == t), drop = F]
@@ -158,37 +169,40 @@ create_sig_matrix <- function(
   # again following Newman et al.:
   # take top g genes for every cell type, create signature matrices
   # choose the gene set that minimizes condition number
-  limit <- min(max(sapply(deg.per.type, length)), max.genes)
+  limit <- min(
+    max(sapply(deg.per.type, length)), max.genes
+  )
 
   if (optimize) {
-    cond.nums <- c()
+    cond.nums <- rep(-1, times = limit)
     for (g in 1:limit) {
-      all.genes <- c()
-      for (sub.genes in deg.per.type) {
-        all.genes <- c(all.genes, sub.genes[1:min(length(sub.genes), g)])
-      }
-      all.genes <- unique(all.genes)
+      all.genes <- unique(unlist(
+        sapply(deg.per.type, function(sub.genes, lim = g){
+          sub.genes[1:min(length(sub.genes), lim)]
+        })
+      ))
 
-      # several genes have 0 variance, therefore mt.multtest returns NA
+      # mt.multtest might return NA
       if (any(is.na(all.genes))) {
         all.genes <- all.genes[-which(is.na(all.genes))]
       }
 
       # estimate condition number of reduced matrix
-      cond.nums <- c(cond.nums, kappa(ref.profiles[all.genes, ,drop=F], exact = FALSE))
+      cond.nums[g] <- kappa(ref.profiles[all.genes, ,drop=F], exact = FALSE)
     }
-    optimal.g <- (1:limit)[which.min(cond.nums)]
+    optimal.g <- which.min(cond.nums)
   } else {
     optimal.g <- limit
   }
 
   # create gene list with the optimal g
-  optimal.genes <- sapply(deg.per.type, function(x) {
-    x[1:optimal.g]
-  })
-  optimal.genes <- unique(as.vector(optimal.genes))
+  optimal.genes <- unique(unlist(
+    sapply(deg.per.type, function(sub.genes, opt.g = optimal.g) {
+      sub.genes[1:min(opt.g, length(sub.genes))]
+    })
+  ))
 
-  # deal with eventual NAs again
+  # deal with possible NAs again
   if (any(is.na(optimal.genes))) {
     optimal.genes <- optimal.genes[-which(is.na(optimal.genes))]
   }
@@ -207,6 +221,5 @@ create_sig_matrix <- function(
     warning("Found duplicates in reference matrix")
     ref.mat <- ref.mat[-which(duplicated(rownames(ref.mat))),]
   }
-
   return(ref.mat)
 }
