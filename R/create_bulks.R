@@ -75,20 +75,20 @@ create_bulks <- function(
 
     # if no subtype, sample with random distribution from cell_types
     # if subtypes, sample with random distribution from combined.type
-    
+   
+    # sample bulks with the same distribution of cell types as in the training data 
     for(i in seq_len(ncol(bulk.exprs))){
         types <- unique(pheno[, cell.type.column])
         # sample random weights / number of cells for each type
-        weights <- sample(1:100, size = length(types), replace = TRUE)**d
-        weights <- as.integer(weights / sum(weights) * ceiling(n.profiles.per.bulk))
-        names(weights) <- types
-        
+        weights <- table(pheno[, cell.type.column]) / length(nrow(pheno))
+        cells <- sample(types, size = n.profiles.per.bulk, replace = TRUE, prob = weights[types])
+
         bulk.samples <- rep(-1,sum(weights))
         
         # draw samples for each type, store the proportions and the expression
         idx <- 1
         for(t in types){
-            n.types <- weights[t]
+            n.types <- sum(cells == t)
             if(n.types > 0){
                 samples <- sample(which(pheno[,cell.type.column] == t), 
                                     size = n.types, 
