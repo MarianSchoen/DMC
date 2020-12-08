@@ -67,13 +67,16 @@ run_music <- function(
   # MuSiC uses all supplied genes
   n.genes <- nrow(exprs)
 
+  exprs <- Matrix::as.matrix(exprs)
+  bulks <- Matrix::as.matrix(bulks)
   # ExpressionSet creation may fail without this...
   rownames(exprs) <- make.names(rownames(exprs))
   rownames(bulks) <- make.names(rownames(bulks))
 
+  rownames(pheno) <- colnames(exprs)
   # create ExpressionSets from exprs, pheno and bulks
   sc.exprs <- Biobase::ExpressionSet(
-    assayData = Matrix::as.matrix(exprs),
+    assayData = exprs,
     phenoData = Biobase::AnnotatedDataFrame(pheno)
   )
   bulk.pheno <- data.frame(sample = colnames(bulks))
@@ -82,8 +85,9 @@ run_music <- function(
   # equality check of sample names may fail due to different attributes
   rownames(bulk.pheno) <- colnames(bulks)
   colnames(bulks) <- rownames(bulk.pheno)
+
   bulks <- Biobase::ExpressionSet(
-    assayData = Matrix::as.matrix(bulks),
+    assayData = bulks,
     phenoData = Biobase::AnnotatedDataFrame(bulk.pheno)
   )
 
