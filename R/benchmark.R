@@ -28,6 +28,7 @@
 #' e.g. \code{algorithms = list(list(name = 'DTD', algorithm = run_dtd), "DTD")}. \cr
 #' If no list is supplied, all implemented algorithms 
 #' (CIBERSORT, DeconRNASeq, DTD, Least_Squares, BSEQ-sc and MuSiC) are selected.
+#' @param score.algorithms boolean, default TRUE. Should DAB algorithm performance scores be calculated?
 #' @param simulation.bulks boolean, should deconvolution of simulated bulks be
 #' performed? default: FALSE
 #' @param simulation.genes boolean, should deconvolution of simulated bulks with 
@@ -76,6 +77,7 @@ benchmark <- function(
   patient.column = "patient",
   sample.name.column = "sample.name",
   input.algorithms = NULL,
+  score.algorithms = TRUE,
   simulation.bulks = FALSE,
   simulation.genes = FALSE,
   simulation.samples = FALSE,
@@ -415,7 +417,8 @@ benchmark <- function(
 			  include.in.bulks, 
 			  sum.to.count = cpm, 
 			  cell.type.column = cell.type.column, 
-			  n.profiles.per.bulk = n.profiles.per.bulk
+			  n.profiles.per.bulk = n.profiles.per.bulk,
+			  frac = 10
 			)
 		}else{
 			sim.bulks <- list(bulks = NULL, props = NULL)
@@ -483,10 +486,7 @@ benchmark <- function(
 		rm("present.algorithms")
 		gc()
 	}
-	
-	# remove variables
-	
-	
+
 	res.no <- length(previous.results) + 1
 	if(!is.null(bulk.counts) && !is.null(bulk.props)){
 	# deconvolute real bulks
@@ -528,6 +528,49 @@ benchmark <- function(
 	# remove real bulk results from RAM
 	rm(list = c("real.benchmark", "estimates", "props", "bootstrap.real"))
 	gc()
+	
+	
+	# calculate DAB algorithm scores
+	if(score.algorithms){
+	  if(is.null(include.in.bulks)){
+	    if(!is.null(exclude.from.bulks)){
+  	    include.in.bulks <- unique(test.pheno[[cell.type.column]])[
+  	      -which(unique(test.pheno[[cell.type.column]] %in% exclude.from.bulks))
+  	      ]
+	    }else{
+	      include.in.bulks <- unique(test.pheno[[cell.type.column]])
+	    }
+	  }
+	  if(!is.null(exclude.from.signature)){
+  	  include.in.signature <- unique(training.pheno[[cell.type.column]])[
+  	    -which(unique(training.pheno[[cell.type.column]] %in% exclude.from.signature))
+  	  ]
+	  }else{
+	    include.in.signature <- unique(training.pheno[[cell.type.column]])
+	  }
+	  scores <- score_algorithms(
+	    training.exprs,
+	    training.pheno,
+	    test.exprs,
+	    test.pheno,
+	    algorithms,
+	    n.repeats = 3,
+	    n.bulks = 50, 
+	    celltype.column = cell.type.column, 
+	    patient.column = patient.column, 
+	    celltypes = include.in.bulks, 
+	    predict.types = include.in.signature, 
+	    cibersort.path=cibersort.path,
+	    temp.dir = temp.dir, 
+	    file.suffix = "",
+	    verbose = verbose
+	  )
+	  if(verbose) {
+	    cat("Scores: \n")
+	    saveRDS(scores, paste0(output.folder, "/scores.rds"))
+	    print(scores)
+	  }
+	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)

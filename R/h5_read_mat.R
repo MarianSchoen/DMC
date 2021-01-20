@@ -17,9 +17,17 @@ h5_read_mat <- function(filename){
     }
     cnames <- rhdf5::h5read(filename, "colnames")
     m <- rhdf5::h5read(filename, "data")
+    if(length(cnames) == ncol(m)){
     colnames(m) <- cnames
+    }else{
+	    warning("Number of columns does not match colnames")
+    }
     if(exists("rnames")){
-        rownames(m) <- rnames
+	    if(length(rnames) == nrow(m)){
+        	rownames(m) <- rnames
+	    }else{
+		warning("Number of rows does not match rownames")
+	    }
     }
     
     return(m)

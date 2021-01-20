@@ -25,6 +25,7 @@
 #' estimated fractions of the cell types contained
 #' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
 #' @example run_dtd(training.exprs, training.pheno, bulks)
+#' @export
 
 run_dtd <- function(
   exprs,
@@ -39,6 +40,7 @@ run_dtd <- function(
   patient.column = NULL, 
   scale.cpm = FALSE
 ) {
+  suppressMessages(suppressWarnings(library(Matrix, quietly = TRUE)))
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
@@ -56,6 +58,20 @@ run_dtd <- function(
   if(scale.cpm){
     # prepare phenotype data and cell types to use
     exprs <- scale_to_count(exprs)
+  }
+  if(!is.matrix(exprs)){
+	  if(class(exprs) == "dgCMatrix"){
+		  #exprs <- as.matrix(exprs)
+	  }else{
+		  stop("exprs must be a matrix or sparse matrix (dgCMatrix)")
+	  }
+  }
+  if(!is.matrix(bulks)){
+	  if(class(bulks) == "dgCMatrix"){
+		#bulks <- as.matrix(bulks)
+	  }else{
+		stop("bulks must be a matrix or sparse matrix (dgCMatrix)")
+	  }
   }
   
   # prepare phenotype data and cell types to use
@@ -76,7 +92,7 @@ run_dtd <- function(
   sample.X <- DTD::sample_random_X(
     included.in.X = include.in.x,
     pheno = cell.types,
-    expr.data = exprs,
+    expr.data = Matrix::as.matrix(exprs),
     percentage.of.all.cells = 0.3,
     normalize.to.count = TRUE
   )
@@ -112,14 +128,14 @@ run_dtd <- function(
   n.genes <- min(4000, nrow(exprs), length(unique(cell.types)) * max.genes)
   # select the top n.genes most variable genes for deconvolution
   top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
-  exprs <- exprs[top.features, ]
+  exprs <- exprs[which(rownames(exprs) %in% top.features), ]
   sig.matrix <- sig.matrix[top.features, ]
 
   # create artificial mixtures to train DTD model on
   n.per.mixture <- max(floor(0.1 * ncol(exprs)),3)
   n.samples <- max(n.genes, 50)
   training.bulks <- DTD::mix_samples(
-    expr.data = exprs,
+    expr.data = Matrix::as.matrix(exprs),
     pheno = cell.types,
     included.in.X = include.in.x,
     n.samples = n.samples,
@@ -148,7 +164,7 @@ run_dtd <- function(
     # use the model to estimate the composition of the supplied bulks
     est.props <- DTD::estimate_c(
       X.matrix = sig.matrix,
-      new.data = bulks[rownames(sig.matrix), , drop = F],
+      new.data = Matrix::as.matrix(bulks[rownames(sig.matrix), , drop = F]),
       DTD.model = dtd.model,
       estimate.c.type = "direct"
     )
