@@ -77,7 +77,7 @@ run_bseqsc <- function(
   colnames(bulk.pheno) <- "sample"
   colnames(bulks) <- rownames(bulk.pheno)   # ExpressionSet creation may fail due to differences in attributes
   bulks <- Biobase::ExpressionSet(
-    assayData = bulks,
+    assayData = Matrix::as.matrix(bulks),
     phenoData = Biobase::AnnotatedDataFrame(bulk.pheno)
   )
 
@@ -128,7 +128,7 @@ run_bseqsc <- function(
 
   # create single cell and bulk expression set
   sc.exprs <- Biobase::ExpressionSet(
-    assayData = exprs,
+    assayData = Matrix::as.matrix(exprs),
     phenoData = Biobase::AnnotatedDataFrame(pheno)
   )
   rm(exprs)

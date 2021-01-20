@@ -37,7 +37,9 @@ split_dataset <- function(exprs, pheno, method = "random", prop = 0.25, grouping
         training.samples <- (1:nrow(pheno))[-test.samples]
     }else if (method == "predefined") {
         # divide dataset according to the grouping vector
-        if(length(grouping) != ncol(exprs) | length(unique(grouping)) != 2 | !all(c(1,2) %in% grouping)){
+        if(length(grouping) != ncol(exprs) | length(unique(grouping)) != 2 | 
+           !all(c(1,2) %in% grouping))
+        {
             stop("Please specify a valid grouping vector containing 1 and 2")
         }
         training.samples <- which(grouping == 1)

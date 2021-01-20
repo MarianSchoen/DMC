@@ -82,7 +82,7 @@ run_cibersort <- function(
 
     # create data frame containing bulks
     df.mix <- data.frame(GeneSymbol = rownames(bulks))
-    df.mix <- cbind(df.mix, bulks)
+    df.mix <- cbind(df.mix, Matrix::as.matrix(bulks))
     write.table(df.mix,
         file = "CIBERSORT/mixture.txt", quote = FALSE, row.names = FALSE,
         sep = "\t"

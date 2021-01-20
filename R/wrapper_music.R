@@ -75,6 +75,7 @@ run_music <- function(
   rownames(bulks) <- make.names(rownames(bulks))
   rownames(pheno) <- colnames(exprs)
 
+  rownames(pheno) <- colnames(exprs)
   # create ExpressionSets from exprs, pheno and bulks
   sc.exprs <- Biobase::ExpressionSet(
     assayData = exprs,

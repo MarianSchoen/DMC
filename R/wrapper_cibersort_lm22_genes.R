@@ -68,7 +68,7 @@ run_cibersort_lm22_genes <- function(
     rownames(ref.profiles) <- lm22.genes
     colnames(ref.profiles) <- unique(pheno[[cell.type.column]])
     for(ct in colnames(ref.profiles)){
-        ref.profiles[,ct] <- rowMeans(exprs[rownames(ref.profiles),which(pheno[[cell.type.column]] == ct), drop = F])
+        ref.profiles[,ct] <- Matrix::rowMeans(exprs[rownames(ref.profiles),which(pheno[[cell.type.column]] == ct), drop = F])
     }
     
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
@@ -83,7 +83,7 @@ run_cibersort_lm22_genes <- function(
 
     # create data frame containing bulks
     df.mix <- data.frame(GeneSymbol = rownames(bulks))
-    df.mix <- cbind(df.mix, bulks)
+    df.mix <- cbind(df.mix, Matrix::as.matrix(bulks))
     write.table(df.mix,
         file = "CIBERSORT/mixture.txt", quote = FALSE, row.names = FALSE,
         sep = "\t"

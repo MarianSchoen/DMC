@@ -143,7 +143,7 @@ get_hclust <- function(
     preselected.features <- names(sorted.sds)[1:n.features.pre.pca]
     
     tmp.pca <- prcomp(
-      x = t(tmp.counts[preselected.features, ])
+      x = t(Matrix::as.matrix(tmp.counts[which(rownames(tmp.counts) %in% preselected.features), ]))
       # , rank. = 100 # this parameter is useless, it calculates all pcs, and slices the output matrix
       , scale = FALSE
       , center = FALSE

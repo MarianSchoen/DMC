@@ -97,35 +97,58 @@ benchmark <- function(
   cibersort.path = NULL,
   n.profiles.per.bulk = 1000
   ){
-	  if(verbose) tictoc::tic("Benchmark")
+  # load Matrix library once again to ensure proper data handling
+	suppressWarnings(suppressMessages(library(Matrix, quietly = TRUE)))
+	
+  # measure time
+  if(verbose) tictoc::tic("Benchmark")
 	if(verbose) cat("calculating checksum\n")
-	hash <- digest::digest(list(sc.counts, sc.pheno, bulk.counts, bulk.props, benchmark.name, grouping, exclude.from.bulks, exclude.from.signature, n.bulks, cpm, n.cluster.sizes, genesets, avg.profiles.per.subcluster))
-	# check whether temporary directory is available and writeable
-	# if not specified use .tmp in working directory
+	hash <- digest::digest(
+	  list(
+	    sc.counts, sc.pheno, bulk.counts, bulk.props, 
+	    benchmark.name, grouping, exclude.from.bulks, 
+	    exclude.from.signature, n.bulks, cpm, 
+	    n.cluster.sizes, genesets, avg.profiles.per.subcluster
+	  )
+	)
+	
+	# if temp.dir not specified, use .tmp in working directory
 	if(is.null(temp.dir)){
-		warning("No temporary directory was provided. Using .tmp in current directory.")
+		warning(
+		"No temporary directory was provided. 
+		 Using .tmp in current directory."
+		)
 		temp.dir <- paste(getwd(),"/.tmp",sep = "")
 	}
+	
 	# check that temp.dir exists and is writeable 
-	# stop if it is not
 	if(!dir.exists(temp.dir)){
 		flag <- dir.create(temp.dir, recursive = TRUE)
-		if(!flag) stop("Could not create temp directory. Please provide a writeable directory.")
+		if(!flag){
+		  stop("Could not create temp directory. 
+		       Please provide a writeable directory.")
+		}
 	}else{
 		if(is.null(benchmark.name) || benchmark.name == ""){
-			stop("Invalid benchmark name. Please provide a unique name for this benchmark.")
+			stop("Invalid benchmark name. 
+			     Please provide a unique name for this benchmark.")
 		}else{
+		  # if directory already exists, check hash and try to load data
 			if(dir.exists(paste(temp.dir, benchmark.name,sep="/"))){
-				message("Found existing project directory within temp. Using present data where possible.")
-				# compare to the old hash and proceed only if it does not exist or they are similar
+				message("Found existing project directory within temp. 
+				        Using present data where possible.")
+			  
+				# compare to the old hash and proceed only if they are identical
 				if(file.exists(paste(temp.dir, benchmark.name, "hash.rds",sep="/"))){
-					hash.old <- readRDS(paste(temp.dir, benchmark.name, "hash.rds", sep="/"))
+					hash.old <- readRDS(paste(
+					  temp.dir, benchmark.name, "hash.rds", sep="/"
+					))
 					if(hash != hash.old){
-						stop("Hash values of current and old function call do not match. If you changed your data or other important parameters please name your benchmark differently.")
+						stop("Hash values of current and old function call do not match. 
+						     If you changed your data or other important parameters 
+						     name your benchmark differently.")
 					}
 				}
-				saveRDS(hash, paste(temp.dir, benchmark.name, "hash.rds",sep="/"))
-				rm("hash")
 			}else{
 				flag <- dir.create(paste(temp.dir, "/", benchmark.name, sep = ""))
 				if(!flag) {
@@ -134,15 +157,18 @@ benchmark <- function(
 			}
 		}
 	}
+	saveRDS(hash, paste(temp.dir, benchmark.name, "hash.rds",sep="/"))
+	rm("hash")
 	output.folder <- paste(temp.dir,"/",benchmark.name,sep="")
 
 	# check input parameters
+	#
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
 	# remove empty profiles
-	if(any(colSums(sc.counts) == 0)){
-		to.remove <- which(colSums(sc.counts) == 0)
+	if(any(Matrix::colSums(sc.counts) == 0)){
+		to.remove <- which(Matrix::colSums(sc.counts) == 0)
 		sc.pheno <- sc.pheno[-to.remove, ]
 		sc.counts <- sc.counts[,-to.remove]
 	}
@@ -155,6 +181,7 @@ benchmark <- function(
 		warning("No gene sets provided; skipping that benchmark")
 		simulation.genes <- FALSE
 	}
+	# check and handle metric parameter
 	if(is.character(metric)){
 		if(metric != "cor"){
 			stop("metric must be either \"cor\" or a function")
@@ -166,7 +193,8 @@ benchmark <- function(
 		}
 	}else{
 		if(is.function(metric)){
-			warning("Using custom evaluation function / metric. Unexpected results and plots may occur.")
+			warning("Using custom evaluation function / metric. 
+			        Unexpected results and plots may occur.")
 			if(is.null(metric.name) || !is.character(metric.name)){
 				metric.name <- "custom metric"
 			}
@@ -174,11 +202,17 @@ benchmark <- function(
 			stop("Function corresponding to 'metric' could not be found.")
 		}
 	}
-	if(!is.factor(grouping) || !length(levels(grouping)) == 2 || !length(grouping) == ncol(sc.counts)){
-		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts) with two levels indicating training and validation set")
+	if(!is.factor(grouping) || !length(levels(grouping)) == 2 || 
+	   !length(grouping) == ncol(sc.counts)){
+		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts) 
+		     with two levels indicating training and validation set")
 	}
-	if(!all(is.logical(c(simulation.bulks, simulation.genes, simulation.samples, simulation.subtypes)))){
-		stop("Invalid value for at least one benchmark indicator. Have to be logical.")
+	if(!all(is.logical(c(
+	  simulation.bulks, simulation.genes, 
+	  simulation.samples, simulation.subtypes
+	 )))){
+		stop("Invalid value for at least one benchmark indicator. 
+		     Have to be logical.")
 	}
 	if(!is.numeric(repeats)){
 		stop("Invalid number of repeats. Must be numeric.")
@@ -202,16 +236,20 @@ benchmark <- function(
 	}
 	if(!is.null(exclude.from.bulks)){
 		if(!all(exclude.from.bulks %in% unique(sc.pheno[[cell.type.column]]))){
-			stop("Unknown cell type(s) in exclude.from.bulks. Please select only cell types present in pheno data.")
+			stop("Unknown cell type(s) in exclude.from.bulks. 
+			     Please select only cell types present in pheno data.")
 		}
 	}
 	if(!is.null(exclude.from.signature)){
 		if(!all(exclude.from.signature %in% unique(sc.pheno[[cell.type.column]]))){
-			stop("Unknown cell types(s) in exclude.from.signature. Please select only cell types present in pheno data.")
+			stop("Unknown cell types(s) in exclude.from.signature. 
+			     Please select only cell types present in pheno data.")
 		}
 	}
 	if(!rmarkdown::pandoc_available()){
-		warning("pandoc was not found on your system. you can perform the benchmark but will not be able to render the report until this dependency is fulfilled.")
+		warning("pandoc was not found on your system. 
+		        You can perform the benchmark but will not be able to render 
+		        the report until this dependency is fulfilled.")
 	}
 	if(!is.null(avg.profiles.per.subcluster)){
 		if(!is.numeric(avg.profiles.per.subcluster)){
@@ -222,6 +260,8 @@ benchmark <- function(
 		}
 	}
 
+	# CIBERSORT
+	# check / source script path
 	use.cibersort <- FALSE
 	if(exists("CIBERSORT") && is.function(CIBERSORT)){
 		use.cibersort <- TRUE
@@ -238,7 +278,8 @@ benchmark <- function(
 				warning(paste("Specified file not found:", cibersort.path))
 			}
 		}else{
-			warning("No CIBERSORT source file supplied. Any wrappers depending on CIBERSORT can not be used.")
+			warning("No CIBERSORT source file supplied. 
+			        Any wrappers depending on CIBERSORT can not be used.")
 		}
 	}
 
@@ -251,21 +292,30 @@ benchmark <- function(
 			   list(algorithm = run_music, name = "MuSiC"),
 			   list(algorithm = run_bseqsc, name = "BSEQ-sc")
 	)
-	algorithm.names <- sapply(algorithms, function(x) x$name)
+	algorithm.names <- vapply(algorithms, 
+	                          FUN = function(x) x$name, 
+	                          FUN.VALUE = c("name")
+	                          )
 
+	# BSEQ-sc configuration
 	if("BSEQ-sc" %in% algorithm.names){
 		if(!is.null(cibersort.path)){
 			if(file.exists(cibersort.path)){
 				bseqsc::bseqsc_config(file = cibersort.path)
 			}else{
-				warning("Could not find CIBERSORT source file. If BSEQ-sc is not already correctly configured, errors may occur.")
+				warning("Could not find CIBERSORT source file. 
+				        If BSEQ-sc is not already correctly configured, 
+				        errors may occur.")
 			}
 		}else{
-			warning("No path for CIBERSORT source file supplied. This is needed by BSEQ-sc. If BSEQ-sc has already been configured 
-					(the CIBERSORT source code is present in ~/R-data/bseqsc/) you may ignore this warning. Otherwise, BSEQ-sc will likely fail.")
+			warning("No path for CIBERSORT source file supplied. 
+			This is needed by BSEQ-sc. If BSEQ-sc has already been configured 
+					(i.e. the CIBERSORT source code is present in ~/R-data/bseqsc/) 
+			     you may ignore this warning. Otherwise, BSEQ-sc will likely fail.")
 		}
 	}
 
+	# create input algorithm list
 	if(!is.null(input.algorithms)){
 		# input.algorithms must be a list
 		if(!is.list(input.algorithms)){
@@ -291,7 +341,10 @@ benchmark <- function(
 				if(is.character(a) && a %in% algorithm.names){
 					predef.algos <- c(predef.algos, which(algorithm.names == a))	
 				}else{
-					stop("Invalid algorithm. User supplied algorithms can be given as a list with two entries: name (name of the algorithm) and algorithm (wrapper to call the algorithm)")
+					stop("Invalid algorithm. 
+					     User supplied algorithms can be given as a list with two entries:
+					     name (name of the algorithm) and algorithm 
+					     (wrapper to call the algorithm)")
 				}
 			}
 		}
@@ -322,10 +375,23 @@ benchmark <- function(
 	
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
+	cat("converting counts to sparse matrices if necessary...\n")
+	if(class(sc.counts) != "dgCMatrix"){
+		sc.counts <- Matrix(sc.counts, sparse = TRUE)
+		class(sc.counts) <- "dgCMatrix"
+	}
+	if(!is.null(bulk.counts)){
+		if(class(bulk.counts) != "dgCMatrix"){
+	  		bulk.counts <- Matrix(bulk.counts, sparse = TRUE)
+			class(bulk.counts) <- "dgCMatrix"
+		}
+	}
+	gc()
 
 	# load / process / store data
 	# if it exists load previously processed data from temp
-	if(file.exists(paste(output.folder,"/input_data/training_set.h5",sep="")) && file.exists(paste(output.folder,"/input_data/validation_set.h5",sep=""))){
+	if(file.exists(paste(output.folder,"/input_data/training_set.h5",sep="")) && 
+	   file.exists(paste(output.folder,"/input_data/validation_set.h5",sep=""))){
 		if(verbose) cat("Loading data found in temp directory\n")
 		training_set <- read_data(paste(output.folder, "/input_data/training_set.h5", sep = ""))
 		validation_set <- read_data(paste(output.folder, "/input_data/validation_set.h5", sep=""))
@@ -333,13 +399,15 @@ benchmark <- function(
 		training.pheno <- training_set$sc.pheno
 		test.exprs <- validation_set$sc.counts
 		test.pheno <- validation_set$sc.pheno
-		sim.bulks <- list(bulks = validation_set$bulk.counts, props = validation_set$bulk.props)
-		
-		# don't need these any more
+		sim.bulks <- list(
+		  bulks = validation_set$bulk.counts, 
+		  props = validation_set$bulk.props
+		)
 		rm(list = c("training_set", "validation_set"))
 	}else{
 		dir.create(paste(output.folder,"/input_data",sep=""), recursive = TRUE)
 	}
+	
 	# save input data of benchmark() to temp directory
 	function.call <- match.call()
 	if(!file.exists(paste(output.folder, "input_data/raw.h5", sep = "/"))){
@@ -522,6 +590,8 @@ benchmark <- function(
 		props <- list(real = bulk.props, est = estimates)
 		bootstrap.real <- bootstrap_bulks(props)
 		h5_write_mat(bootstrap.real, paste(output.folder, "/results/real/bootstrap_bulks",res.no,".h5",sep=""))
+		rm(list = c("real.benchmark", "estimates", "props", "bootstrap.real"))
+		gc()
 	}
 	}
 	
@@ -571,7 +641,6 @@ benchmark <- function(
 	    print(scores)
 	  }
 	}
-
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes)
 	names(available.sims) <- c("genes", "samples", "bulks", "subtypes")
@@ -601,11 +670,12 @@ benchmark <- function(
 			}
 			if(verbose) print(present.algorithms)
 			to.run <- which(! algorithm.names %in% present.algorithms)
+			rm("present.algorithms")
 		}
 		res.no <- length(previous.results) + 1
 		
 		# remove variables containing previous results
-		rm(list = c("previous.results", "present.algorithms"))
+		rm(list = c("previous.results"))
 		gc()
 
 		# execute benchmark corresponding to s and save results
@@ -645,6 +715,7 @@ benchmark <- function(
 				)
 			  
 			  rm(list = c("all.exprs", "all.pheno"))
+			  gc()
 			}
 		  
 			if(!dir.exists(paste(output.folder, "/results/simulation/", s, sep = ""))){
