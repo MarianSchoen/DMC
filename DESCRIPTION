@@ -1,6 +1,6 @@
 Package: DAB
 Title: Benchmark of different Deconvolution Algorithms in several scenarios
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: 
     person(given = "Tim",
            family = "Mirus",
