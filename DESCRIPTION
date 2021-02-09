@@ -1,6 +1,6 @@
 Package: DAB
 Title: Benchmark of different Deconvolution Algorithms in several scenarios
-Version: 0.2
+Version: 0.2.1
 Authors@R: 
     person(given = "Tim",
            family = "Mirus",
@@ -17,7 +17,7 @@ Encoding: UTF-8
 LazyData: true
 biocViews:
 Depends: ggplot2, Matrix
-Imports: DTD, DeconRNASeq, e1071, rhdf5, parallel, preprocessCore, multtest, qvalue, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest, Rtsne, tictoc, umap, uwot, reshape2
+Imports: DTD, DescTools, DeconRNASeq, e1071, rhdf5, parallel, preprocessCore, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest, Rtsne, tictoc, umap, uwot, reshape2
 RoxygenNote: 7.1.1
 Remotes: spang-lab/DTD,
 	renozao/xbioc,
