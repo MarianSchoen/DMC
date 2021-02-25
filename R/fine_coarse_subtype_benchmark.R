@@ -12,7 +12,6 @@
 #' @param subtype.pattern 
 #' @param cell.type.column 
 #' @param sample.name.column 
-#' @param avg.profiles.per.subcluster 
 #' @param verbose 
 #' @param algorithm.list 
 #'
@@ -25,8 +24,8 @@ fine_coarse_subtype_benchmark <- function(
   subtype.pattern = "subtype",
   cell.type.column = "cell_type", 
   sample.name.column = "sample.name", 
-  avg.profiles.per.subcluster =  NULL,
-  n.cluster.sizes = 5,
+  #avg.profiles.per.subcluster =  NULL,
+  n.cluster.sizes = c(1, 2, 4, 8),
   verbose = TRUE, 
   algorithm.list = list(
     list(algorithm = run_dtd, name = "DTD"),
@@ -35,14 +34,14 @@ fine_coarse_subtype_benchmark <- function(
   patient.column = NULL,
   n.bulks = 500
 ){
-  if(is.null(avg.profiles.per.subcluster)){
-    min.profiles <- max(2, as.integer(min(table(sc.pheno[[cell.type.column]])) / 2) - 1)
-    max.profiles <- as.integer(max(table(sc.pheno[[cell.type.column]])) / 2) + 1
-
-    avg.profiles.per.subcluster <- as.integer(seq(min.profiles, max.profiles, length.out = 5))
-  }else{
-    n.cluster.sizes <- length(avg.profiles.per.subcluster)
-  }
+  # if(is.null(avg.profiles.per.subcluster)){
+  #   min.profiles <- max(2, as.integer(min(table(sc.pheno[[cell.type.column]])) / 2) - 1)
+  #   max.profiles <- as.integer(max(table(sc.pheno[[cell.type.column]])) / 2) + 1
+  # 
+  #   avg.profiles.per.subcluster <- as.integer(seq(min.profiles, max.profiles, length.out = 5))
+  # }else{
+  #   n.cluster.sizes <- length(avg.profiles.per.subcluster)
+  # }
   if(ncol(sc.counts) != nrow(sc.pheno)){
     stop(
       "In DAB::fine_coarse_subtype_benchmark: 'sc.counts' does not fit 'sc.pheno'
@@ -84,7 +83,8 @@ fine_coarse_subtype_benchmark <- function(
     , sample.name.column = sample.name.column
     , new.subtype.column = subtype.pattern
     , hclust.obj = NA
-    , avg.profiles.per.subcluster.vec = avg.profiles.per.subcluster
+    #, avg.profiles.per.subcluster.vec = avg.profiles.per.subcluster
+    , n.clusters = n.cluster.sizes
     , verbose = verbose
   )
   
@@ -94,7 +94,7 @@ fine_coarse_subtype_benchmark <- function(
       pattern = subtype.pattern
       , x = colnames(sc.pheno)
     )
-    ]
+  ]
   
  
   # initialise the output list. 
@@ -124,6 +124,12 @@ fine_coarse_subtype_benchmark <- function(
   #subtype.columns <- c(paste0("subtype.avg.", profiles.per.ct), subtype.columns)
 
   # go through each 'subtype.column' 
+
+  #####
+  print(str(sc.counts))
+  gc()
+  ####
+  cat("Deconvoluting..\n") 
   for(column in subtype.columns){
     # simulate bulks, and deconvolute them 
     # (currently, I don't seperate test/train)
@@ -135,9 +141,9 @@ fine_coarse_subtype_benchmark <- function(
       , test.pheno = sc.pheno
       , cell.type.column = column
       , algorithms = algorithm.list
-      , verbose = verbose
+      , verbose = TRUE
       , split.data = FALSE
-      , n.repeats = 1 # don't yet increase this please
+      , n.repeats = 1
       , patient.column = patient.column
       , n.bulks = n.bulks
     ) 
@@ -222,7 +228,6 @@ fine_coarse_subtype_benchmark <- function(
           }else{
             c.estimated.coarsly[major.cell.type, ] <- 0
           }
-        
       }
       # and store again
       column.list[[column]][["c.estimated.coarsly.list"]][[algorithm]] <- c.estimated.coarsly

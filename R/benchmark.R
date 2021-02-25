@@ -15,7 +15,7 @@
 #' for the results directory
 #' @param grouping factor with 2 levels, and \code{length(grouping)} must be 
 #' \code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either 
-#' test or train cohort. 
+#' test or train cohort. 1 marking training samples, 2 marking test samples.
 #' @param cell.type.column string, which column of 'pheno'
 #' holds the cell type information?
 #' @param patient.column string, which column of 'pheno'
@@ -77,7 +77,7 @@ benchmark <- function(
   patient.column = "patient",
   sample.name.column = "sample.name",
   input.algorithms = NULL,
-  score.algorithms = TRUE,
+  score.algorithms = FALSE,
   simulation.bulks = FALSE,
   simulation.genes = FALSE,
   simulation.samples = FALSE,
@@ -92,8 +92,8 @@ benchmark <- function(
   n.bulks = 500, 
   cpm = TRUE, 
   verbose = FALSE,
-  avg.profiles.per.subcluster = NULL,
-  n.cluster.sizes = 5,
+  #avg.profiles.per.subcluster = NULL,
+  n.cluster.sizes = c(1,2,4,8),
   cibersort.path = NULL,
   n.profiles.per.bulk = 1000
   ){
@@ -108,7 +108,7 @@ benchmark <- function(
 	    sc.counts, sc.pheno, bulk.counts, bulk.props, 
 	    benchmark.name, grouping, exclude.from.bulks, 
 	    exclude.from.signature, n.bulks, cpm, 
-	    n.cluster.sizes, genesets, avg.profiles.per.subcluster
+	    n.cluster.sizes, genesets#, avg.profiles.per.subcluster
 	  )
 	)
 	
@@ -251,14 +251,14 @@ benchmark <- function(
 		        You can perform the benchmark but will not be able to render 
 		        the report until this dependency is fulfilled.")
 	}
-	if(!is.null(avg.profiles.per.subcluster)){
-		if(!is.numeric(avg.profiles.per.subcluster)){
-			stop("avg.profiles.per.subcluster must be a vector of integers")
-		}
-		if(any(as.integer(avg.profiles.per.subcluster) != avg.profiles.per.subcluster)){
-			stop("avg.profiles.per.subcluster must be a vector of integers")
-		}
-	}
+	# if(!is.null(avg.profiles.per.subcluster)){
+	# 	if(!is.numeric(avg.profiles.per.subcluster)){
+	# 		stop("avg.profiles.per.subcluster must be a vector of integers")
+	# 	}
+	# 	if(any(as.integer(avg.profiles.per.subcluster) != avg.profiles.per.subcluster)){
+	# 		stop("avg.profiles.per.subcluster must be a vector of integers")
+	# 	}
+	# }
 
 	# CIBERSORT
 	# check / source script path
@@ -375,8 +375,8 @@ benchmark <- function(
 	
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
-	cat("converting counts to sparse matrices if necessary...\n")
 	if(class(sc.counts) != "dgCMatrix"){
+	  cat("converting counts to sparse matrices...\n")
 		sc.counts <- Matrix(sc.counts, sparse = TRUE)
 		class(sc.counts) <- "dgCMatrix"
 	}
@@ -466,13 +466,12 @@ benchmark <- function(
 	  rm(list = c("sc.counts", "sc.pheno"))
 	  gc()
 
+	  include.in.bulks <- NULL
 		# exclude.from.bulks is a parameter of benchmark(), create_bulks expects the opposite
 		if(!is.null(exclude.from.bulks) && length(intersect(unique(test.pheno[[cell.type.column]]), exclude.from.bulks)) > 0){
 			include.in.bulks <- unique(test.pheno[[cell.type.column]])[-which(unique(test.pheno[[cell.type.column]] %in% exclude.from.bulks))]
-		}else{
-			include.in.bulks <- NULL
+			
 		}
-
 		# create simulated bulks if test data is available and they are needed
 	  # they are only needed if bulk/geneset/training set simulations are performed
 	  # subtype simulation generates its own bulks
@@ -602,6 +601,7 @@ benchmark <- function(
 	
 	# calculate DAB algorithm scores
 	if(score.algorithms){
+		if(exists("include.in.bulks")){
 	  if(is.null(include.in.bulks)){
 	    if(!is.null(exclude.from.bulks)){
   	    include.in.bulks <- unique(test.pheno[[cell.type.column]])[
@@ -610,7 +610,10 @@ benchmark <- function(
 	    }else{
 	      include.in.bulks <- unique(test.pheno[[cell.type.column]])
 	    }
-	  }
+	  }}else{
+		  include.in.bulks <- NULL
+		}
+	  
 	  if(!is.null(exclude.from.signature)){
   	  include.in.signature <- unique(training.pheno[[cell.type.column]])[
   	    -which(unique(training.pheno[[cell.type.column]] %in% exclude.from.signature))
@@ -708,8 +711,8 @@ benchmark <- function(
 					sample.name.column = sample.name.column, 
 					verbose = verbose, 
 					algorithm.list = algorithms[to.run],
-					avg.profiles.per.subcluster = avg.profiles.per.subcluster, 
-					n.cluster.sizes = n.cluster.sizes,
+					#avg.profiles.per.subcluster = avg.profiles.per.subcluster, 
+					n.cluster.sizes = c(1,2,4,8),
 					patient.column = patient.column,
 					n.bulks = n.bulks
 				)

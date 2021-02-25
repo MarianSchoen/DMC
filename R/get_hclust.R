@@ -135,7 +135,7 @@ get_hclust <- function(
       next
     }
     
-    tmp.counts <- sc.counts[, profile.names.of.this.type]
+    tmp.counts <- sc.counts[, which(colnames(sc.counts) %in% profile.names.of.this.type)]
     
     sd.per.gene <- apply(tmp.counts, 1, feature.select.metric.FUN)
     names(sd.per.gene) <- rownames(tmp.counts)
@@ -168,6 +168,8 @@ get_hclust <- function(
       , scale = FALSE
       , pca = NULL # according to the documentation, this means "no pca"
     )
+    rm(tmp.counts)
+    rm(tmp.pca)
     
     clust.obj[[cell.type]] <- hclust(
       d = dist(tmp.umaps)

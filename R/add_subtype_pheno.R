@@ -30,16 +30,18 @@
 #'
 #' @examples
 add_subtype_pheno <- function(
-  sc.counts = cll.exprs,
-  sc.pheno = cll.pheno,
+  sc.counts,
+  sc.pheno,
   cell.type.column = "cell_type", 
   sample.name.column = "sample.name", 
   new.subtype.column = "subtype",
   hclust.obj = NA,
-  avg.profiles.per.subcluster.vec = seq(from = 100, to = 1.1e3, by = 500),
+  #avg.profiles.per.subcluster.vec = seq(from = 100, to = 1.1e3, by = 500),
+  n.clusters = c(1, 2, 4, 8),
   verbose = TRUE,
   ...
 ){
+	cat("Adding Subtypes\n")
   if(! is.list(hclust.obj) ){
     hclust.obj <- get_hclust(
       sc.counts = sc.counts
@@ -50,16 +52,17 @@ add_subtype_pheno <- function(
       , ...
     )
   }
-  for(avg.profiles.per.subcluster in avg.profiles.per.subcluster.vec){
+  #for(avg.profiles.per.subcluster in avg.profiles.per.subcluster.vec){
+  for(n.new.clusters in n.clusters){
     new.entry.name <- paste0(
-      new.subtype.column, ".avg.", avg.profiles.per.subcluster
+      new.subtype.column, ".frac.", n.new.clusters
     )
     sc.pheno[[new.entry.name]] <- NA
     
     for(cell.type in unique(sc.pheno[[cell.type.column]])){
       profiles.pos <- which(sc.pheno[[cell.type.column]] == cell.type)
       
-      n.new.clusters <- ceiling(length(profiles.pos)/avg.profiles.per.subcluster)
+      #n.new.clusters <- ceiling(length(profiles.pos)/avg.profiles.per.subcluster)
       if(n.new.clusters < 2){
         sc.pheno[[new.entry.name]][profiles.pos] <- cell.type
         next
@@ -76,5 +79,8 @@ add_subtype_pheno <- function(
     }
   }
   
+  cat("Done\n")
+  rm(hclust.obj)
+  gc() 
   return(sc.pheno)
 }
