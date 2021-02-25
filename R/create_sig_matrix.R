@@ -60,11 +60,8 @@ create_sig_matrix <- function(
   gene.vars <- apply(exprs, 1, var)
   gene.expr <- Matrix::rowSums(exprs)
   to.remove <- which(gene.vars <= summary(gene.vars)[2] | gene.expr <= summary(gene.expr)[2])
-  cat("Removing ", length(to.remove), " genes due to low expression or low variance\n")
   exprs <- exprs[-to.remove,,drop=FALSE]
-  cat(nrow(exprs), " genes remaining\n")
 
-  cat("Creating signatures for ", length(unique(pheno[[cell.type.column]])), " cell types\n")
   # only split data if there are at least 3 samples for each cell type
   # otherwise the testing in the sig. matrix building will fail
   type.counts <- table(pheno[, cell.type.column])
@@ -91,9 +88,7 @@ create_sig_matrix <- function(
   # for each cell type test against all others for DEG
   # using two-sided t-test
   deg.per.type <- list()
-  cat("Testing for DEGs...\n")
   for (t in unique(pheno[, cell.type.column])) {
-	  cat(t, "\n")
     labs <- ifelse(pheno[, cell.type.column] == t, 0, 1)
     
     # test scores
@@ -113,7 +108,7 @@ create_sig_matrix <- function(
       p.vals <- p.vals[!is.na(p.vals)]
     }
     p.vals <- p.adjust(p.vals, "BH")
-    sig.entries <- which(p.vals < 0.1)
+    sig.entries <- which(p.vals < 0.3)
     sig.genes <- names(p.vals)[sig.entries]
     
     # catch possible errors related to sig.genes
@@ -134,7 +129,12 @@ create_sig_matrix <- function(
         )
       )
     # add genes for each type ordered by decreasing fold change
+    print(t)
     deg.per.type[[t]] <- sig.genes[order(abs(fold.changes), decreasing = TRUE)]
+  }
+  if(! length(deg.per.type)>0){
+    warning("No significant genes found.")
+    return(NULL)
   }
   
   # reduce to one reference profile per cell type
@@ -161,7 +161,7 @@ create_sig_matrix <- function(
 
   if (optimize) {
     cond.nums <- rep(-1, times = limit)
-    for (g in 1:limit) {
+    for (g in 2:limit) {
       all.genes <- unique(unlist(
         sapply(deg.per.type, function(sub.genes, lim = g){
           sub.genes[1:min(length(sub.genes), lim)]
@@ -195,10 +195,10 @@ create_sig_matrix <- function(
 
   # once again depending on whether split.data is true and possible
   if (split.data && !any(type.counts < 3)) {
-    ref.mat <- sig.matrix[optimal.genes, ]
+    ref.mat <- sig.matrix[optimal.genes, ,drop=FALSE]
     rm(sig.matrix)
   } else {
-    ref.mat <- ref.profiles[optimal.genes, ]
+    ref.mat <- ref.profiles[optimal.genes, , drop=FALSE]
     rm(ref.profiles)
   }
 

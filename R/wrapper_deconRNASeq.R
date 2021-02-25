@@ -64,6 +64,13 @@ run_deconrnaseq <- function(
       split.data = split.data,
       cell.type.column = cell.type.column
   )
+  if(is.null(ref.profiles)){
+    return(list(est.props = NULL, sig.matrix = NULL))
+  }
+  # if(! nrow(ref.profiles) > 1){
+  #   warning("Too few genes selected during signature matrix creation for CIBERSORT. Returning NULL.")
+  #   return(list(est.props = NULL, sig.matrix = NULL))
+  # }
 
   # create bulk data frame
   df.mix <- as.data.frame(Matrix::as.matrix(bulks))

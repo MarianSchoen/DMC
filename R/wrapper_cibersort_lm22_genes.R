@@ -91,11 +91,14 @@ run_cibersort_lm22_genes <- function(
 
     # call CIBERSORT; quantile normalization is recommended by the authors
     # switch off permutation, as we are not interested in p-values
-    result <- CIBERSORT(
+    result <- try({CIBERSORT(
         sig_matrix = "CIBERSORT/signature_matrix.txt",
         mixture_file = "CIBERSORT/mixture.txt",
         QN = TRUE, perm = 0
-    )
+    )})
+    if(class(result) == "try-error"){
+	return(list(est.props = NULL, sig.matrix = NULL))
+    }
 
     # drop the additional information in the last 3 columns
     est.props <- t(result[1:ncol(bulks), -((ncol(result) - 2):ncol(result)), drop = FALSE])
