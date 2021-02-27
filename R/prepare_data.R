@@ -132,7 +132,7 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
     df$condition_number <- as.numeric(as.character(df$condition_number))
     df$fraction <- as.numeric(as.character(df$fraction))
     }else{
-        if(all(grepl("subtype.avg", names(results.all), fixed = TRUE))){
+        if(all(grepl("subtype.frac", names(results.all), fixed = TRUE))){
             # case subtype benchmark
             for(subtype.column in names(results.all)){
                 results.list <- results.all[[subtype.column]]
