@@ -46,8 +46,8 @@ create_sig_matrix <- function(
   if (!is.null(exclude.celltypes)) {
     to.exclude <- which(pheno[, cell.type.column] %in% exclude.celltypes)
     if(length(to.exclude) > 0){
-      exprs <- exprs[, -to.exclude, drop = FALSE]
-      pheno <- pheno[-to.exclude, , drop = FALSE]
+      exprs <- exprs[, -to.exclude, drop = F]
+      pheno <- pheno[-to.exclude, , drop = F]
     }
   }
 
@@ -55,13 +55,8 @@ create_sig_matrix <- function(
   if (is.null(max.genes)) {
     max.genes <- floor(nrow(exprs) / length(unique(pheno[, cell.type.column])))
   }
-  
-  # preselect genes for runtime improvements
-  gene.vars <- apply(exprs, 1, var)
-  gene.expr <- Matrix::rowSums(exprs)
-  to.remove <- which(gene.vars <= summary(gene.vars)[2] | gene.expr <= summary(gene.expr)[2])
-  exprs <- exprs[-to.remove,,drop=FALSE]
 
+  
   # only split data if there are at least 3 samples for each cell type
   # otherwise the testing in the sig. matrix building will fail
   type.counts <- table(pheno[, cell.type.column])
@@ -90,53 +85,72 @@ create_sig_matrix <- function(
   deg.per.type <- list()
   for (t in unique(pheno[, cell.type.column])) {
     labs <- ifelse(pheno[, cell.type.column] == t, 0, 1)
-    
-    # test scores
-    vars_x <- apply(exprs[,which(labs == 0), drop = FALSE], 1, var)
-    vars_y <- apply(exprs[,which(labs == 1), drop = FALSE], 1, var)
-    nx <- length(which(labs==0))
-    ny <- length(which(labs == 1))
-    denom <- sqrt(vars_x/nx + vars_y/ny)
-    t.scores <- (Matrix::rowMeans(exprs[, which(labs == 0), drop = FALSE]) - 
-                 Matrix::rowMeans(exprs[, which(labs == 1), drop = FALSE]))/denom
-    dfs <- (vars_x/nx+vars_y/ny)^2 / ((vars_x/nx)^2/(nx-1) + (vars_y/ny)^2/(ny-1))
-    
-    # p values
-    p.vals <- 2 * pt(abs(t.scores), dfs, lower.tail = FALSE)
-    names(p.vals) <- rownames(exprs)
-    if(any(is.na(p.vals))){
-      p.vals <- p.vals[!is.na(p.vals)]
-    }
-    p.vals <- p.adjust(p.vals, "BH")
-    sig.entries <- which(p.vals < 0.3)
-    sig.genes <- names(p.vals)[sig.entries]
-    
-    # catch possible errors related to sig.genes
-    if(any(is.na(sig.genes))){
-      sig.genes <- sig.genes[!is.na(sig.genes)]
-    }
-    if(!length(sig.genes) > 0) 
-      break
-    
-    # calculate fold changes
-    # do not index by rowname because Matrix package sometimes behaves strange
-    fold.changes <- log2(
-        Matrix::rowMeans(
-          exprs[which(rownames(exprs) %in% sig.genes), which(labs == 0), drop = F] + 1
-        ) /
-        Matrix::rowMeans(
-          exprs[which(rownames(exprs) %in% sig.genes), which(labs == 1), drop = F] + 1
-        )
+    no.var.genes <- unique(
+      c(
+        which(apply(exprs[, which(labs == 0), drop = F], 1, var) == 0),
+        which(apply(exprs[, which(labs == 1), drop = F], 1, var) == 0)   
       )
+    )
+    if (length(no.var.genes) > 0) {
+      temp.exprs <- exprs[-no.var.genes, , drop = F]
+      t.test.result <- multtest::mt.teststat(
+        X = temp.exprs,
+        classlabel = labs,
+        test = "t"
+      )
+
+      # calc p-values and adjust for multiple testing, in accordance with Newman et al. 2015 significant if q < 0.3
+      p.vals <- 2 * pt(abs(t.test.result), length(labs) - 2, lower.tail = FALSE)
+      q.vals <- p.adjust(p.vals, "BH")
+      sig.entries <- which(q.vals < 0.3)
+      sig.genes <- rownames(temp.exprs)[sig.entries]
+      # catch possible errors related to sig.genes
+      if(any(is.na(sig.genes))){
+        sig.entries <- sig.entries[!is.na(sig.genes)]
+        sig.genes <- sig.genes[!is.na(sig.genes)]
+      }
+      if(!length(sig.genes) > 0) break
+      temp.exprs <- temp.exprs[sig.entries, ]
+      
+      # the genes are ordered by decreasing fold changes compared to other cell subsets
+      fold.changes <- 
+        log2(Matrix::rowMeans(
+          temp.exprs[, which(labs == 0), drop = F]
+        )) - 
+        log2(Matrix::rowMeans(
+          temp.exprs[, which(labs == 1), drop = F]
+        ))
+    } else {
+      t.test.result <- multtest::mt.teststat(
+        X = exprs,
+        classlabel = labs,
+        test = "t"
+      )
+      p.vals <- 2 * pt(abs(t.test.result), length(labs) - 2, lower.tail = FALSE)
+      q.vals <- p.adjust(p.vals, "BH")
+      sig.entries <- which(q.vals < 0.3)
+      sig.genes <- rownames(exprs)[sig.entries]
+      
+      # catch possible errors related to sig.genes
+      if(any(is.na(sig.genes))){
+        sig.entries <- sig.entries[!is.na(sig.genes)]
+        sig.genes <- sig.genes[!is.na(sig.genes)]
+      }
+      if(!length(sig.genes) > 0) break
+      
+      # calculate fold changes
+      fold.changes <- 
+        log2(Matrix::rowMeans(
+          exprs[sig.entries, which(labs == 0), drop = F]
+        )) - 
+        log2(Matrix::rowMeans(
+          exprs[sig.entries, which(labs == 1), drop = F]
+        ))
+    }
     # add genes for each type ordered by decreasing fold change
-    print(t)
     deg.per.type[[t]] <- sig.genes[order(abs(fold.changes), decreasing = TRUE)]
   }
-  if(! length(deg.per.type)>0){
-    warning("No significant genes found.")
-    return(NULL)
-  }
-  
+
   # reduce to one reference profile per cell type
   ref.profiles <- matrix(
     0,
@@ -161,7 +175,7 @@ create_sig_matrix <- function(
 
   if (optimize) {
     cond.nums <- rep(-1, times = limit)
-    for (g in 2:limit) {
+    for (g in 1:limit) {
       all.genes <- unique(unlist(
         sapply(deg.per.type, function(sub.genes, lim = g){
           sub.genes[1:min(length(sub.genes), lim)]
@@ -195,10 +209,10 @@ create_sig_matrix <- function(
 
   # once again depending on whether split.data is true and possible
   if (split.data && !any(type.counts < 3)) {
-    ref.mat <- sig.matrix[optimal.genes, ,drop=FALSE]
+    ref.mat <- sig.matrix[optimal.genes, ]
     rm(sig.matrix)
   } else {
-    ref.mat <- ref.profiles[optimal.genes, , drop=FALSE]
+    ref.mat <- ref.profiles[optimal.genes, ]
     rm(ref.profiles)
   }
 
