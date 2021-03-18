@@ -156,16 +156,6 @@ process_score_deconv_results <- function(results.all, celltypes, temp.dir = "./t
         }
       }
       
-      
-      # calculate bulk entropy here
-      bulk.entropies <- apply(
-        results[[i]]$real.props, 
-        2, 
-        DescTools::Entropy
-      )
-      # normalize by maximum entropy
-      final.entropy <- sum(bulk.entropies) / (ncol(results[[i]]$real.props) * log2(results[[i]]$real.props))
-      
       for(ct in celltypes){
 	      if(ct %in% rownames(results[[i]]$real.props)){
         	ct.sd <- sd(results[[i]]$real.props[ct,])
@@ -173,17 +163,16 @@ process_score_deconv_results <- function(results.all, celltypes, temp.dir = "./t
 		      ct.sd <- 0
 	      }
         for(name in names(cors)){
-          cor.df <- rbind(cor.df, c(ct, cors[[name]][ct], name, i, ct.sd, n, final.entropy))
+          cor.df <- rbind(cor.df, c(ct, cors[[name]][ct], name, i, ct.sd, n))
         }
       }
     }
   }
   cor.df <- as.data.frame(cor.df)
-  colnames(cor.df) <- c("celltype", "score", "algorithm", "index", "ct_sd", "repetition", "entropy")
+  colnames(cor.df) <- c("celltype", "score", "algorithm", "index", "ct_sd", "repetition")
   cor.df$score <- as.numeric(as.character(cor.df$score))
   cor.df$index <- as.numeric(as.character(cor.df$index))
   cor.df$ct_sd <- as.numeric(as.character(cor.df$ct_sd))
-  cor.df$entropy <- as.numeric(as.character(cor.df$entropy))
   cor.df$repetition <- as.numeric(as.character(cor.df$repetition))
   
   if(any(is.na(cor.df$score))){
@@ -214,26 +203,30 @@ fit_model <- function(correlations, temp.dir = "./temp", verbose = TRUE, repetit
   
   # reduce to data frame with mean and sd across repetitions
   reduced.correlations <- data.frame()
-  
   if(verbose) cat("Calculate mean and sd of correlation for each algorithm, cell type and variance...\n")
   for(ct in unique(correlations$celltype)){
     for(algo in unique(correlations$algorithm)){
+      selection <- intersect(
+        which(correlations$celltype == ct),
+        which(correlations$algorithm == algo)
+      )
+      # make variance scale of cell types comparable
+      if(! max(correlations[selection, "ct_sd"]) == 0){
+        correlations[selection, "ct_sd"] <- (correlations[selection, "ct_sd"] / max(correlations[selection, "ct_sd"])) * 100
+      }
       for(i in unique(correlations$index)){
-        selection <- intersect(
-          which(correlations$celltype == ct),
-          intersect(
-            which(correlations$algorithm == algo), 
-            which(correlations$index == i)
-          )
+        subselection <- intersect(
+          selection,
+          which(correlations$index == i)
         )
-        m <- mean(correlations[selection,"score"])
-        e <- sd(correlations[selection, "score"])
-        ct_sd <- mean(correlations[selection, "ct_sd"])
-        entropy <- mean(correlations[selection, "entropy"])
+        m <- mean(correlations[subselection,"score"])
+        e <- sd(correlations[subselection, "score"])
+        ct_sd <- mean(correlations[subselection, "ct_sd"])
+        #entropy <- mean(correlations[subselection, "entropy"])
         
         reduced.correlations <- rbind(
           reduced.correlations,
-          data.frame(algorithm = algo, index = i, celltype = ct, score = m, sd = e, ct_sd = ct_sd, entropy = entropy)
+          data.frame(algorithm = algo, index = i, celltype = ct, score = m, sd = e, ct_sd = ct_sd)#, entropy = entropy)
         )
       }
     }
@@ -241,124 +234,119 @@ fit_model <- function(correlations, temp.dir = "./temp", verbose = TRUE, repetit
   correlations <- reduced.correlations
   rm(reduced.correlations)
   saveRDS(correlations, paste0(results.dir, "/correlations_sd.RDS"))
-  
-  # plot entropy 
-  pdf(paste0(plot.dir, "/entropy_plots.pdf"), width = 12, height = 8)
-      p <- ggplot(correlations, aes(x = entropy, y = score)) +
-        geom_point() + geom_line(aes(col = celltype)) + geom_errorbar(aes(ymin = score - sd, ymax = score + sd), alpha = 0.7) +
-        facet_grid(rows = vars(celltype), cols = vars(algorithm))
-      plot(p)
-      p <- ggplot(correlations, aes(x = index, y = entropy)) + geom_point()
-      plot(p)
-  dev.off()
-  #############
-  
-  cor.mat <- matrix(NA, ncol = length(unique(correlations$algorithm)), nrow = length(unique(correlations$celltype)))
-  colnames(cor.mat) <- unique(correlations$algorithm)
-  rownames(cor.mat) <- unique(correlations$celltype)
-  
+
   overall.fit.df <- data.frame()
   pdf(paste0(plot.dir, "/model_fits.pdf"), width = 8 * length(unique(correlations$algorithm)), height = 8)
   fits <- list()
-  for(ct in unique(correlations$celltype)){
-    if(verbose) cat(ct, "\n")
-    ct.fit.df <- data.frame() # contains results
+  
+  # 
+  
+
+    #fit.df <- data.frame() # contains results
     algo.res <- c() # algorithm score as string
     algo.names <- c() # algorithm names for algo.res
-    fits[[ct]] <- list()
     for(algo in unique(correlations$algorithm)){
       if(verbose) cat(algo, "...\t")
       temp.cors <- correlations[which(correlations$algorithm == algo),]
-      temp.cors <- temp.cors[which(temp.cors$celltype == ct),]
       
-      # fit a model to the scores
-      
-      if(any(is.na(temp.cors$sd))){
-	      weights <- rep(1, length(temp.cors$sd))
-      }else{
-	      weights <- temp.cors$sd^(-2)
+      # get parameters of the model
+      #
+      # initial values
+      params <- c(x_a = 1)
+      for(ct in unique(correlations$celltype)){
+        param_names <- c(names(params), paste0(ct, "_x"), paste0(ct, "_a"))
+        params <- c(params, 0.1, 0.1)
+        names(params) <- param_names
       }
-      fitted.model <- try(nls(
-        score ~ (1 / sqrt(1 + (x/ct_sd)^2)) * alpha,
-        data = temp.cors, 
-        start = list(x = 0.01, alpha = 0.5),
-        weights = weights,
-        control = nls.control(maxiter = 1000000, tol = 1e-5),
-        algorithm = "port",
-        lower = c(0, 0),
-        upper = c(Inf, 1)
-      ))
-      if(class(fitted.model) == "try-error"){
-        fits[[ct]][[algo]] <- list(NULL)
-        fitted.x <- NA
-	      fitted.alpha <- NA
+      # function to optimize
+      cost_fun <- function(p, df = temp.cors){
+        residual <- 0
+        for(ct in unique(df$celltype)){
+          sub_df <- df[df$celltype == ct,]
+          
+          # weights for fit
+          if(any(is.na(sub_df$sd))){
+            w <- rep(1, nrow(sub_df))
+          }else{
+            w <- sub_df$sd
+          }
+          if(any(w == 0)){
+            w[w==0] <- 1
+          }
+          
+          # add residual for celltype ct
+          residual <- residual + 
+            sum(
+                ((
+                  sub_df$score - 
+                    (
+                      (1 / sqrt(1 + ((abs(p["x_a"]) + abs(p[paste0(ct, "_x")]))/sub_df$ct_sd)^2)) - 
+                        abs(p[paste0(ct, "_a")])
+                      )
+                )/w)^2
+              )
+        }
+        return(residual)
+      }
+      # optimize the cost function
+      param_out <- optim(params, cost_fun, method = "BFGS")
+      param_out$par <- abs(param_out$par)
+      # print(param_out$par)
+      
+      fits[[algo]] <- param_out
+      
+      overall_x <- param_out$par["x_a"]
+      fit.df <- data.frame()
+      for(ct in unique(temp.cors$celltype)){
+        ct_x <- param_out$par[paste0(ct, "_x")]
+        ct_a <- param_out$par[paste0(ct, "_a")]
+        sub_df <- temp.cors[which(temp.cors$celltype == ct),]
         
-        # create data frame containing values predicted from fit
-        fit.df <- data.frame(
-          correlation = temp.cors$score, 
-          sd = temp.cors$ct_sd, 
-          prediction = 0, 
-          algorithm = algo,
-          sd_error = fitted.x,
-          offset = fitted.alpha,
-          score_sd = temp.cors$sd
-        )
-        fit.df$sd_error <- as.numeric(fit.df$sd_error)
-      }else{
-        fits[[ct]][[algo]] <- fitted.model
-        fitted.x <- abs(as.numeric(fitted.model$m$getPars()["x"]))
-        fitted.alpha <- abs(as.numeric(fitted.model$m$getPars()["alpha"]))
-        # create data frame containing values predicted from fit
-        fit.df <- data.frame(
-          correlation = temp.cors$score, 
-          sd = temp.cors$ct_sd, 
-          prediction = predict(fitted.model, newdata = temp.cors$ct_sd), 
-          algorithm = algo,
-          sd_error = fitted.x,
-          offset = fitted.alpha,
-          score_sd = temp.cors$sd
-        )
+        predictions <- 1/sqrt(1 + ((ct_x+overall_x)/sub_df$ct_sd)^2) - ct_a
+        
+        fit.df <- rbind(fit.df,
+                        data.frame(
+                          correlation = sub_df$score,
+                          sd = sub_df$ct_sd,
+                          celltype = ct,
+                          prediction = predictions,
+                          algorithm = algo,
+                          ct_error = ct_x,
+                          offset = ct_a,
+                          algo_error = overall_x,
+                          score_sd = sub_df$sd
+                        )
+                        )
       }
       
       algo.names <- c(algo.names, algo)
-      
-      # one data frame contains all algorithm results for this cell type
-      ct.fit.df <- rbind(ct.fit.df, fit.df)
-      cor.mat[ct, algo] <- temp.cors[which(temp.cors$index == 8), "score"]
-      
+
       # error and offset
-      algo.res <- c(algo.res, paste0("SD(error): ", round(fitted.x,4), "\nOffset: ", round(fitted.alpha, 3)))
+      algo.res <- c(algo.res, paste0("Algorithm SD(error): ", round(mean(fit.df$algo_error),4), "\nmean Cell Type SD(error): ", round(mean(fit.df$ct_error),4), "\nmean Offset: ", round(mean(fit.df$offset), 3)))
+      overall.fit.df <- rbind(overall.fit.df, fit.df)
     }
     names(algo.res) <- algo.names
-    ct.fit.df$algorithm <- factor(ct.fit.df$algorithm, levels = names(algo.res))
+    overall.fit.df$algorithm <- factor(overall.fit.df$algorithm, levels = names(algo.res))
     
-    # combine data frames from different cell types
-    overall.fit.df <- rbind(overall.fit.df, ct.fit.df)
-    
-    if(nrow(ct.fit.df) > 0){
-    # plot
-    labs = paste(names(algo.res), algo.res, sep = "\n")
-    names(labs) <- names(algo.res)
-    p <- ggplot(ct.fit.df, aes(x = sd, y = correlation)) + 
-      geom_pointrange(aes(ymin = correlation - score_sd, ymax = correlation + score_sd), col = "black") + 
-      geom_line(aes(x = sd, y = prediction), col = "red") + 
-      ggtitle("calculated correlation and fitted model", subtitle = paste0(ct)) + 
-      xlab("bulk data SD") + ylab("Correlation") + ylim(0,1)+
-      facet_grid(cols = vars(algorithm), labeller = labeller(algorithm = labs))
-    plot(p)
-    }else{
+    if(nrow(overall.fit.df) > 0){
+      # plot
       labs = paste(names(algo.res), algo.res, sep = "\n")
       names(labs) <- names(algo.res)
-      p <- ggplot(ct.fit.df, aes(x = sd, y = correlation)) + 
-        geom_pointrange(aes(ymin = correlation - score_sd, ymax = correlation + score_sd), col = "black") + 
-        geom_line(aes(x = sd, y = prediction), col = "red") + 
-        ggtitle("calculated correlation and fitted model", subtitle = paste0(ct)) + 
-        xlab("bulk data SD") + ylab("Correlation") + ylim(0,1)+
-        facet_grid(cols = vars(algorithm), labeller = labeller(algorithm = labs))
-      plot(p)
+      for(algo in unique(overall.fit.df$algorithm)){
+        sub_df <- overall.fit.df[which(overall.fit.df$algorithm == algo),]
+        
+        # removed a x=sd in geom_line here...
+        p <- ggplot(sub_df, aes(x = sd, y = correlation)) + 
+          geom_pointrange(aes(ymin = correlation - score_sd, ymax = correlation + score_sd), col = "black") + 
+          geom_line(aes(y = prediction), col = "red") + 
+          ggtitle("calculated correlation and fitted model", subtitle = labs[algo]) + 
+          xlab("bulk data SD") + ylab("Correlation") + ylim(0,1)+
+          facet_grid(cols = vars(celltype))
+        plot(p)
+      }
     }
     if(verbose) cat("\n")
-  }
+###############################################
   dev.off()
   if(nrow(overall.fit.df) == 0){
     warning("All fits failed. Returning NULL.")
@@ -371,10 +359,10 @@ fit_model <- function(correlations, temp.dir = "./temp", verbose = TRUE, repetit
   algo.scores <- lapply(unique(correlations$algorithm),
                         function(x, df = overall.fit.df){
                           temp.df <- df[which(df$algorithm == x),]
-                          if(any(is.na(temp.df$sd_error))){
-                            mean.sd <- mean(unique(temp.df$sd_error[!is.na(temp.df$sd_error)]))
+                          if(any(is.na(temp.df$ct_error))){
+                            mean.sd <- mean(unique(temp.df$ct_error[!is.na(temp.df$ct_error)]))
                           }else{
-                            mean.sd <- mean(unique(temp.df$sd_error))
+                            mean.sd <- mean(unique(temp.df$ct_error))
                           }
                           
                           if(any(is.na(temp.df$offset))){
@@ -382,16 +370,22 @@ fit_model <- function(correlations, temp.dir = "./temp", verbose = TRUE, repetit
                           }else{
                             mean.offset <- mean(unique(temp.df$offset))
                           }
-                          return(list(error = mean.sd, offset = mean.offset))
+                          
+                          if(any(is.na(temp.df$algo_error))){
+                            mean.error <- mean(unique(temp.df$algo_error[!is.na(temp.df$algo_error)]))
+                          }else{
+                            mean.error <- mean(unique(temp.df$algo_error))
+                          }
+                          return(list(error = mean.sd, offset = mean.offset, algo_error = mean.error))
                         }
   )
   names(algo.scores) <- unique(correlations$algorithm)
 
   if(verbose) {
     cat("Scores:\n")
-    cat("\t\tError\tOffset\n")
+    cat("\t\tCT_Error\tAlgo Error\tOffset\n")
     for(algo in names(algo.scores)){
-      cat(algo, ": \t", algo.scores[[algo]]$error,"\t", algo.scores[[algo]]$offset, "\n")
+      cat(algo, ": \t", algo.scores[[algo]]$error,"\t", algo.scores[[algo]]$algo_error,"\t", algo.scores[[algo]]$offset, "\n")
     }
   }
   
@@ -409,7 +403,7 @@ fit_model <- function(correlations, temp.dir = "./temp", verbose = TRUE, repetit
   pdf(paste0(plot.dir,"/final_scores.pdf"), width = 16, height = 9)
   for(algo in unique(overall.df$algorithm)){
     p1 <- ggplot(overall.df[which(overall.df$algorithm == algo),], aes(x = index, y = score)) + 
-      ggtitle(paste0("Overall Correlation for ", algo), subtitle = paste0("Score [mean SD(Error)]: ", round(algo.scores[[algo]]$error,2), "\nOffset: ", round(algo.scores[[algo]]$offset,2))) + 
+      ggtitle(paste0("Overall Correlation for ", algo), subtitle = paste0("Score [mean SD(Error)]: ", round(algo.scores[[algo]]$error,2), "\nScore 2 [mean Algorithm SD(Error)]: ", round(algo.scores[[algo]]$algo_error,2), "\nOffset: ", round(algo.scores[[algo]]$offset,2))) + 
       xlab("sd of cell types in bulks") + ylab("correlation") + geom_line() + ylim(0,1)
     plot(p1)
   }
@@ -453,7 +447,7 @@ score_algorithms <- function(
   }else{
     deconv.results <- readRDS(paste0(temp.dir, "/results/deconv_results.RDS"))
   }
-  processed_results <- process_score_deconv_results(deconv.results, celltypes, temp.dir)
+  processed_results <- process_score_deconv_results(deconv.results, predict.types, temp.dir)
   
   results <- fit_model(processed_results, temp.dir, verbose)
   return(results$Scores)
