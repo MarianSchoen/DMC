@@ -62,14 +62,27 @@ run_cibersort_lm22_jerbyarnon <- function(
     }
     
     lm22 <- read.table(system.file("./", "LM22.txt", package = "DAB"), sep = "\t", header = TRUE)
-    lm22.genes <- lm22$Gene.symbol
+    lm22.genes <- as.character(lm22$Gene.symbol)
     lm22 <- as.matrix(lm22[,-1])
     rownames(lm22) <- lm22.genes
-    
-    lm22.genes <- intersect(lm22.genes, rownames(exprs))
-    
+ 
+    if(length(intersect(rownames(lm22), rownames(exprs))) == 0){
+	 warning("No common genes in lm22 and expression matrix. Try converting lm22 gene names to ensembl ids...")   
+    source("/data/tim/dab-paper-source-code/src/99_helper_functions.R")
+    ensembl.genes <- convert_gene_names(lm22.genes, to="ensembl")
+
+    lm22 <- lm22[names(ensembl.genes),]
+    rownames(lm22) <- as.character(ensembl.genes)
+    }
+
+    lm22.genes <- intersect(rownames(lm22), rownames(exprs))
+	if(length(lm22.genes) == 0){
+		warning("No matching gene names in LM22 and expression matrix. Returning NULL.")
+		return(NULL)
+	}
+
     ref.profiles <- lm22[lm22.genes,]
-    
+
     df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
     df.sig <- cbind(df.sig, ref.profiles)
 
@@ -116,8 +129,6 @@ run_cibersort_lm22_jerbyarnon <- function(
     est.props.fitted[5:14,] <- est.props
     rownames(est.props.fitted) <- c("B.cell", "T.cell", "nk", "mono", rownames(est.props), "malignant")
     est.props <- est.props.fitted
-    print(str(est.props))
-    
     
     # CIBERSORT automatically stores the results in a file,
     # but we do not need it

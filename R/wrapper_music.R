@@ -54,9 +54,11 @@ run_music <- function(
     }
   }
   if(is.null(patient.column)){
+	  cat("Patient column variable not present\n")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
   if(!patient.column %in% colnames(pheno)){
+	  cat("Patient column not present\n")
     return(list(est.props = NULL, sig.matrix = NULL))
   }
   
@@ -111,6 +113,7 @@ run_music <- function(
     samples = patient.column, select.ct = include.in.x, verbose = FALSE
   ))
   if(class(est.prop.music) == "try-error"){
+	  cat("Error in Estimation\n")
 	  return(list(est.props = NULL, sig.matrix = NULL))
   }
 

@@ -67,7 +67,6 @@ run_cibersort <- function(
         exclude.from.signature,
         max.genes = max.genes,
         optimize = optimize,
-        split.data = split.data,
         cell.type.column = cell.type.column
     )
     if(is.null(ref.profiles)){
