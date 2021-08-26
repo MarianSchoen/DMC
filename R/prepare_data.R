@@ -37,7 +37,6 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
 
     # cases sample/geneset/bulk simulation
     if("bulk.props" %in% names(results.all)){
-
     # extract real proportions from lists
         real.props <- results.all$bulk.props
         results.list <- results.all[-which(names(results.all) == "bulk.props")]
@@ -106,16 +105,23 @@ prepare_data <- function(results.all, metric="cor", metric.name = NULL) {
                     # if the deconvolution worked evaluate according to given metric
                     if(!all(is.null(r$est.props)) && !all(is.na(r$est.props))){
                         # performance per cell type
-                        for (t in intersect(rownames(r$est.props), rownames(real.props))) {
+			    common_ct <- intersect(rownames(r$est.props), rownames(real.props))
+			    if(length(common_ct) > 0){
+				    for(t in rownames(real.props)){
+					if(t %in% rownames(r$est.props)){
                             temp.score <- metric(r$est.props[t,], real.props[t,])
                             if(is.na(temp.score) || temp.score < 0){
                                     temp.score <- 0
                             }
-                            scores <- c(scores, temp.score)
-                            df <- rbind(df, c(name, temp.score, t, NA, metric.name, time, 100, cond.num))
+					df <- rbind(df, c(name, temp.score, t, NA, metric.name, time, 100, cond.num))
+					}else{
+						temp.score <- 0
+					}
+                            scores <- c(scores, temp.score) 
                         }
                         # overall performance
-                        df <- rbind(df, c(name, mean(scores), "overall", NA, metric.name, time, 100, cond.num))
+                        df <- rbind(df, c(name, mean(scores), "overall", NA, metric.name, time, 100, cond.num))	
+			    }
                     }else{
                             df <- rbind(df, c(name, 0, "overall", NA, metric.name, time, 100, cond.num))
                     }
