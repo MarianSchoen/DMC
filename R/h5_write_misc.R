@@ -16,7 +16,7 @@ write_misc_input <- function(genesets, algorithm.names, function.call, grouping,
   if(!is.call(function.call)){
     stop("function.call must be of class call")
   }
-  if(!is.factor(grouping) || length(levels(grouping)) != 2){
+  if((!is.factor(grouping) || length(levels(grouping)) != 2) && !is.null(grouping)){
     stop("grouping is not valid. Must be factor with two levels")
   }
   if(!is.null(genesets)){
@@ -33,7 +33,9 @@ write_misc_input <- function(genesets, algorithm.names, function.call, grouping,
     }
   }
   rhdf5::h5write(as.vector(algorithm.names), filename, "algorithms")
-  rhdf5::h5write(as.vector(grouping), filename, "grouping")
+  if(!is.null(grouping)){
+  	rhdf5::h5write(as.vector(grouping), filename, "grouping")
+  }
   rhdf5::h5createGroup(filename, "function_call")
   function.args <- as.character(function.call)
   function.argnames <- names(as.list(function.call))

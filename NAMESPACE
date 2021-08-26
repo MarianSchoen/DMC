@@ -2,6 +2,11 @@
 
 export(benchmark)
 export(check_algorithms)
+export(prepare_data)
 export(read_data)
+export(read_result_list)
 export(render_results)
+export(run_cibersort_lm22)
+export(run_cibersort_lm22_genes)
+export(run_cibersort_random_genes)
 export(write_data)

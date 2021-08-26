@@ -57,7 +57,7 @@ deconvolute <- function(
   if (n.repeats < 1) {
     n.repeats <- 1
   }
-  if (nrow(training.pheno) != ncol(training.expr)) {
+  if (nrow(training.pheno) != ncol(training.expr) && !is.null(training.expr)) {
       stop("Number of columns in training.expr and rows in training.pheno do not match")
   }
   if(!is.null(test.pheno) && !is.null(test.expr)){
@@ -108,6 +108,7 @@ deconvolute <- function(
     # use the supplied bulks
     real.props <- bulks$props
     bulks.expr <- bulks$bulks
+    if(!is.null(training.expr)){
     if (nrow(training.expr) != nrow(bulks.expr)) {
       features <- intersect(rownames(training.expr), rownames(bulks.expr))
       if (length(features) > 0) {
@@ -115,6 +116,7 @@ deconvolute <- function(
           bulks.expr <- bulks.expr[features, ]
       }
   }
+    }
   }
   
   # deconvolute bulks with all supplied algorithms

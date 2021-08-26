@@ -26,7 +26,11 @@ read_misc_input <- function(filename){
     genesets <- NULL
   }
   algorithms <- rhdf5::h5read(filename, "algorithms")
-  grouping <- as.factor(rhdf5::h5read(filename, "grouping"))
+  if("grouping" %in% content$name){
+  	grouping <- as.factor(rhdf5::h5read(filename, "grouping"))
+  }else{
+	  grouping <- NULL
+  }
   function.call <- as.list(rhdf5::h5read(filename, "function_call/args"))
   names(function.call) <- rhdf5::h5read(filename, "function_call/argnames")
   function.call <- as.call(function.call)

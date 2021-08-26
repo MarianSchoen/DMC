@@ -90,12 +90,13 @@ benchmark <- function(
   exclude.from.bulks = NULL, 
   exclude.from.signature = NULL, 
   n.bulks = 500, 
-  cpm = TRUE, 
+  cpm = FALSE, 
   verbose = FALSE,
   #avg.profiles.per.subcluster = NULL,
   n.cluster.sizes = c(1,2,4,8),
   cibersort.path = NULL,
-  n.profiles.per.bulk = 1000
+  n.profiles.per.bulk = 1000,
+  report = TRUE
   ){
   # load Matrix library once again to ensure proper data handling
 	suppressWarnings(suppressMessages(library(Matrix, quietly = TRUE)))
@@ -127,6 +128,10 @@ benchmark <- function(
 		if(!flag){
 		  stop("Could not create temp directory. 
 		       Please provide a writeable directory.")
+		}
+		flag <- dir.create(paste(temp.dir, benchmark.name, sep = "/"))
+		if(!flag){
+			stop("Could not create benchmark directory. Please provide writeable location.")
 		}
 	}else{
 		if(is.null(benchmark.name) || benchmark.name == ""){
@@ -163,6 +168,7 @@ benchmark <- function(
 
 	# check input parameters
 	#
+	if(!is.null(sc.counts) || !is.null(sc.pheno)){
 	if(ncol(sc.counts) != nrow(sc.pheno)){
 		stop("Dimensions of sc.counts and sc.pheno do not match")
 	}
@@ -172,9 +178,13 @@ benchmark <- function(
 		sc.pheno <- sc.pheno[-to.remove, ]
 		sc.counts <- sc.counts[,-to.remove]
 	}
+	}
 	if(!is.null(bulk.counts) && !is.null(bulk.props)){
 	if(ncol(bulk.counts) != ncol(bulk.props)){
 		stop("Number of bulks in bulk.counts and bulk.props do not match")
+	}
+	if(length(intersect(rownames(bulk.props), unique(sc.pheno[[cell.type.column]])))==0 && report && !is.null(sc.pheno)){
+		stop("RNA-Seq bulk data was supplied but there is no overlap between cell types in single-cell data and bulk.props. If you want to run the deconvolution anyway, set 'report = FALSE'. Bulks will be deconvoluted, but no automated report will be generated.")
 	}
 	}
 	if(is.null(genesets)){
@@ -202,10 +212,12 @@ benchmark <- function(
 			stop("Function corresponding to 'metric' could not be found.")
 		}
 	}
+	if(!is.null(grouping) && (!is.null(sc.counts) || !is.null(sc.pheno))){
 	if(!is.factor(grouping) || !length(levels(grouping)) == 2 || 
 	   !length(grouping) == ncol(sc.counts)){
 		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts) 
 		     with two levels indicating training and validation set")
+	}
 	}
 	if(!all(is.logical(c(
 	  simulation.bulks, simulation.genes, 
@@ -251,14 +263,7 @@ benchmark <- function(
 		        You can perform the benchmark but will not be able to render 
 		        the report until this dependency is fulfilled.")
 	}
-	# if(!is.null(avg.profiles.per.subcluster)){
-	# 	if(!is.numeric(avg.profiles.per.subcluster)){
-	# 		stop("avg.profiles.per.subcluster must be a vector of integers")
-	# 	}
-	# 	if(any(as.integer(avg.profiles.per.subcluster) != avg.profiles.per.subcluster)){
-	# 		stop("avg.profiles.per.subcluster must be a vector of integers")
-	# 	}
-	# }
+	
 
 	# CIBERSORT
 	# check / source script path
@@ -375,10 +380,12 @@ benchmark <- function(
 	
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
+	if(!is.null(sc.counts)){
 	if(class(sc.counts) != "dgCMatrix"){
 	  cat("converting counts to sparse matrices...\n")
 		sc.counts <- Matrix(sc.counts, sparse = TRUE)
 		class(sc.counts) <- "dgCMatrix"
+	}
 	}
 	if(!is.null(bulk.counts)){
 		if(class(bulk.counts) != "dgCMatrix"){
@@ -437,6 +444,7 @@ benchmark <- function(
 				bulk.counts <- scale_to_count(bulk.counts)
 		}
 
+		if(!is.null(grouping)){
 		if(verbose) cat("splitting into test and training data\n")
 		# split data into test and validation set
 		if(length(unique(grouping)) == 2){
@@ -460,6 +468,16 @@ benchmark <- function(
 			simulation.subtypes = FALSE
 		}else{
 			stop("Invalid grouping vector")
+		}
+		}else{
+			training.exprs <- NULL
+			test.exprs <- NULL
+			training.pheno <- NULL
+			test.pheno <- NULL
+			simulation.bulks <- FALSE
+			simulation.genes <- FALSE
+			simulation.samples <- FALSE
+			simulation.subtypes <- FALSE
 		}
 	  
 	  # this is not needed any more
@@ -497,14 +515,19 @@ benchmark <- function(
 
 	# rescale real quantities to be between 0 and 1
 	if(!is.null(bulk.props)){
-		bulk.props <- sweep(bulk.props, 2, colSums(bulk.props), "/")
+		csums <- colSums(bulk.props)
+		if(any(csums == 0)) csums[csums == 0] <- 1
+		bulk.props <- sweep(bulk.props, 2, csums, "/")
 	}
+
+	if(!is.null(training.pheno) && !is.null(training.exprs)){
 
 	# assume that samples in expression and pheno data are in the correct order
 	# if names do not match, assign sample names from expression to pheno data
 	if(!identical(rownames(training.pheno), colnames(training.exprs))){
 		rownames(training.pheno) <- colnames(training.exprs)
 		colnames(training.exprs) <- rownames(training.pheno)
+	}
 	}
 	if(!is.null(test.exprs)){
 	  if(!identical(rownames(test.pheno), colnames(test.exprs))){
@@ -513,6 +536,7 @@ benchmark <- function(
 	  }
 	}
 
+	if(!is.null(training.pheno)){
 	# make sure subtypes of types in exclude.from.signature are also excluded
 	if(any(training.pheno[[cell.type.column]] %in% exclude.from.signature) && "subtype" %in% colnames(training.pheno)){
 	  exclude.from.signature <- c(exclude.from.signature, unique(paste(training.pheno[[cell.type.column]] ,training.pheno$subtype, sep = ".")[which(training.pheno[[cell.type.column]] %in% exclude.from.signature)]))
@@ -521,6 +545,7 @@ benchmark <- function(
 	  exclude.from.signature <- c(exclude.from.signature, unique(paste(test.pheno[[cell.type.column]] ,test.pheno$subtype, sep = ".")[which(test.pheno[[cell.type.column]] %in% exclude.from.signature)]))
 	}
 	exclude.from.signature <- unique(exclude.from.signature)
+	}
 	
 	# Deconvolution
 	cat("deconvolution...\t\t", as.character(Sys.time()), "\n", sep = "")
@@ -728,7 +753,7 @@ benchmark <- function(
 		  rm("benchmark.results")
 		}
 	}
-
+	if(report){
 	cat("preparing results...\t\t", as.character(Sys.time()), "\n", sep = "")
 	# deconvolution step is over
 	# create results markdown
@@ -737,7 +762,7 @@ benchmark <- function(
 	cat("Done\t\t\t\t", as.character(Sys.time()), "\n\n", sep = "")
 	cat("Report generated: ", report.path, "\n", sep = "")
 	cat("Created plots can be found in: ", output.folder, "/report_plots/\n", sep = "")
-	
+	}
 	if(dir.exists("CIBERSORT")){
 	  unlink("CIBERSORT", recursive = TRUE)
 	}
