@@ -4,7 +4,13 @@
 \alias{render_results}
 \title{render markdown report for data produced by \link{benchmark}}
 \usage{
-render_results(temp.dir, metric = "cor")
+render_results(
+  temp.dir,
+  metric = "cor",
+  metric.name = NULL,
+  benchmark.name = "",
+  celltype.col = "cell_type"
+)
 }
 \arguments{
 \item{temp.dir}{directory containing the benchmark data. \cr
@@ -12,7 +18,14 @@ Usually \code{paste(temp.dir,"/",benchmark.name,sep="")},
 where \code{temp.dir} and \code{benchmark.name} 
 are parameters of \link{benchmark}.}
 
-\item{metric}{character specifying the metric. default: 'cor'}
+\item{metric}{evaluation metric; either string 'cor' (default) or a function}
+
+\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
+is NULL, the default will be "custom metric"}
+
+\item{benchmark.name}{string, name of the benchmark to be included in report filename}
+
+\item{celltype.col}{string, name of the column in sc.pheno that contains cell type information}
 }
 \description{
 render markdown report for data produced by \link{benchmark}

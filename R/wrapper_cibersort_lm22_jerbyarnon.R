@@ -118,17 +118,16 @@ run_cibersort_lm22_jerbyarnon <- function(
     }
     
     # fit estimations of LM22 to available cell types (a little hardcoded, but for now it has to suffice)
-    est.props.fitted <- matrix(0, nrow = 15, ncol = ncol(est.props))
+    est.props.fitted <- matrix(0, nrow = 16, ncol = ncol(est.props))
     colnames(est.props.fitted) <- colnames(est.props)
     est.props.fitted[1,] <- colSums(est.props[c(1,2),]) # B
-    est.props.fitted[2,] <- colSums(est.props[c(5,6,7,4),]) # CD4, 4 is cd8+
+    est.props.fitted[2,] <- colSums(est.props[c(5,6,7),]) # CD4, 4 is cd8+
     est.props.fitted[3,] <- colSums(est.props[c(11,12),])
     est.props.fitted[4,] <- colSums(est.props[c(13,14,15,16),])
-    used <- c(1,2,4,5,6,7,11,12,13,14,15,16)
+    used <- c(1,2,5,6,7,11,12,13,14,15,16)
     est.props <- est.props[-used,]
-    est.props.fitted[5:14,] <- est.props
-    rownames(est.props.fitted) <- c("B.cell", "T.cell", "nk", "mono", rownames(est.props), "malignant")
-    est.props <- est.props.fitted
+    est.props.fitted[5:15,] <- est.props
+    rownames(est.props.fitted) <- c("B.cell", "cd4+", "nk", "mono", rownames(est.props), "malignant")
     
     # CIBERSORT automatically stores the results in a file,
     # but we do not need it
@@ -137,5 +136,5 @@ run_cibersort_lm22_jerbyarnon <- function(
     file.remove("CIBERSORT/mixture.txt")
     unlink("CIBERSORT", recursive = TRUE)
 
-    return(list(est.props = est.props, sig.matrix = ref.profiles))
+    return(list(est.props = est.props.fitted, sig.matrix = ref.profiles))
 }

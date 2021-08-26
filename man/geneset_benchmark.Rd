@@ -15,13 +15,15 @@ geneset_benchmark(
   n.repeats,
   exclude.from.signature = NULL,
   verbose = FALSE,
-  split.data = FALSE
+  split.data = FALSE,
+  cell.type.column = "cell_type",
+  patient.column = NULL
 )
 }
 \arguments{
-\item{training.pheno}{data frame containing phenotype data of the single-cell training set. Has to contain column "cell_type"}
+\item{training.pheno}{data frame containing phenotype data of the single-cell training set. Has to contain column `cell.type.column`}
 
-\item{test.pheno}{data frame containing phenotype data of the single-cell test set. Has to contain column "cell_type"}
+\item{test.pheno}{data frame containing phenotype data of the single-cell test set. Has to contain column `cell.type.column`}
 
 \item{genesets}{list of gene sets (character vectors)}
 
@@ -38,8 +40,14 @@ If not specified, all will be used.}
 
 \item{verbose}{logical, default FALSE}
 
-\item{split.data}{logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
+\item{split.data}{logical, if TRUE (default) then 10\% of the training data will be used for reference profile creation and
 the rest for feature selection/optimization}
+
+\item{cell.type.column}{string, which column of 'training.pheno'/'test.pheno'
+holds the cell type information?}
+
+\item{patient.column}{string, which column of 'pheno'
+holds the patient information; optional, default NULL}
 
 \item{training.expr}{matrix containing single-cell expression profiles (training set, one cell per column)}
 

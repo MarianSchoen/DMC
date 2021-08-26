@@ -11,7 +11,7 @@ create_sig_matrix(
   exclude.celltypes = NULL,
   max.genes = NULL,
   optimize = TRUE,
-  split.data = TRUE
+  cell.type.column = "cell_type"
 )
 }
 \arguments{
@@ -19,7 +19,7 @@ create_sig_matrix(
 
 \item{pheno}{data.frame, phenodata corresponding to
 expression data, same ordering of samples/cells; cell type
-label column must be named 'cell_type'}
+label column must be named `cell.type.column`}
 
 \item{exclude.celltypes}{character vector, defaults to
 c("malignant", "not_annotated", "unassigned"). Cells
@@ -36,8 +36,8 @@ determined between 1 and 'max.genes' by optimizing the
 condition number of the signature matrix.
 If FALSE, for each cell type the top 'max.genes' genes will be taken.}
 
-\item{split.data}{logical, should the training data be split for
-reference profile creation and optimization? default: TRUE}
+\item{cell.type.column}{string, which column of 'pheno'
+holds the cell type information?}
 }
 \value{
 numeric matrix, holding reference profiles in its column, 

@@ -15,7 +15,9 @@ sample_size_benchmark(
   exclude.from.signature = NULL,
   step.size = 0.05,
   verbose = FALSE,
-  split.data = FALSE
+  split.data = FALSE,
+  cell.type.column = "cell_type",
+  patient.column = NULL
 )
 }
 \arguments{
@@ -42,8 +44,14 @@ If not specified, all will be used.}
 
 \item{verbose}{logical, default FALSE}
 
-\item{split.data}{logical, if TRUE (default) then 10% of the training data will be used for reference profile creation and
+\item{split.data}{logical, if TRUE (default) then 10\% of the training data will be used for reference profile creation and
 the rest for feature selection/optimization}
+
+\item{cell.type.column}{string, which column of 'pheno'
+holds the cell type information?}
+
+\item{patient.column}{string, which column of 'pheno'
+holds the patient information; optional, default NULL}
 }
 \value{
 list containing deconvolution results for all algorithms for each training set size

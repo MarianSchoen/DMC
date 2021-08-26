@@ -7,10 +7,13 @@
 create_bulks(
   exprs,
   pheno,
+  cell.type.column = "cell_type",
   n.bulks = 500,
   include.in.bulks = NULL,
-  fraction.per.bulk = 0.1,
-  sum.to.count = TRUE
+  n.profiles.per.bulk = 1000,
+  sum.to.count = TRUE,
+  frac = 5,
+  switch.prob = 0
 )
 }
 \arguments{
@@ -19,25 +22,32 @@ features as rows}
 
 \item{pheno}{data.frame, phenotype data containing
 cell type labels for the expression matrix,
-label column must be named 'cell_type',
+must contain 'cell.type.column',
 ordering of cells must be the same as in exprs}
+
+\item{cell.type.column}{string, which column of 'pheno'
+holds the cell type information?}
 
 \item{n.bulks}{integer, the number of bulks to be created, defaults to 500}
 
 \item{include.in.bulks}{vector of strings, cell types to be used for bulk 
 simulation; if not supplied, all will be used}
 
-\item{fraction.per.bulk}{positive numeric < 1, fraction of samples to be randomly
-drawn for each bulk; default 0.1}
+\item{n.profiles.per.bulk}{positive numeric, number of samples to be randomly
+drawn for each bulk; default 1000}
 
 \item{sum.to.count}{boolean, should all bulks be normalized
 to a fixed total count number? default TRUE}
+
+\item{frac}{numeric >= 1; determines the variance of cell type proportions within the simulated bulks;
+higher d means more extreme distributions}
+
+\item{switch.prob}{fraction of bulks sampled with inverse cell type quantity}
 }
 \value{
 list with 
    - "bulks": matrix containing bulk expression profiles (features x bulks)
    - "props" matrix containing quantities (cell type x bulks)
-   - "sub.props": TODO
 }
 \description{
 simulate bulk data by summing over single-cell data

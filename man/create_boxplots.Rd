@@ -7,6 +7,7 @@
 create_boxplots(
   results.df,
   metric = "cor",
+  metric.name = NULL,
   celltype.order = NULL,
   algorithm.order = NULL
 )
@@ -14,7 +15,10 @@ create_boxplots(
 \arguments{
 \item{results.df}{data frame as returned by prepare_data}
 
-\item{metric}{character string specifying the evaluation metric; default 'cor'}
+\item{metric}{evaluation metric; either string 'cor' (default) or a function}
+
+\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
+is NULL, the default will be "custom metric"}
 
 \item{celltype.order}{character vector of cell types specifying the plotting order}
 

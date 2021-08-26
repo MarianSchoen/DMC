@@ -45,7 +45,7 @@ bootstrap_bulks <- function(props, metric = "cor") {
     for(a in names(estimates)){
       bootstrap.estimates[[a]] <- estimates[[a]][, bootstrap.samples]
     }
-    bootstrap.real <- real.props[, bootstrap.samples]
+    bootstrap.real <- real.props[, bootstrap.samples, drop = FALSE]
     
     # calculate for each algorithm for each cell type the correlation 
     # between real and estimated proportions

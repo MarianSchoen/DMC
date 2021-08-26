@@ -13,6 +13,7 @@ params:
    celltype.col: "cell_type"
 ---
 ```{r setup, include=FALSE}
+library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 temp.dir <- params$tempdir
 plot.dir <- paste(temp.dir, "report_plots", sep = '/')
@@ -67,6 +68,7 @@ grouping <- input_params$grouping
 ## Real bulks  
 
 ```{r real_results, echo=FALSE}
+  require(ggplot2)
   files <- list.files(paste(temp.dir, "/results/real", sep = ""), full.names = T, pattern = "deconv.*.h5")
   results.lists <- list()
   if(length(files) > 0){
@@ -100,6 +102,9 @@ grouping <- input_params$grouping
     
     bootstrap.plot.width <- length(unique(bootstrap.data$algorithm)) * 2
     bootstrap.plot.height <- length(unique(bootstrap.data$cell_type)) * 2
+  }else{
+    bootstrap.plot.width <- 10
+    bootstrap.plot.height <- 10
   }
 
   score.plot.list <- evaluation_plot(real.df, "deconvolution quality", metric, metric.name)

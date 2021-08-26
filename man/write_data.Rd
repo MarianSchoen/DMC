@@ -10,7 +10,6 @@ write_data(
   sc.pheno = NULL,
   bulk.counts = NULL,
   bulk.props = NULL,
-  sub.props = NULL,
   filename
 )
 }
@@ -26,9 +25,6 @@ as columns}
 
 \item{bulk.props}{numeric matrix containing cell type proportions, cell types as rows, 
 bulks as columns}
-
-\item{sub.props}{numeric matrix containing cell type proportions of simulated subtypes, 
-cell types as rows, bulks as columns}
 
 \item{filename}{string, where should the data be stored?}
 }
