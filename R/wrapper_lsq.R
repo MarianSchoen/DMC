@@ -35,7 +35,9 @@ run_least_squares <- function(
   split.data = TRUE, 
   cell.type.column = "cell_type",
   patient.column = NULL, 
-  scale.cpm = FALSE
+  scale.cpm = FALSE,
+  model = NULL,
+  model_exclude = NULL
 ) {
   # error checking
   if (nrow(pheno) != ncol(exprs)) {
@@ -51,51 +53,68 @@ run_least_squares <- function(
         max.genes <- NULL
     }
   }
-  if(scale.cpm){
-    # prepare phenotype data and cell types to use
-    exprs <- scale_to_count(exprs)
-  }
   
-  cell.types <- as.character(pheno[, cell.type.column])
-  names(cell.types) <- colnames(exprs)
-
-  # exclude samples of types contained in exclude.from.signature
-  if (!is.null(exclude.from.signature)) {
-    if (length(which(cell.types %in% exclude.from.signature)) > 0) {
-      include.in.x <- unique(cell.types[-which(cell.types %in% exclude.from.signature)])
-    }else{
+    cell.types <- as.character(pheno[, cell.type.column])
+    names(cell.types) <- colnames(exprs)
+  
+    # exclude samples of types contained in exclude.from.signature
+    if (!is.null(exclude.from.signature)) {
+      if (length(which(cell.types %in% exclude.from.signature)) > 0) {
+        include.in.x <- unique(cell.types[-which(cell.types %in% exclude.from.signature)])
+      }else{
+        include.in.x <- unique(cell.types)
+      }
+    } else {
       include.in.x <- unique(cell.types)
     }
-  } else {
-    include.in.x <- unique(cell.types)
-  }
   
-  # create reference profiles
-  sample.X <- DTD::sample_random_X(
-    included.in.X = include.in.x,
-    pheno = cell.types,
-    expr.data = Matrix::as.matrix(exprs),
-    percentage.of.all.cells = 0.9999,
-    normalize.to.count = TRUE
-  )
-  sig.matrix <- sample.X$X.matrix
-  rm(sample.X)
+    if(is.null(model)){
+    if(scale.cpm){
+      # prepare phenotype data and cell types to use
+      exprs <- scale_to_count(exprs)
+    }
+    
+    
+    
+    # create reference profiles
+    sample.X <- DTD::sample_random_X(
+      included.in.X = include.in.x,
+      pheno = cell.types,
+      expr.data = Matrix::as.matrix(exprs),
+      percentage.of.all.cells = 0.9999,
+      normalize.to.count = TRUE
+    )
+    sig.matrix <- sample.X$X.matrix
+    rm(sample.X)
+  
+    # remove used samples from expression matrix and pheno data
+    #samples.to.remove <- sample.X$samples.to.remove
+    #exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
+    #cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
+  
+    # use a maximum of 4000 genes
+    n.genes <- min(4000, nrow(exprs))
+    # use the top n.genes most variable genes
+    top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
+    exprs <- exprs[which(rownames(exprs) %in% top.features), ]
+    sig.matrix <- sig.matrix[top.features, ]
 
-  # remove used samples from expression matrix and pheno data
-  #samples.to.remove <- sample.X$samples.to.remove
-  #exprs <- exprs[, -which(colnames(exprs) %in% samples.to.remove)]
-  #cell.types <- cell.types[-which(names(cell.types) %in% samples.to.remove)]
-
-  # use a maximum of 4000 genes
-  n.genes <- min(4000, nrow(exprs))
-  # use the top n.genes most variable genes
-  top.features <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)[1:n.genes]]
-  exprs <- exprs[which(rownames(exprs) %in% top.features), ]
-  sig.matrix <- sig.matrix[top.features, ]
-
-  # set the model without learning
-  start.tweak <- rep(1, n.genes)
-  names(start.tweak) <- top.features
+    # set the model without learning
+    start.tweak <- rep(1, n.genes)
+    names(start.tweak) <- top.features
+    
+    model <- list(reference.X = sig.matrix, g = start.tweak)
+  }else{
+    sig.matrix <- model$reference.X
+    start.tweak <- model$g
+    if(!is.null(model_exclude)){
+      if(all(model_exclude %in% colnames(sig.matrix))){
+        sig.matrix <- sig.matrix[, -which(colnames(sig.matrix) %in% model_exclude), drop = FALSE]
+      }else{
+        stop("Not all cell types in 'model_exclude' are present in the model")
+      }
+    }
+  }
     
   # use the untrained model to estimate the composition of the supplied bulks
   est.props <- DTD::estimate_c(
@@ -106,12 +125,13 @@ run_least_squares <- function(
   )
 
   # if any cell types dropped out during estimation complete the matrix
-  if(!all(include.in.x %in% rownames(est.props))){
-    est.props <- complete_estimates(est.props, include.in.x)
-  }
+  # if(!all(include.in.x %in% rownames(est.props))){
+  #   est.props <- complete_estimates(est.props, include.in.x)
+  # }
   
   return(list(
     est.props = est.props,
-    sig.matrix = sig.matrix
+    sig.matrix = sig.matrix,
+    model = model
   ))
 }
