@@ -2,28 +2,30 @@
 #'
 #' @param exprs non negative numeric matrix containing single cell profiles
 #'  as columns and features as rows
-#' @param pheno data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
+#' @param pheno data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'.
 #' Has to contain single cell labels in a column named 'cell_type'
 #' @param bulks matrix containing bulk expression profiles as columns
 #' @param exclude.from.signature vector of strings of cell types not to be
 #' included in the signature matrix
-#' @param max.genes numeric, maximum number of genes that will be included in 
-#' the signature for each celltype
-#' @param optimize boolean, should the signature matrix be optimized by
-#' condition number? If FALSE, max.genes genes will be used
-#' @param split.data boolean, should the training data be split for signature
-#' matrix creation? If TRUE, 10\% of the data will be used to build
-#' the signature matrix and the rest will be used to estimate the optimal
-#' features. default: FALSE
+#' @param max.genes numeric, maximum number of genes that will be included in
+#' the signature for each celltype, default 500
 #' @param verbose boolean
 #' @param cell.type.column string, which column of 'pheno'
-#' holds the cell type information? 
+#' holds the cell type information? default "cell_type"
 #' @param patient.column string, which column of 'pheno'
 #' holds the patient information; optional, default NULL
-#' @return list with four entries: 
+#' @param scale.cpm boolean, scale single-cell profiles to CPM? default FALSE
+#' @param model model for CIBERSORT deconvolution as returned by this wrapper,
+#' default NULL
+#' @param model_exclude character vector, cell type(s) to exclude
+#' from the supplied pre-trained model, default NULL
+#' @return list with four entries:
 #' 1) est.props - matrix containing for each bulk the
-#' estimated fractions of the cell types contained
-#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
+#' estimated fractions of the cell types contained\cr
+#' 2) sig.matrix - effective signature matrix used by the algorithm
+#' (features x cell types)\cr
+#' 3) model - list containing reference.X (signature matrix)
+#' @export
 
 # source the CIBERSORT function (not available as package)
 run_cibersort <- function(
@@ -32,15 +34,15 @@ run_cibersort <- function(
     bulks,
     exclude.from.signature = NULL,
     max.genes = 500,
-    optimize = TRUE,
-    split.data = FALSE,
     cell.type.column = "cell_type",
-    patient.column = NULL, 
-    scale.cpm = FALSE 
-    ) {
-	suppressMessages(library(e1071, quietly =TRUE))
-	suppressMessages(library(parallel, quietly = TRUE))
-	suppressMessages(library(preprocessCore, quietly = TRUE))
+    patient.column = NULL,
+    scale.cpm = FALSE,
+    model = NULL,
+    model_exclude = NULL
+) {
+  suppressMessages(library(e1071, quietly = TRUE))
+  suppressMessages(library(parallel, quietly = TRUE))
+  suppressMessages(library(preprocessCore, quietly = TRUE))
     # error checking
     if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
@@ -54,37 +56,51 @@ run_cibersort <- function(
         max.genes <- NULL
     }
 
-    
-    if(scale.cpm){
-        # prepare phenotype data and cell types to use
-        exprs <- scale_to_count(exprs)
-    }
-    
-    # create signature matrix
-    ref.profiles <- create_sig_matrix(
-	    exprs,
+    if (is.null(model)) {
+      if (scale.cpm) {
+          # prepare phenotype data and cell types to use
+          exprs <- scale_to_count(exprs)
+      }
+
+      # create signature matrix
+      ref.profiles <- create_sig_matrix(
+  	    exprs,
         pheno,
         exclude.from.signature,
         max.genes = max.genes,
-        optimize = optimize,
         cell.type.column = cell.type.column
-    )
-    if(is.null(ref.profiles)){
-        return(list(est.props = NULL, sig.matrix = NULL))
-    }
-    df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
-    if(nrow(df.sig) > 1){
-        df.sig <- cbind(df.sig, ref.profiles)
+      )
+      if (is.null(ref.profiles)) {
+          return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+      }
+      df.sig <- data.frame(GeneSymbol = rownames(ref.profiles))
+      if (nrow(df.sig) > 1) {
+          df.sig <- cbind(df.sig, ref.profiles)
+      }else{
+          warning(
+            "Too few genes selected during signature matrix creation
+            for CIBERSORT. Returning NULL."
+          )
+          return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+      }
+      model <- list(reference.X = df.sig)
     }else{
-        warning("Too few genes selected during signature matrix creation for CIBERSORT. Returning NULL.")
-        return(list(est.props = NULL, sig.matrix = NULL))
+      df.sig <- model$reference.X
+      if (!is.null(model_exclude)) {
+        if (all(model_exclude %in% colnames(df.sig))) {
+          to_remove <- which(colnames(df.sig) %in% model_exclude)
+          df.sig <- df.sig[, -to_remove, drop = FALSE]
+        }else{
+          stop("Not all cell types in 'model_exclude' are present in the model")
+        }
+      }
     }
 
     # CIBERSORT expects input to be supplied as .txt files
     dir.create("CIBERSORT/")
     write.table(df.sig,
-        file = "CIBERSORT/signature_matrix.txt", quote = FALSE, row.names = FALSE,
-        sep = "\t"
+        file = "CIBERSORT/signature_matrix.txt",
+        quote = FALSE, row.names = FALSE, sep = "\t"
     )
 
     # create data frame containing bulks
@@ -102,18 +118,16 @@ run_cibersort <- function(
         mixture_file = "CIBERSORT/mixture.txt",
         QN = TRUE, perm = 0
     )})
-    if(class(result) == "try-error"){
-	    print(str(df.sig))
-	    print(str(df.mix))
-	    save(df.mix, df.sig,file="~/cibersort_error.rda")
-	return(list(est.props = NULL, sig.matrix = NULL))
+    if (class(result) == "try-error") {
+      return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
     }
 
     # drop the additional information in the last 3 columns
-    est.props <- t(result[1:ncol(bulks), -((ncol(result) - 2):ncol(result)), drop = FALSE])
+    last_cols <- (ncol(result) - 2):ncol(result)
+    est.props <- t(result[seq_len(ncol(bulks)), -last_cols, drop = FALSE])
 
     # complete the estimation matrix in case of cell type dropouts
-    if(!all(colnames(ref.profiles) %in% rownames(est.props))){
+    if (!all(colnames(ref.profiles) %in% rownames(est.props))) {
         est.props <- complete_estimates(est.props, colnames(ref.profiles))
     }
     # CIBERSORT automatically stores the results in a file,
@@ -123,5 +137,9 @@ run_cibersort <- function(
     file.remove("CIBERSORT/mixture.txt")
     unlink("CIBERSORT", recursive = TRUE)
 
-    return(list(est.props = est.props, sig.matrix = ref.profiles))
+    return(list(
+      est.props = est.props,
+      sig.matrix = ref.profiles,
+      model = model
+    ))
 }

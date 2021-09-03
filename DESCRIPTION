@@ -1,23 +1,27 @@
 Package: DAB
 Title: Benchmark of different Deconvolution Algorithms in several scenarios
-Version: 0.2.2
-Authors@R: 
+Version: 0.3
+Authors@R:
     person(given = "Tim",
            family = "Mirus",
            role = c("aut", "cre"),
            email = "tim.mirus@stud.uni-regensburg.de"
            )
-Description: Deconvolve given RNA-Seq bulks using sRNA-Seq profiles and a list of algorithms. 
-	Algorithms can be chosen from a list of implemented algorithms or supplied by the user as functions.
-	In addition, perform different benchmark by deconvolving artificial bulks created from single-cell data,
-	including deconvolution with different gene sets, dependency on training data and simulated subtypes. 
-	The user has the option to exclude cell types from the reference or the simulated bulks.
+Description: Deconvolute given RNA-Seq bulks using scRNA-Seq profiles and a list
+  of algorithms. Algorithms can be chosen from a list of implemented algorithms
+  or supplied by the user as functions. In addition, perform different benchmarks
+  by deconvolving artificial bulks created from single-cell data, including
+  deconvolution with different gene sets, dependency on training data and
+  simulated subtypes. The user has the option to exclude cell types from the
+  reference or the simulated bulks.
 License: MIT
 Encoding: UTF-8
 LazyData: true
 biocViews:
 Depends: ggplot2, Matrix
-Imports: DTD, qvalue, DescTools, DeconRNASeq, e1071, rhdf5, parallel, preprocessCore, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest, Rtsne, tictoc, umap, uwot, reshape2
+Imports: DTD, qvalue, DescTools, DeconRNASeq, e1071, rhdf5, parallel,
+  preprocessCore, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest,
+  Rtsne, tictoc, umap, uwot, reshape2
 RoxygenNote: 7.1.1
 Remotes: spang-lab/DTD,
 	renozao/xbioc,

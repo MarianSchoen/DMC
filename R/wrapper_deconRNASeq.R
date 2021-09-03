@@ -2,39 +2,42 @@
 #'
 #' @param exprs non negative numeric matrix containing single cell profiles
 #'  as columns and features as rows
-#' @param pheno data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
+#' @param pheno data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'.
 #' Has to contain single cell labels in a column named 'cell_type'
 #' @param bulks matrix containing bulk expression profiles as columns
 #' @param exclude.from.signature vector of strings of cell types not to be
 #' included in the signature matrix
-#' @param max.genes numeric, maximum number of genes that will be included in 
-#' the signature for each celltype
-#' @param optimize boolean, should the signature matrix be optimized by
-#' condition number? If FALSE, max.genes genes will be used
-#' @param split.data boolean, should the training data be split for signature
-#' matrix creation? If TRUE, 10\% of the data will be used to build
-#' the signature matrix and the rest will be used to estimate the optimal
-#' features
+#' @param max.genes numeric, maximum number of genes that will be included in
+#' the signature for each celltype, default 500
+#' @param verbose boolean
 #' @param cell.type.column string, which column of 'pheno'
-#' holds the cell type information?
+#' holds the cell type information? default "cell_type"
 #' @param patient.column string, which column of 'pheno'
 #' holds the patient information; optional, default NULL
-#' @return list with two entries: 
+#' @param scale.cpm boolean, scale single-cell profiles to CPM? default FALSE
+#' @param model model for DeconRNASeq deconvolution as returned by this wrapper,
+#' default NULL
+#' @param model_exclude character vector, cell type(s) to exclude
+#' from the supplied pre-trained model, default NULL
+#' @return list with two entries:
 #' 1) est.props - matrix containing for each bulk the
-#' estimated fractions of the cell types contained
-#' 2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
+#' estimated fractions of the cell types contained\cr
+#' 2) sig.matrix - effective signature matrix used by the algorithm
+#' (features x cell types)\cr
+#' 3) model - list containing reference.X (signature matrix)\cr
 #' @example run_deconrnaseq(training.exprs, training.pheno, bulk.exprs)
+#' @export
 run_deconrnaseq <- function(
-  exprs, 
-  pheno, 
-  bulks, 
-  exclude.from.signature = NULL, 
-  max.genes = 500, 
-  optimize = TRUE, 
-  split.data = TRUE, 
-  cell.type.column = "cell_type", 
-  patient.column = NULL, 
-  scale.cpm = FALSE
+  exprs,
+  pheno,
+  bulks,
+  exclude.from.signature = NULL,
+  max.genes = 500,
+  cell.type.column = "cell_type",
+  patient.column = NULL,
+  scale.cpm = FALSE,
+  model = NULL,
+  model_exclude = NULL
   ) {
   library(DeconRNASeq)
   # error checking
@@ -49,27 +52,36 @@ run_deconrnaseq <- function(
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-  
-  if(scale.cpm){
-    # prepare phenotype data and cell types to use
-    exprs <- scale_to_count(exprs)
+
+  if (is.null(model)) {
+    if (scale.cpm) {
+      # prepare phenotype data and cell types to use
+      exprs <- scale_to_count(exprs)
+    }
+
+    # create signature matrix (DeconRNASeq needs data frames)
+    ref.profiles <- create_sig_matrix(exprs,
+        pheno,
+        exclude.from.signature,
+        max.genes = max.genes,
+        cell.type.column = cell.type.column
+    )
+    if (is.null(ref.profiles)) {
+      return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+    }
+    model <- list(reference.X = ref.profiles)
+  }else{
+    ref.profiles <- model$reference.X
+    if (!is.null(model_exlucde)) {
+      cts <- colnames(ref.profiles)
+      if (all(model_exclude %in% cts)) {
+        cts <- cts[-which(cts %in% model_exclude)]
+        ref.profiles <- ref.profiles[, cts, drop = FALSE]
+      }else{
+        stop("Not all cell types in 'model_exclude' are present in the model")
+      }
+    }
   }
-  
-  # create signature matrix (DeconRNASeq needs data frames)
-  ref.profiles <- create_sig_matrix(exprs,
-      pheno,
-      exclude.from.signature,
-      max.genes = max.genes,
-      optimize = optimize,
-      cell.type.column = cell.type.column
-  )
-  if(is.null(ref.profiles)){
-    return(list(est.props = NULL, sig.matrix = NULL))
-  }
-  # if(! nrow(ref.profiles) > 1){
-  #   warning("Too few genes selected during signature matrix creation for CIBERSORT. Returning NULL.")
-  #   return(list(est.props = NULL, sig.matrix = NULL))
-  # }
 
   # create bulk data frame
   df.mix <- as.data.frame(Matrix::as.matrix(bulks))
@@ -78,20 +90,23 @@ run_deconrnaseq <- function(
   # there is no option to switch the output of this function off
   # deconvolute
   invisible(capture.output(
-    result <- try(DeconRNASeq::DeconRNASeq(df.mix, as.data.frame(ref.profiles)), silent = TRUE)
+    result <- try(
+      DeconRNASeq::DeconRNASeq(df.mix, as.data.frame(ref.profiles)),
+      silent = TRUE
+    )
   ))
 
   if (!class(result) == "try-error") {
-    # select the interesting rows and rotate to be compatible with other algorithms' outputs
+    # select the interesting rows and transpose to have bulks = columns
     result <- t(result$out.all[1:ncol(bulks), , drop = FALSE])
     colnames(result) <- colnames(bulks)
 
     # complete estimation matrix in case of droput cell types
-    if(!all(colnames(ref.profiles) %in% rownames(result))){
+    if (!all(colnames(ref.profiles) %in% rownames(result))) {
       result <- complete_estimates(result, colnames(ref.profiles))
     }
-    return(list(est.props = result, sig.matrix = ref.profiles))
+    return(list(est.props = result, sig.matrix = ref.profiles, model = model))
   } else {
-    return(list(est.props = NULL, sig.matrix = ref.profiles))
+    return(list(est.props = NULL, sig.matrix = ref.profiles, model = model))
   }
 }
