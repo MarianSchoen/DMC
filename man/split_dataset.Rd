@@ -7,26 +7,27 @@
 split_dataset(exprs, pheno, method = "random", prop = 0.25, grouping = NULL)
 }
 \arguments{
-\item{exprs}{non-negative numeric matrix with features as rows, and 
+\item{exprs}{non-negative numeric matrix with features as rows, and
 scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'}
 
 \item{pheno}{data frame with scRNA-Seq profiles as rows, and pheno entries
 in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)'}
 
-\item{method}{string specifying method of splitting; either of 'random' (default) or 'predefined'}
+\item{method}{string specifying method of splitting;
+either 'random' (default) or 'predefined'}
 
 \item{prop}{numerical, fraction of profiles to be used as test set}
 
-\item{grouping}{factor with 2 levels, and 'length(grouping)' must be 
-'ncol(sc.counts)'. Assigns each scRNA-Seq profile to either 
-test or train cohort.}
+\item{grouping}{factor with 2 levels (training == 1, test == 2),
+and 'length(grouping)' must be 'ncol(sc.counts)'.
+ Assigns each scRNA-Seq profile to either test or train cohort.}
 }
 \value{
 list containing two lists:
 1) training
 2) test
 both lists contain two entries:
-1) exprs - non-negative numeric matrix with features as rows, and 
+1) exprs - non-negative numeric matrix with features as rows, and
 scRNA-Seq profiles as columns. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'
 2) pheno - data frame with scRNA-Seq profiles as rows, and pheno entries
  in columns. 'nrow(sc.pheno)' must equal 'ncol(sc.counts)'

@@ -21,15 +21,18 @@ evaluation_plot(
 
 \item{metric}{evaluation metric; either string 'cor' (default) or a function}
 
-\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
-is NULL, the default will be "custom metric"}
+\item{metric.name}{string, name of the evaluation metric used;
+not needed if metric is a string ("cor", default). If metric is a function
+and metric.name is NULL, the default will be "custom metric"}
 
-\item{real.props}{non-negative numeric matrix, with cell types as rows, 
+\item{real.props}{non-negative numeric matrix, with cell types as rows,
 and bulk RNA-Seq profiles.}
 
-\item{celltype.order}{character vector of cell types specifying the plotting order}
+\item{celltype.order}{character vector of cell types specifying
+the plotting order}
 
-\item{algorithm.order}{character vector of algorithm names specifying the plotting order (left to right)}
+\item{algorithm.order}{character vector of algorithm names
+specifying the plotting order (left to right)}
 }
 \description{
 create score plot

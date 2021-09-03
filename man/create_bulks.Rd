@@ -17,7 +17,7 @@ create_bulks(
 )
 }
 \arguments{
-\item{exprs}{non-negative numeric, scRNA-seq profiles as columns, 
+\item{exprs}{non-negative numeric, scRNA-seq profiles as columns,
 features as rows}
 
 \item{pheno}{data.frame, phenotype data containing
@@ -26,26 +26,27 @@ must contain 'cell.type.column',
 ordering of cells must be the same as in exprs}
 
 \item{cell.type.column}{string, which column of 'pheno'
-holds the cell type information?}
+holds the cell type information? default "cell_type"}
 
 \item{n.bulks}{integer, the number of bulks to be created, defaults to 500}
 
-\item{include.in.bulks}{vector of strings, cell types to be used for bulk 
+\item{include.in.bulks}{vector of strings, cell types to be used for bulk
 simulation; if not supplied, all will be used}
 
 \item{n.profiles.per.bulk}{positive numeric, number of samples to be randomly
 drawn for each bulk; default 1000}
 
 \item{sum.to.count}{boolean, should all bulks be normalized
-to a fixed total count number? default TRUE}
+to a fixed total count number (1e6)? default TRUE}
 
-\item{frac}{numeric >= 1; determines the variance of cell type proportions within the simulated bulks;
-higher d means more extreme distributions}
+\item{frac}{numeric >= 1; determines the variance of cell type proportions
+within the simulated bulks; default 5}
 
-\item{switch.prob}{fraction of bulks sampled with inverse cell type quantity}
+\item{switch.prob}{numeric, 0 <= switch.prob <= 1, fraction of bulks
+sampled with inverse cell type quantities; default 0}
 }
 \value{
-list with 
+list with
    - "bulks": matrix containing bulk expression profiles (features x bulks)
    - "props" matrix containing quantities (cell type x bulks)
 }

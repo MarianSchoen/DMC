@@ -2,20 +2,22 @@
 % Please edit documentation in R/complete_estimates.R
 \name{complete_estimates}
 \alias{complete_estimates}
-\title{this function adds rows filled with for all missing cell types 
+\title{this function adds rows filled with 0 for all missing cell types
 to the estimates returned by an algorithm}
 \usage{
 complete_estimates(est.props, include.in.x)
 }
 \arguments{
-\item{est.props}{matrix containing estimated proportions for each cell type (cell type x bulk)}
+\item{est.props}{matrix containing estimated proportions for each cell type
+(cell type x bulk)}
 
-\item{include.in.x}{vector containing the cell types that should be present in est.props}
+\item{include.in.x}{vector containing the cell types that
+should be present in est.props}
 }
 \value{
 matrix (cell type x bulks) containing the information of est.props
 }
 \description{
-this function adds rows filled with for all missing cell types 
+this function adds rows filled with 0 for all missing cell types
 to the estimates returned by an algorithm
 }

@@ -17,15 +17,20 @@ create_boxplots(
 
 \item{metric}{evaluation metric; either string 'cor' (default) or a function}
 
-\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
+\item{metric.name}{string, name of the evaluation metric used;
+not needed if metric is a string ("cor").
+If metric is a function and metric.name
 is NULL, the default will be "custom metric"}
 
-\item{celltype.order}{character vector of cell types specifying the plotting order}
+\item{celltype.order}{character vector of cell types
+specifying the plotting order}
 
-\item{algorithm.order}{character vector of algorithm names specifying the plotting order (left to right)}
+\item{algorithm.order}{character vector of algorithm names
+specifying the plotting order (left to right)}
 }
 \value{
-list of ggplot objects (plots), ordered by celltype.order (if supplied)
+list containing list of ggplot objects (plots),
+ordered by celltype.order (if supplied)
 }
 \description{
 create boxplots of deconvolution results for each algorithm

@@ -10,7 +10,6 @@ create_sig_matrix(
   pheno,
   exclude.celltypes = NULL,
   max.genes = NULL,
-  optimize = TRUE,
   cell.type.column = "cell_type"
 )
 }
@@ -28,19 +27,13 @@ with these labels are not included in the signature matrix}
 \item{max.genes}{integer, maximum number of genes to be selected
 for each cell type; the actual number of genes in the
 signature matrix will be larger. If no value is given,
-max.genes = NULL and all genes will be selected}
-
-\item{optimize}{boolean, default TRUE. If TRUE, the
-optimal number of genes to be selected for each cell type will be
-determined between 1 and 'max.genes' by optimizing the
-condition number of the signature matrix.
-If FALSE, for each cell type the top 'max.genes' genes will be taken.}
+max.genes = NULL and all genes will be selected as maximum}
 
 \item{cell.type.column}{string, which column of 'pheno'
-holds the cell type information?}
+holds the cell type information? default "cell_type"}
 }
 \value{
-numeric matrix, holding reference profiles in its column, 
+numeric matrix, holding reference profiles in its column,
 features in its rows
 }
 \description{

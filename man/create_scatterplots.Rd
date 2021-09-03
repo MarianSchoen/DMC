@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_scatterplots.R
 \name{create_scatterplots}
 \alias{create_scatterplots}
-\title{create scatterplots of deconvolution results for all algorithms and cell types in the dataset}
+\title{create scatterplots of deconvolution results for all algorithms}
 \usage{
 create_scatterplots(
   results.list,
@@ -16,19 +16,23 @@ create_scatterplots(
 \arguments{
 \item{results.list}{list of results as returned by deconvolute}
 
-\item{real.props}{matrix containing real proportions for each cell type (cell type x bulk); optional}
+\item{real.props}{matrix containing real proportions for each cell type
+'(cell type x bulk); optional, needed only if results.list does not contain
+'bulk.props'}
 
 \item{training.pheno}{pheno data for the single-cell training set; optional}
 
 \item{real}{boolean; are the deconvoluted bulks real or artificial}
 
-\item{celltype.order}{character vector of cell types specifying the plotting order}
+\item{celltype.order}{character vector of cell types
+specifying the plotting order}
 
-\item{algorithm.order}{character vector of algorithm names specifying the plotting order}
+\item{algorithm.order}{character vector of algorithm names
+specifying the plotting order}
 }
 \value{
-list containing one plot per algorithm
+list containing one plot per algorithm, ordered by algorithm.order
 }
 \description{
-create scatterplots of deconvolution results for all algorithms and cell types in the dataset
+create scatterplots of deconvolution results for all algorithms
 }

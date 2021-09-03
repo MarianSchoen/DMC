@@ -9,7 +9,8 @@ write_misc_input(genesets, algorithm.names, function.call, grouping, filename)
 \arguments{
 \item{genesets}{list of string vectors}
 
-\item{algorithm.names}{cahracter vector; names of the deconvolution algorithms used}
+\item{algorithm.names}{character vector;
+names of the deconvolution algorithms used}
 
 \item{function.call}{call object}
 

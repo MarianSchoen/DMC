@@ -10,18 +10,18 @@ run_deconrnaseq(
   bulks,
   exclude.from.signature = NULL,
   max.genes = 500,
-  optimize = TRUE,
-  split.data = TRUE,
   cell.type.column = "cell_type",
   patient.column = NULL,
-  scale.cpm = FALSE
+  scale.cpm = FALSE,
+  model = NULL,
+  model_exclude = NULL
 )
 }
 \arguments{
 \item{exprs}{non negative numeric matrix containing single cell profiles
 as columns and features as rows}
 
-\item{pheno}{data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
+\item{pheno}{data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'.
 Has to contain single cell labels in a column named 'cell_type'}
 
 \item{bulks}{matrix containing bulk expression profiles as columns}
@@ -29,28 +29,32 @@ Has to contain single cell labels in a column named 'cell_type'}
 \item{exclude.from.signature}{vector of strings of cell types not to be
 included in the signature matrix}
 
-\item{max.genes}{numeric, maximum number of genes that will be included in 
-the signature for each celltype}
-
-\item{optimize}{boolean, should the signature matrix be optimized by
-condition number? If FALSE, max.genes genes will be used}
-
-\item{split.data}{boolean, should the training data be split for signature
-matrix creation? If TRUE, 10\% of the data will be used to build
-the signature matrix and the rest will be used to estimate the optimal
-features}
+\item{max.genes}{numeric, maximum number of genes that will be included in
+the signature for each celltype, default 500}
 
 \item{cell.type.column}{string, which column of 'pheno'
-holds the cell type information?}
+holds the cell type information? default "cell_type"}
 
 \item{patient.column}{string, which column of 'pheno'
 holds the patient information; optional, default NULL}
+
+\item{scale.cpm}{boolean, scale single-cell profiles to CPM? default FALSE}
+
+\item{model}{model for DeconRNASeq deconvolution as returned by this wrapper,
+default NULL}
+
+\item{model_exclude}{character vector, cell type(s) to exclude
+from the supplied pre-trained model, default NULL}
+
+\item{verbose}{boolean}
 }
 \value{
-list with two entries: 
+list with two entries:
 1) est.props - matrix containing for each bulk the
-estimated fractions of the cell types contained
-2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
+estimated fractions of the cell types contained\cr
+2) sig.matrix - effective signature matrix used by the algorithm
+(features x cell types)\cr
+3) model - list containing reference.X (signature matrix)\cr
 }
 \description{
 deconvolute given bulks with DeconRNASeq using single cell data

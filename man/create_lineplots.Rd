@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_lineplots.R
 \name{create_lineplots}
 \alias{create_lineplots}
-\title{create lineplots of deconvolution results for different gene sets}
+\title{create lineplots of deconvolution results and runtime for different gene sets}
 \usage{
 create_lineplots(
   results.df,
@@ -19,24 +19,27 @@ create_lineplots(
 
 \item{metric}{evaluation metric; either string 'cor' (default) or a function}
 
-\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
+\item{metric.name}{string, name of the evaluation metric used;
+not needed if metric is a string ("cor").
+If metric is a function and metric.name
 is NULL, the default will be "custom metric"}
 
 \item{genesets}{list of gene sets (character vectors)}
 
-\item{available.features}{character vector containing names of available features}
+\item{available.features}{character vector containing names
+of available features}
 
-\item{celltype.order}{character vector of cell types specifying the plotting order}
+\item{celltype.order}{character vector of cell types
+specifying the plotting order}
 
-\item{algorithm.order}{character vector of algorithm names specifying the plotting order}
+\item{algorithm.order}{character vector of algorithm names
+specifying the plotting order}
 }
 \value{
-list containing two elements:  
-
-1) runtime.plot  
-
-2) list containing lineplot of scores for each celltypes
+list containing two elements:\cr
+1) runtime.plot\cr
+2) list containing lineplot of scores for each celltypes\cr
 }
 \description{
-create lineplots of deconvolution results for different gene sets
+create lineplots of deconvolution results and runtime for different gene sets
 }

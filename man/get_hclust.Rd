@@ -17,21 +17,23 @@ get_hclust(
 )
 }
 \arguments{
-\item{sc.counts}{count matrix, features as rows, scRNA-Seq profiles as columns}
+\item{sc.counts}{count matrix, features as rows,
+scRNA-Seq profiles as columns}
 
-\item{sc.pheno}{data.frame. scRNA-Seq profiles as rows. Must have 
+\item{sc.pheno}{data.frame. scRNA-Seq profiles as rows. Must have
 'cell.type.column' and 'sample.name.column'}
 
-\item{cell.type.column}{string, column of 'sc.pheno' holding the 
+\item{cell.type.column}{string, column of 'sc.pheno' holding the
 input cell type labels. Within these entries, the clustering is done.}
 
 \item{sample.name.column}{string, column of the 'colnames(sc.counts)'}
 
-\item{n.features.pre.pca}{1 < integer , number of features selected prior to PCA}
+\item{n.features.pre.pca}{1 < integer , number of features
+selected prior to PCA}
 
-\item{feature.select.metric.FUN}{function, that ranks the features of 
-'sc.counts'. Given a numeric vector, the function must return a single numeric.
-We pick the top features prior to PCA.}
+\item{feature.select.metric.FUN}{function, that ranks the features of
+'sc.counts'. Given a numeric vector, the function must
+ return a single numeric. We pick the top features prior to PCA.}
 
 \item{perc.sd.in.pca}{0 < numeric <= 1. As many principal components are
 picked, such that at least 'perc.sd.in.pca' standard deviation of the data is
@@ -39,19 +41,19 @@ explained}
 
 \item{verbose}{logical, should information about the process be printed.}
 
-\item{linkage.method}{string, passed to hclust as 'method'. There, it says: 
+\item{linkage.method}{string, passed to hclust as 'method'. There, it says:
 the agglomeration method to be used. This should be (an unambiguous
  abbreviation of) one of "ward.D", "ward.D2", "single", "complete",
   "average" (= UPGMA), "mcquitty" (= WPGMA), "median" (= WPGMC) or
    "centroid" (= UPGMC).}
 }
 \value{
-
+list of hclust() objects for all cell types
 }
 \description{
 Basically, we use a 3 step approach:
-Iteratively go through all cell types available. 
-Withini one cell type: 
+Iteratively go through all cell types available.
+Within one cell type:
    1. Get the 'n.features.pre.pca' by 'feature.select.metric.FUN'
    2. Calculate PCA, select n PCs such that
     'perc.sd.in.pca' of the datas sd is explained

@@ -5,41 +5,56 @@
 \title{fine and coarse subtype benchmark function}
 \usage{
 fine_coarse_subtype_benchmark(
-  sc.counts = cll.exprs,
-  sc.pheno = cll.pheno,
+  sc.counts,
+  sc.pheno,
+  algorithm.list,
   subtype.pattern = "subtype",
   cell.type.column = "cell_type",
   sample.name.column = "sample.name",
-  n.cluster.sizes = c(1, 2, 4, 8),
-  verbose = TRUE,
-  algorithm.list = list(list(algorithm = run_dtd, name = "DTD"), list(algorithm =
-    run_least_squares, name = "Least_Squares")),
-  patient.column = NULL,
+  n.clusters = c(1, 2, 4, 8),
+  verbose = FALSE,
+  patient.column = "patient",
   n.bulks = 500
 )
 }
 \arguments{
-\item{sc.counts}{}
+\item{sc.counts}{count matrix, features as rows,
+scRNA-Seq profiles as columns}
 
-\item{sc.pheno}{}
+\item{sc.pheno}{data.frame. scRNA-Seq profiles as rows. Must have
+'cell.type.column' and 'sample.name.column'}
 
-\item{subtype.pattern}{}
+\item{algorithm.list}{List containing a list for each algorithm.
+Each sublist contains 1) name, 2) function and 3) model}
 
-\item{cell.type.column}{}
+\item{subtype.pattern}{character,
+string by which subtype column is recognized; default "subtype"}
 
-\item{sample.name.column}{}
+\item{cell.type.column}{string, column of 'sc.pheno' holding the
+input cell type labels. Within these entries, the clustering is done.}
 
-\item{verbose}{}
+\item{sample.name.column}{string, column of the 'colnames(sc.counts)'}
 
-\item{algorithm.list}{}
+\item{n.clusters}{integer vector of clustering depths (number of subclusters
+created for each cell type), default c(1, 2, 4, 8).
+This means that in the finest clustering, each celltype will be split in
+8 subtypes, in the next step each will be split in 4 subtypes, ...}
+
+\item{verbose}{logical, should information about the process be printed?}
+
+\item{patient.column}{string, which column of 'pheno'
+holds the patient information; optional, default "patient"}
+
+\item{n.bulks}{numeric > 0, number of bulks to simulate. default 500}
 }
 \value{
-
+list containing deconvolution results for
+different cell type granularities
 }
 \description{
-# basically, there are 3 different things to compare. 
-1. correlation per algorithm on the deep C 
-2. correlation per algorithm on the accumulated cursory C 
+# basically, there are 3 different things to compare.
+1. correlation per algorithm on the deep C
+2. correlation per algorithm on the accumulated cursory C
 3. special scenario where subtype 1 is in X, and subtype 2 is in Y
 }
 \details{

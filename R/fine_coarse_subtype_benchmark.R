@@ -76,7 +76,7 @@ fine_coarse_subtype_benchmark <- function(
     sample.name.column = sample.name.column,
     new.subtype.column = subtype.pattern,
     hclust.obj = NA,
-    n.clusters = n.cluster.sizes,
+    n.clusters = n.clusters,
     verbose = verbose
   )
 

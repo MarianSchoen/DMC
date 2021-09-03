@@ -16,16 +16,21 @@ plot_cond_num(
 
 \item{metric}{evaluation metric; either string 'cor' (default) or a function}
 
-\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
-is NULL, the default will be "custom metric"}
+\item{metric.name}{string, name of the evaluation metric used;
+not needed if metric is a string ("cor", default).
+If metric is a function and metric.name is NULL,
+the default will be "custom metric"}
 
-\item{algorithm.order}{character vector of algorithm names specifying the plotting order}
+\item{algorithm.order}{character vector of algorithm names
+specifying the plotting order}
 }
 \value{
-list containing 3 plots:
-1) cond_num_plot - barplot of average condition numbers
-2) cond_vs_score - scatter plot of average condition number vs. score for each algorithm
-3) variation_plot - standard deviation of score vs. standard deviation of condition number
+list containing 3 plots:\cr
+1) cond_num_plot - barplot of average condition numbers\cr
+2) cond_vs_score - scatter plot of
+average condition number vs. score for each algorithm\cr
+3) variation_plot - scatter plot of standard deviation of
+score vs. standard deviation of condition number
 }
 \description{
 create condition number plots for deconvolution results

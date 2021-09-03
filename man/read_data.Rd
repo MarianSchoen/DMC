@@ -2,7 +2,7 @@
 % Please edit documentation in R/h5_read_data.R
 \name{read_data}
 \alias{read_data}
-\title{read data conforming to the format as used by \link{benchmark} for data storage}
+\title{read data conforming to the format used by \link{benchmark} for data storage}
 \usage{
 read_data(filename)
 }
@@ -11,14 +11,16 @@ read_data(filename)
 }
 \value{
 list with: \cr
- - sc.counts: numeric matrix, features as rows, scRNA-Seq profiles as colums\cr
+ - sc.counts: numeric matrix, features as rows,
+   scRNA-Seq profiles as colums\cr
  - sc.pheno: dataframe with scRNA-Seq profiles as rows, and multiple pheno
   columns \cr
- - bulk.counts: numeric matrix, features as rows, bulk measurements as 
+ - bulk.counts: numeric matrix, features as rows, bulk measurements as
  columns\cr
  - bulk.props: numeric matrix, cell types as rows, bulks as columns\cr
- - bulk.pheno: dataframe containing pheno data for bulks in columns, bulks as rows
+ - bulk.pheno: dataframe containing pheno data for bulks in columns,
+ bulks as rows
 }
 \description{
-read data conforming to the format as used by \link{benchmark} for data storage
+read data conforming to the format used by \link{benchmark} for data storage
 }

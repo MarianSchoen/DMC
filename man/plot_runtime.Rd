@@ -2,20 +2,22 @@
 % Please edit documentation in R/plot_runtime.R
 \name{plot_runtime}
 \alias{plot_runtime}
-\title{create runtime plot}
+\title{create barplot of algorithm runtimes}
 \usage{
 plot_runtime(results.df, title = NULL, algorithm.order = NULL)
 }
 \arguments{
-\item{results.df}{data frame containing deconvolution results as returned by prepare_data}
+\item{results.df}{data frame containing deconvolution results as
+returned by prepare_data()}
 
 \item{title}{character, plot title}
 
-\item{algorithm.order}{character vector of algorithm names specifying the plotting order}
+\item{algorithm.order}{character vector of algorithm names
+specifying the plotting order}
 }
 \value{
 runtime plot
 }
 \description{
-create runtime plot
+create barplot of algorithm runtimes
 }

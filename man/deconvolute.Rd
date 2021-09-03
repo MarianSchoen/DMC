@@ -11,71 +11,73 @@ deconvolute(
   test.pheno,
   algorithms,
   verbose = FALSE,
-  split.data = FALSE,
   exclude.from.bulks = NULL,
   exclude.from.signature = NULL,
-  optimize = TRUE,
   max.genes = 500,
   n.bulks = 500,
   bulks = NULL,
   n.repeats = 1,
   subtypes = FALSE,
   cell.type.column = "cell_type",
-  patient.column = NULL,
+  patient.column = "patient",
   n.profiles.per.bulk = 1000
 )
 }
 \arguments{
-\item{training.expr}{matrix containing single-cell expression profiles 
+\item{training.expr}{matrix containing single-cell expression profiles
 (training set, one cell per column)}
 
 \item{training.pheno}{data frame containing phenotype data of the single-cell
 training set. Has to contain column 'cell.type.column'}
 
-\item{test.expr}{matrix containing single-cell expression profiles 
+\item{test.expr}{matrix containing single-cell expression profiles
 (test set, one cell per column)}
 
 \item{test.pheno}{data frame containing phenotype data of the single-cell
 test set. Has to contain column 'cell.type.column'}
 
-\item{algorithms}{List containing a list for each algorithm. Each sublist contains 1) name  and 2) function}
+\item{algorithms}{List containing a list for each algorithm.
+Each sublist contains 1) name \cr 2) function \cr 3) model}
 
 \item{verbose}{logical, default FALSE}
 
-\item{split.data}{logical, if TRUE (default) then 10 \% of the training data will be used for reference profile creation and
-the rest for feature selection/optimization}
-
-\item{exclude.from.bulks}{character vector containing cell types to be excluded from the bulks (if they are not supplied).
+\item{exclude.from.bulks}{character vector containing cell types to be
+excluded from the bulks (if they are not supplied).
 If not specified, all will be used.}
 
-\item{exclude.from.signature}{character vector containing cell types to be excluded from the signature matrix.
+\item{exclude.from.signature}{character vector containing cell types to be
+excluded from the signature matrix.
 If not specified, all will be used.}
 
-\item{optimize}{logical, should the signature matrix be optimized by condition number? If FALSE, max.genes genes will be used}
+\item{max.genes}{maximum number of genes that will be included in the
+signature for each celltype}
 
-\item{max.genes}{maximum number of genes that will be included in the signature for each celltype}
+\item{n.bulks}{number of bulks to build if they are not supplied to the
+function, default 500}
 
-\item{n.bulks}{number of bulks to build if they are not supplied to the function, default 500}
+\item{bulks}{matrix containing expression profiles of bulks in the columns.
+If not supplied, bulks will be created}
 
-\item{bulks}{matrix containing expression profiles of bulks in the columns. If not supplied, bulks will be created}
-
-\item{n.repeats}{integer determining the number of times deconvolution should be repeated for each algorithm, default 1}
+\item{n.repeats}{integer determining the number of times deconvolution
+should be repeated for each algorithm, default 1}
 
 \item{subtypes}{boolean, are simulated subtypes used for deconvolution?}
 
 \item{cell.type.column}{string, which column of 'training.pheno'/'test.pheno'
-holds the cell type information?}
+holds the cell type information? default 'cell_type'}
 
 \item{patient.column}{string, which column of 'pheno'
-holds the patient information; optional, default NULL}
+holds the patient information; optional, default 'patient'}
 
 \item{n.profiles.per.bulk}{positive numeric, number of samples to be randomly
 drawn for each simulated bulk; default 1000; only needed when bulks=NULL}
 }
 \value{
 list with two entries:
-1) results.list: list containing deconvolution results for all algorithms and repetitions as returned by the algorithm functions
-2) bulk.props: matrix containing the real proportions / quantities for all cell types in all bulks (cell type x bulk)
+1) results.list: list containing deconvolution results for all algorithms
+and repetitions as returned by the algorithm functions
+2) bulk.props: matrix containing the real proportions / quantities for all
+cell types in all bulks (cell type x bulk)
 }
 \description{
 deconvolute given bulks with all supplied algorithms and training data

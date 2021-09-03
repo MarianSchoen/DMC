@@ -14,18 +14,21 @@ render_results(
 }
 \arguments{
 \item{temp.dir}{directory containing the benchmark data. \cr
-Usually \code{paste(temp.dir,"/",benchmark.name,sep="")}, 
-where \code{temp.dir} and \code{benchmark.name} 
+Usually \code{paste(temp.dir,"/",benchmark.name,sep="")},
+where \code{temp.dir} and \code{benchmark.name}
 are parameters of \link{benchmark}.}
 
 \item{metric}{evaluation metric; either string 'cor' (default) or a function}
 
-\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
-is NULL, the default will be "custom metric"}
+\item{metric.name}{string, name of the evaluation metric used;
+not needed if metric is a string ("cor"). If metric is a function and
+metric.name is NULL, the default will be "custom metric"}
 
-\item{benchmark.name}{string, name of the benchmark to be included in report filename}
+\item{benchmark.name}{string, name of the benchmark to be included in
+report filename}
 
-\item{celltype.col}{string, name of the column in sc.pheno that contains cell type information}
+\item{celltype.col}{string, name of the column in sc.pheno that contains
+cell type information; default "cell_type"}
 }
 \description{
 render markdown report for data produced by \link{benchmark}

@@ -665,10 +665,8 @@ benchmark <- function(
   			test.expr = NULL, test.pheno = NULL,
   			algorithms = algorithms[to.run],
   			verbose = verbose,
-  			split.data = TRUE,
         exclude.from.bulks = NULL,
         exclude.from.signature = exclude.from.signature,
-        optimize = TRUE,
         max.genes = NULL,
         n.bulks = 0,
         bulks = list(bulks = bulk.counts, props = bulk.props),
@@ -746,10 +744,9 @@ benchmark <- function(
           test.expr = NULL, test.pheno = NULL,
           algorithms = algorithms[to.run],
           verbose = verbose,
-          split.data = FALSE,
           exclude.from.bulks = NULL,
           exclude.from.signature = exclude.from.signature,
-          optimize = TRUE, max.genes = NULL, n.bulks = 0,
+          max.genes = NULL, n.bulks = 0,
           bulks = sim.bulks,
           n.repeats = repeats,
           cell.type.column = cell.type.column,
@@ -770,7 +767,6 @@ benchmark <- function(
           n.repeats = repeats,
           exclude.from.signature = exclude.from.signature,
           verbose = verbose,
-          split.data = FALSE,
           cell.type.column = cell.type.column,
           patient.column = patient.column
         )
@@ -790,7 +786,6 @@ benchmark <- function(
           exclude.from.signature = exclude.from.signature,
           step.size = 0.25,
           verbose = verbose,
-          split.data = FALSE,
           cell.type.column = cell.type.column,
           patient.column = patient.column
         )
@@ -813,7 +808,7 @@ benchmark <- function(
 					sample.name.column = sample.name.column,
 					verbose = verbose,
 					algorithm.list = algorithms[to.run],
-					n.cluster.sizes = c(1, 2, 4, 8),
+					n.clusters = c(1, 2, 4, 8),
 					patient.column = patient.column,
 					n.bulks = n.bulks
 				)

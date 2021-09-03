@@ -10,18 +10,18 @@ run_music(
   bulks,
   exclude.from.signature = NULL,
   max.genes = NULL,
-  optimize = TRUE,
-  split.data = TRUE,
   cell.type.column = "cell_type",
-  patient.column = NULL,
-  scale.cpm = FALSE
+  patient.column = "patient",
+  scale.cpm = FALSE,
+  model = NULL,
+  model_exclude = NULL
 )
 }
 \arguments{
 \item{exprs}{non negative numeric matrix containing single cell profiles
 as columns and features as rows}
 
-\item{pheno}{data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
+\item{pheno}{data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'.
 Has to contain single cell labels in a column named 'cell_type'}
 
 \item{bulks}{matrix containing bulk expression profiles as columns}
@@ -29,30 +29,31 @@ Has to contain single cell labels in a column named 'cell_type'}
 \item{exclude.from.signature}{vector of strings of cell types not to be
 included in the signature matrix}
 
-\item{max.genes}{numeric, maximum number of genes that will be included in 
-the signature for each celltype}
+\item{max.genes}{unused, MuSiC uses all genes}
 
-\item{optimize}{boolean, should the signature matrix be optimized by
-condition number? If FALSE, max.genes genes will be used}
-
-\item{split.data}{boolean, should the training data be split for signature
-matrix creation? If TRUE, 10\% of the data will be used to build
-the signature matrix and the rest will be used to estimate the optimal
-features}
-
-\item{cell.type.column}{string, which column of 'training.pheno'/'test.pheno'
-holds the cell type information?}
+\item{cell.type.column}{string, which column of 'pheno'
+holds the cell type information? default "cell_type"}
 
 \item{patient.column}{string, which column of 'pheno'
-holds the patient information; optional, default NULL}
+holds the patient information; optional, default "patient"}
 
-\item{verbose}{boolean}
+\item{scale.cpm}{boolean, scale single-cell profiles to CPM? default FALSE}
+
+\item{model}{pre-trained model for MuSiC deconvolution
+as returned by this wrapper, default NULL}
+
+\item{model_exclude}{character vector, cell type(s) to exclude
+from the supplied pre-trained model, default NULL}
+
+\item{verbose}{boolean, default FALSE}
 }
 \value{
-list with four entries: 
+list with three entries:
 1) est.props - matrix containing for each bulk the
-estimated fractions of the cell types contained
-2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
+estimated fractions of the cell types contained\cr
+2) sig.matrix - effective signature matrix used by the algorithm
+(features x cell types)\cr
+3) model - list containing learned parameters for music.basic function call
 }
 \description{
 deconvolute given bulks with MuSiC using single cell data

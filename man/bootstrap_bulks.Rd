@@ -2,24 +2,26 @@
 % Please edit documentation in R/bootstrap_bulks.R
 \name{bootstrap_bulks}
 \alias{bootstrap_bulks}
-\title{this functions performs bootstrapping on the real bulks 
-to estimate the error of the deconvolution results}
+\title{this functions performs bootstrapping on the real bulk deconvolution results
+to determine the stability of the deconvolution results}
 \usage{
 bootstrap_bulks(props, metric = "cor")
 }
 \arguments{
 \item{props}{list with two entries:
+1) est - matrix containing the estimated fractions of cell types
+within the bulks (cell type x bulk)
+2) real - matrix containing the true fractions of cell types
+within the bulks (cell type x bulk)}
 
-1) est - matrix containing the estimated fractions of cell types within the bulks (cell type x bulk)  
-
-2) real - matrix containing the true fractions of cell types within the bulks (cell type x bulk)}
-
-\item{metric}{evaluation metric; either "cor" (default) or a function conforming to the required format. See benchmark() for details.}
+\item{metric}{evaluation metric; either "cor" (default) or
+a function conforming to the required format. See benchmark() for details.}
 }
 \value{
-matrix containing all bootstrap runs with columns 'algorithm', 'cell_type' and 'score'
+matrix containing all bootstrap runs with columns
+'algorithm', 'cell_type' and 'score'
 }
 \description{
-this functions performs bootstrapping on the real bulks 
-to estimate the error of the deconvolution results
+this functions performs bootstrapping on the real bulk deconvolution results
+to determine the stability of the deconvolution results
 }

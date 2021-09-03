@@ -12,49 +12,54 @@ geneset_benchmark(
   genesets,
   algorithms,
   bulk.data,
-  n.repeats,
+  n.repeats = 3,
   exclude.from.signature = NULL,
   verbose = FALSE,
-  split.data = FALSE,
   cell.type.column = "cell_type",
-  patient.column = NULL
+  patient.column = "patient"
 )
 }
 \arguments{
-\item{training.pheno}{data frame containing phenotype data of the single-cell training set. Has to contain column `cell.type.column`}
+\item{training.exprs}{matrix containing single-cell expression profiles
+(training set, one cell per column)}
 
-\item{test.pheno}{data frame containing phenotype data of the single-cell test set. Has to contain column `cell.type.column`}
+\item{training.pheno}{data frame containing phenotype data of the
+single-cell training set. Has to contain column `cell.type.column`}
+
+\item{test.exprs}{matrix containing single-cell expression profiles
+(test set, one cell per column)}
+
+\item{test.pheno}{data frame containing phenotype data of the
+single-cell test set. Has to contain column `cell.type.column`}
 
 \item{genesets}{list of gene sets (character vectors)}
 
-\item{algorithms}{List containing a list for each algorithm. Each sublist contains 1) name  and 2) function}
+\item{algorithms}{List containing a list for each algorithm.
+Each sublist contains 1) name, 2) function and 3) model}
 
-\item{bulk.data}{list with two entries:
-1) bulks - matrix containing expression data of the bulks (one bulk per column)
-2) props - matrix containing the true fractions of cell types within the bulks (cell type x bulk)}
+\item{bulk.data}{list with two entries:\cr
+1) bulks - matrix containing expression data of the bulks
+(one bulk per column)\cr
+2) props - matrix containing the true fractions of cell types within the
+bulks (cell type x bulk)}
 
-\item{n.repeats}{integer determining the number of times deconvolution should be repeated for each algorithm}
+\item{n.repeats}{integer determining the number of times deconvolution
+should be repeated for each algorithm, default 3}
 
-\item{exclude.from.signature}{character vector containing cell types to be excluded from the signature matrix.
-If not specified, all will be used.}
+\item{exclude.from.signature}{character vector containing cell types to be
+excluded from the signature matrix. If not specified, all will be used.}
 
 \item{verbose}{logical, default FALSE}
 
-\item{split.data}{logical, if TRUE (default) then 10\% of the training data will be used for reference profile creation and
-the rest for feature selection/optimization}
-
 \item{cell.type.column}{string, which column of 'training.pheno'/'test.pheno'
-holds the cell type information?}
+holds the cell type information? default "cell_type"}
 
 \item{patient.column}{string, which column of 'pheno'
-holds the patient information; optional, default NULL}
-
-\item{training.expr}{matrix containing single-cell expression profiles (training set, one cell per column)}
-
-\item{test.expr}{matrix containing single-cell expression profiles (test set, one cell per column)}
+holds the patient information; optional, default "patient"}
 }
 \value{
-list containing deconvolution results for all algorithms for all genesets
+list containing deconvolution results for all algorithms
+for all genesets
 }
 \description{
 perform deconvolution of simulated bulks on different gene sets

@@ -2,20 +2,23 @@
 % Please edit documentation in R/h5_read_result.R
 \name{read_result_list}
 \alias{read_result_list}
-\title{read_result_list}
+\title{read results of deconvolution by different algorithms
+as written by write_result_list. The function works recursively.}
 \usage{
 read_result_list(filename, content = NULL, groupname = NULL)
 }
 \arguments{
 \item{filename}{string, which file should be read in?}
 
-\item{content}{h5 file content; used instead of filename in case of recursive function call}
+\item{content}{h5 file content;
+used instead of filename in case of recursive function call}
 
 \item{groupname}{name of the current group}
 }
 \value{
-list
+list of deconvolution results
 }
 \description{
-read_result_list
+read results of deconvolution by different algorithms
+as written by write_result_list. The function works recursively.
 }

@@ -10,50 +10,52 @@ run_dtd(
   bulks,
   cell.type.column = "cell_type",
   exclude.from.signature = NULL,
-  max.genes = NULL,
-  optimize = TRUE,
-  split.data = TRUE,
+  max.genes = 1000,
   verbose = FALSE,
   patient.column = NULL,
-  scale.cpm = FALSE
+  scale.cpm = FALSE,
+  model = NULL,
+  model_exclude = NULL
 )
 }
 \arguments{
 \item{exprs}{non negative numeric matrix containing single cell profiles
 as columns and features as rows}
 
-\item{pheno}{data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'. 
-Has to contain single cell labels in 'cell.type.column'}
+\item{pheno}{data.frame, with 'nrow(pheno)' must equal 'ncol(exprs)'.
+Has to contain single cell labels in a column named 'cell_type'}
 
 \item{bulks}{matrix containing bulk expression profiles as columns}
 
-\item{cell.type.column}{string, which column of 'training.pheno'/'test.pheno'
-holds the cell type information?}
+\item{cell.type.column}{string, which column of 'pheno'
+holds the cell type information? default "cell_type"}
 
 \item{exclude.from.signature}{vector of strings of cell types not to be
 included in the signature matrix}
 
-\item{max.genes}{numeric, maximum number of genes that will be included in 
-the signature for each celltype}
+\item{max.genes}{numeric, maximum number of genes that will be included in
+the signature for each celltype, default 1000}
 
-\item{optimize}{boolean, should the signature matrix be optimized by
-condition number? If FALSE, max.genes genes will be used}
-
-\item{split.data}{boolean, should the training data be split for signature
-matrix creation? If TRUE, 10\% of the data will be used to build
-the signature matrix and the rest will be used to estimate the optimal
-features}
-
-\item{verbose}{boolean}
+\item{verbose}{boolean, default FALSE}
 
 \item{patient.column}{string, which column of 'pheno'
 holds the patient information; optional, default NULL}
+
+\item{scale.cpm}{boolean, scale single-cell profiles to CPM? default FALSE}
+
+\item{model}{pre-trained model for DTD deconvolution
+as returned by this wrapper, default NULL}
+
+\item{model_exclude}{character vector, cell type(s) to exclude
+from the supplied pre-trained model, default NULL}
 }
 \value{
-list with four entries: 
+list with four entries:
 1) est.props - matrix containing for each bulk the
-estimated fractions of the cell types contained
-2) sig.matrix - effective signature matrix used by the algorithm (features x cell types)
+estimated fractions of the cell types contained \cr
+2) sig.matrix - effective signature matrix used by the algorithm
+'(features x cell types) \cr
+3) model - the trained DTD model\cr
 }
 \description{
 deconvolute given bulk with DTD using single-cell data

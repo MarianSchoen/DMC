@@ -12,7 +12,7 @@ marker_genes(exprs, pheno, sig.types = NULL, cell.type.column = "cell_type")
 \item{pheno}{phenotype data corresponding to the expression matrix.
 Has to contain single cell labels in a column named `cell.type.column`}
 
-\item{sig.types}{character vector containing cell types for which 
+\item{sig.types}{character vector containing cell types for which
 marker genes should be selected. Default is all of them.}
 
 \item{cell.type.column}{string, which column of 'pheno'

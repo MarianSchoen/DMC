@@ -2,7 +2,7 @@
 % Please edit documentation in R/h5_write_data.R
 \name{write_data}
 \alias{write_data}
-\title{write scRNA-Seq profiles and pheno data, RNA-Seq bulk data and cell type 
+\title{write scRNA-Seq profiles and pheno data, RNA-Seq bulk data and cell type
 proportions within the bulks in format used by \link{benchmark} to hdf5 file}
 \usage{
 write_data(
@@ -23,8 +23,8 @@ entries as rows}
 \item{bulk.counts}{numeric matrix, with features as rows bulk measurements
 as columns}
 
-\item{bulk.props}{numeric matrix containing cell type proportions, cell types as rows, 
-bulks as columns}
+\item{bulk.props}{numeric matrix containing cell type proportions,
+cell types as rows, bulks as columns}
 
 \item{filename}{string, where should the data be stored?}
 }
@@ -32,6 +32,6 @@ bulks as columns}
 NULL, function saves into ‘filename‘
 }
 \description{
-write scRNA-Seq profiles and pheno data, RNA-Seq bulk data and cell type 
+write scRNA-Seq profiles and pheno data, RNA-Seq bulk data and cell type
 proportions within the bulks in format used by \link{benchmark} to hdf5 file
 }

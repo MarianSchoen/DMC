@@ -7,13 +7,14 @@
 scale_to_count(exprs, count = NULL)
 }
 \arguments{
-\item{exprs}{expression matrix containing profiles in columns}
+\item{exprs}{expression matrix containing profiles in columns, genes in rows;
+can be sparse}
 
 \item{count}{numeric, the number the counts in each profile should sum up to:
 default NULL, count = nrow(exprs)}
 }
 \value{
-rescaled expression matrix
+rescaled expression matrix (sparsity depending on type of exprs)
 }
 \description{
 rescale expression profiles to sum to a fixed count number

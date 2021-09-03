@@ -17,41 +17,42 @@ add_subtype_pheno(
 )
 }
 \arguments{
-\item{sc.counts}{count matrix, features as rows, scRNA-Seq profiles as columns}
+\item{sc.counts}{count matrix, features as rows,
+scRNA-Seq profiles as columns}
 
-\item{sc.pheno}{data.frame. scRNA-Seq profiles as rows. Must have 
+\item{sc.pheno}{data.frame. scRNA-Seq profiles as rows. Must have
 'cell.type.column' and 'sample.name.column'}
 
-\item{cell.type.column}{string, column of 'sc.pheno' holding the 
+\item{cell.type.column}{string, column of 'sc.pheno' holding the
 input cell type labels. Within these entries, the clustering is done.}
 
 \item{sample.name.column}{string, column of the 'colnames(sc.counts)'}
 
-\item{new.subtype.column}{string, pattern of the new column, where the subtype
-information is stored}
+\item{new.subtype.column}{string, pattern of the new column,
+where the subtype information is stored}
 
-\item{hclust.obj}{'hclust' object, or NA. If you already calculated a hclust, 
+\item{hclust.obj}{'hclust' object, or NA. If you already calculated a hclust,
 object pass it here. Alternatively, we call the get_hclust function.}
+
+\item{n.clusters}{integer vector of clustering depths (number of subclusters
+created for each cell type), default c(1, 2, 4, 8).
+This means that in the finest clustering, each celltype will be split in
+8 subtypes, in the next step each will be split in 4 subtypes, ...}
 
 \item{verbose}{logical, should information about the process be printed.}
 
 \item{...}{arguments that are passed to get_hclust}
-
-\item{avg.profiles.per.subcluster.vec}{numeric vector, indicates how many new 
-subtype pheno entries are generated 
-(=> 'length(avg.profiles.per.subcluster.vec)') and - in average - how many
-profiles are in a subtype.}
 }
 \value{
-
+data.frame sc.pheno, with added subtype column
 }
 \description{
-Use a hierarchical clustering of the input labels, 
-to generate finer subtype labels. 
-The basic steps are: 
+Use a hierarchical clustering of the input labels,
+to generate finer subtype labels.
+The basic steps are:
    1. use the get_hclust function to hierarchically cluster the data
     within the cell types. (or use the provided hclust.obj)
-   2. cluster the data multiple times, with different depth 
+   2. cluster the data multiple times, with different depth
    (as indicated by 'avg.profiles.per.subcluster.vec')
    3. provide the clustering labels as columns in sc.pheno, and return it.
 }

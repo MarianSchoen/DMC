@@ -2,7 +2,8 @@
 % Please edit documentation in R/sample_benchmark.R
 \name{sample_size_benchmark}
 \alias{sample_size_benchmark}
-\title{training set size benchmark}
+\title{training set size benchmark: deconvolute given bulks using training
+sets of different sizes to train deconvolution models}
 \usage{
 sample_size_benchmark(
   training.exprs,
@@ -15,47 +16,54 @@ sample_size_benchmark(
   exclude.from.signature = NULL,
   step.size = 0.05,
   verbose = FALSE,
-  split.data = FALSE,
   cell.type.column = "cell_type",
-  patient.column = NULL
+  patient.column = "patient"
 )
 }
 \arguments{
-\item{training.exprs}{matrix containing single-cell expression profiles (training set, one cell per column)}
+\item{training.exprs}{matrix containing single-cell expression profiles
+(training set, one cell per column)}
 
-\item{training.pheno}{data frame containing phenotype data of the single-cell training set. Has to contain column "cell_type"}
+\item{training.pheno}{data frame containing phenotype data of the
+single-cell training set. Has to contain column "cell_type"}
 
-\item{test.exprs}{matrix containing single-cell expression profiles (test set, one cell per column)}
+\item{test.exprs}{matrix containing single-cell expression profiles
+(test set, one cell per column)}
 
-\item{test.pheno}{data frame containing phenotype data of the single-cell test set. Has to contain column "cell_type"}
+\item{test.pheno}{data frame containing phenotype data of the single-cell
+test set. Has to contain column `cell.type.column`}
 
-\item{algorithms}{List containing a list for each algorithm. Each sublist contains 1) name  and 2) function}
+\item{algorithms}{List containing a list for each algorithm.
+Each sublist contains 1) name, 2) function and 3) model}
 
-\item{bulk.data}{list with two entries:
-1) bulks - matrix containing expression data of the bulks (one bulk per column)
-2) props - matrix containing the true fractions of cell types within the bulks (cell type x bulk)}
+\item{bulk.data}{list with two entries:\cr
+1) bulks - matrix containing expression data of the bulks
+(one bulk per column)\cr
+2) props - matrix containing the true fractions of cell
+types within the bulks (cell type x bulk)}
 
-\item{n.repeats}{integer determining the number of times deconvolution should be repeated for each algorithm}
+\item{n.repeats}{integer determining the number of times deconvolution
+should be repeated for each algorithm}
 
-\item{exclude.from.signature}{character vector containing cell types to be excluded from the signature matrix.
-If not specified, all will be used.}
+\item{exclude.from.signature}{character vector containing cell types to be
+excluded from the signature matrix. If not specified, all will be used.}
 
-\item{step.size}{numerical 0 < step.size < 1; fraction of samples by which size of training set is increased each step}
+\item{step.size}{numerical 0 < step.size < 1; fraction of samples
+by which size of training set is increased each step; default 0.05}
 
 \item{verbose}{logical, default FALSE}
 
-\item{split.data}{logical, if TRUE (default) then 10\% of the training data will be used for reference profile creation and
-the rest for feature selection/optimization}
-
 \item{cell.type.column}{string, which column of 'pheno'
-holds the cell type information?}
+holds the cell type information? default "cell_type"}
 
 \item{patient.column}{string, which column of 'pheno'
-holds the patient information; optional, default NULL}
+holds the patient information; optional, default "patient"}
 }
 \value{
-list containing deconvolution results for all algorithms for each training set size
+list containing deconvolution results for all algorithms
+for each training set size
 }
 \description{
-training set size benchmark
+training set size benchmark: deconvolute given bulks using training
+sets of different sizes to train deconvolution models
 }

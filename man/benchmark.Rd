@@ -15,7 +15,6 @@ benchmark(
   patient.column = "patient",
   sample.name.column = "sample.name",
   input.algorithms = NULL,
-  score.algorithms = FALSE,
   simulation.bulks = FALSE,
   simulation.genes = FALSE,
   simulation.samples = FALSE,
@@ -37,95 +36,105 @@ benchmark(
 )
 }
 \arguments{
-\item{sc.counts}{non-negative numeric matrix with features as rows, and 
-scRNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal \code{nrow(sc.pheno)}}
+\item{sc.counts}{non-negative numeric matrix with features as rows, and
+scRNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal
+\code{nrow(sc.pheno)}. May also be sparse matrix (class 'dgCMatrix')}
 
 \item{sc.pheno}{data frame with scRNA-Seq profiles as rows, and pheno entries
-in columns. \code{nrow(sc.pheno)} must equal \code{ncol(sc.counts)}. Cell types need 
-to be specified in a column named `cell.type.column` and the patient/origin
-(if available) in a column named 'patient'}
+in columns. \code{nrow(sc.pheno)} must equal \code{ncol(sc.counts)}.
+Cell types need to be specified in column `cell.type.column`,
+the patient/origin (if available) in column `patient.column` and
+the sample names in column `sample.name.column`}
 
-\item{bulk.counts}{non-negative numeric matrix, with features as rows, and 
-bulk RNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal 
-\code{nrow(bulk.props)}}
+\item{bulk.counts}{non-negative numeric matrix, with features as rows, and
+bulk RNA-Seq profiles as columns. \code{ncol(sc.counts)} must equal
+\code{nrow(bulk.props)}. May also be sparse matrix (class 'dgCMatrix')}
 
 \item{bulk.props}{non-negative numeric matrix specifying the amount of each
-cell type in all each bulk, with cell types as rows and bulk RNA-Seq profiles as columns.}
+cell type in all each bulk, with cell types as rows and
+bulk RNA-Seq profiles as columns.}
 
 \item{benchmark.name}{string, name of the benchmark. Will be used as name
 for the results directory}
 
-\item{grouping}{factor with 2 levels, and \code{length(grouping)} must be 
-\code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either 
-test or train cohort. 1 marking training samples, 2 marking test samples.}
+\item{grouping}{factor with 2 levels, and \code{length(grouping)} must be
+\code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either
+test or train cohort. 1 marks training samples, 2 marks test samples.}
 
 \item{cell.type.column}{string, which column of 'pheno'
-holds the cell type information?}
+holds the cell type information? default 'cell_type'}
 
 \item{patient.column}{string, which column of 'pheno'
-holds the patient information; optional, default NULL}
+holds the patient information; optional, default 'patient'}
 
 \item{sample.name.column}{string, which column of 'pheno'
-holds the sample name information; optional, default NULL}
+holds the sample name information; optional, default 'sample.name'}
 
-\item{input.algorithms}{list containing a list for each algorithm. 
+\item{input.algorithms}{list containing a list for each algorithm.
 Each sublist contains \cr 1) name: character \cr 2) algorithm: function \cr
-For predefined algorithms it is sufficient to supply only the name instead of the sublist,
-e.g. \code{algorithms = list(list(name = 'DTD', algorithm = run_dtd), "DTD")}. \cr
-If no list is supplied, all implemented algorithms 
+3) model: model to be supplied to the algorithm, optional \cr
+For predefined algorithms it is sufficient to supply only the name instead of
+the sublist, e.g. \code{algorithms = list(list(name = 'DTD',
+algorithm = run_dtd), "MuSiC")}. \cr
+If no list is supplied (default), all implemented algorithms
 (CIBERSORT, DeconRNASeq, DTD, Least_Squares, BSEQ-sc and MuSiC) are selected.}
-
-\item{score.algorithms}{boolean, default TRUE. Should DAB algorithm performance scores be calculated?}
 
 \item{simulation.bulks}{boolean, should deconvolution of simulated bulks be
 performed? default: FALSE}
 
-\item{simulation.genes}{boolean, should deconvolution of simulated bulks with 
+\item{simulation.genes}{boolean, should deconvolution of simulated bulks with
 predefined genesets be performed? default: FALSE}
 
-\item{simulation.samples}{boolean, should deconvolution of simulated bulks with
-varying number of randomly selected training profiles be performed? default: FALSE}
+\item{simulation.samples}{boolean,
+should deconvolution of simulated bulks with varying number of randomly
+selected training profiles be performed? default: FALSE}
 
-\item{simulation.subtypes}{boolean, should deconvolution of simulated bulks with
-artificial subtypes of given cell types be performed? default: FALSE}
+\item{simulation.subtypes}{boolean, should deconvolution of simulated bulks
+with artificial subtypes of given cell types be performed? default: FALSE}
 
-\item{genesets}{list of string vector, must match 'rownames(sc.counts)'. default: NULL}
+\item{genesets}{named list of string vectors, each must match subset of
+'rownames(sc.counts)'. default: NULL}
 
-\item{metric}{method of result evaluation; either "cor" (default) or a function. An 
-evaluation function must receive two vectors (real and estimated proportions of a cell type across all bulks)
-as input and return a single value as output. Note that the score should be between 0 and 1}
+\item{metric}{method of result evaluation; either "cor" (default)
+or a function. An evaluation function must receive two vectors
+(real and estimated proportions of a cell type across all bulks) as input and
+return a single value as output.
+Note that the score should be between 0 and 1.}
 
-\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
-is NULL, the default will be "custom metric"}
+\item{metric.name}{string, name of the evaluation metric used;
+not needed if metric is a string ("cor"). If metric is a function and
+metric.name is NULL, the default will be "custom metric"}
 
-\item{repeats}{numeric > 0, number of repetitions for each algorithm in each setting.
-default: 3}
+\item{repeats}{numeric > 0,
+number of repetitions for each algorithm in each setting. default: 5}
 
-\item{temp.dir}{string, directory where data, and benchmarks get stored. default: NULL,
-will be set to '.tmp'}
+\item{temp.dir}{string, directory where data, and benchmarks get stored.
+default: NULL, using directory '.tmp' in working directory}
 
-\item{exclude.from.bulks}{vector of strings, cell types that should not be 
-predicted by the algorithms. default: NULL}
+\item{exclude.from.bulks}{vector of strings,
+cell types that should not be included in the simulated bulks. default: NULL}
 
-\item{exclude.from.signature}{vector of strings, cell types that should not be 
-included in the simulated bulks. default: NULL}
+\item{exclude.from.signature}{vector of strings, cell types that should not
+be predicted by the algorithms. default: NULL}
 
 \item{n.bulks}{numeric > 0, number of bulks to simulate. default 500}
 
 \item{cpm}{boolean, should the sc profiles and bulks be scaled to counts
-per million? default: TRUE}
+per million? default: FALSE}
 
-\item{verbose}{boolean, should progress information be printed to the screen? default: FALSE}
+\item{verbose}{boolean, should progress information be printed to the screen?
+default: FALSE}
 
-\item{n.cluster.sizes}{integer, number of subtype cluster sizes to generate if avg.profiles.per.subcluster is not specified}
+\item{n.cluster.sizes}{vector of integers, number of artificial subtypes
+to generate per cell type; default: c(1, 2, 4, 8)}
 
-\item{cibersort.path}{string, path to CIBERSORT source code. Necesssary, if cibersort or bseq-sc wrappers are used.}
+\item{cibersort.path}{string, path to CIBERSORT source code.
+Necessary, if cibersort or bseq-sc wrappers are used. default NULL}
 
-\item{n.profiles.per.bulk}{positive numeric, number of samples to be randomly
-drawn for each simulated bulk; default 1000;}
+\item{n.profiles.per.bulk}{positive numeric, number of samples to be randomly,
+default: 1000}
 
-\item{avg.profiles.per.subcluster}{integer vector specifying the average number of profiles assigned to each subtype in each simulation step. 
-If not specified, a vector of length 'n.cluster.sizes'  will be automatically generated based on the data.}
+\item{report}{boolean, should an HTML report be generated? deafult TRUE}
 }
 \value{
 NULL, results are stored via hdf5 to 'temp.dir'

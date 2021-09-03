@@ -2,7 +2,7 @@
 % Please edit documentation in R/prepare_data.R
 \name{prepare_data}
 \alias{prepare_data}
-\title{prepare_data}
+\title{convert result lists from benchmark() into data frame for plotting}
 \usage{
 prepare_data(results.all, metric = "cor", metric.name = NULL)
 }
@@ -11,12 +11,14 @@ prepare_data(results.all, metric = "cor", metric.name = NULL)
 
 \item{metric}{evaluation metric; either string 'cor' (default) or a function}
 
-\item{metric.name}{string, name of the evaluation metric used; not needed if metric is a string ("cor"). If metric is a function and metric.name
-is NULL, the default will be "custom metric"}
+\item{metric.name}{character, name of the evaluation metric used;
+not needed if metric is a string ("cor"). If metric is a function and
+metric.name is NULL, the default will be "custom metric"}
 }
 \value{
-data frame containing information about every deconvolution result in the dataset
+data frame containing information about every deconvolution result
+in the dataset
 }
 \description{
-prepare_data
+convert result lists from benchmark() into data frame for plotting
 }
