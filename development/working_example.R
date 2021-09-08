@@ -5,6 +5,7 @@ rm(list = ls())
 # as current changes get loaded, and must not be installed
 # library(DeconvolutionAlgorithmBenchmarking)
 devtools::load_all(".")
+library(tictoc)
 
 # data from PB2
 load("development/cll_normalized_sampled.rda")
@@ -36,8 +37,8 @@ tic("working example")
 benchmark(
   sc.counts = cll.exprs
   , sc.pheno = cll.pheno
-  , real.counts = bulks$bulks
-  , real.props = bulks$props
+  , bulk.counts = bulks$bulks
+  , bulk.props = bulks$props
   , benchmark.name = "test_benchmark"
   , exclude.from.signature = c("unassigned")
   , genesets = genesets
@@ -45,7 +46,9 @@ benchmark(
   , simulation.genes = TRUE
   , simulation.samples = TRUE
   , simulation.subtypes = TRUE
-  , repeats = 3
+  , repeats = 1
   , grouping = as.factor(grouping)
+  , temp.dir = "/data/tim/DAB_test_temp"
+  , input.algorithms = list("DTD", "MuSiC", "Least_Squares", "DeconRNASeq")
   )
 toc()

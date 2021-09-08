@@ -46,7 +46,7 @@ create_sig_matrix <- function(
   if (is.null(max.genes)) {
 	   max.genes <- nrow(exprs)
   }
-  cat("Maximum number of genes per cell type: ", max.genes, "\n")
+  #cat("Maximum number of genes per cell type: ", max.genes, "\n")
 
   # for each cell type test against all others for DEG
   # using two-sided t-test
@@ -67,9 +67,9 @@ create_sig_matrix <- function(
     # control FDR either via q-value or with benjamini-hochberg
     q.vals <- try({
       qvalue::qvalue(p.vals)$qvalues
-    })
+    }, silent = TRUE)
     if (class(q.vals) == "try-error") {
-      warning("q-value calculation failed. Using BH-correction.")
+    	#warning("q-value calculation failed. Using BH-correction.")
     	q.vals <- p.adjust(p.vals, "BH")
       sig.entries <- which(q.vals < 0.1)
     }else{

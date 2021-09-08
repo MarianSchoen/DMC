@@ -33,7 +33,7 @@ create_lineplots <- function(
   required_cols <- c(
     "algorithm", "score", "metric", "geneset", "cell_type", "time"
   )
-  if (!all(req_cols %in% colnames(results.df))) {
+  if (!all(required_cols %in% colnames(results.df))) {
     stop("required columns missing from results.df")
   }
   if (!is.null(genesets)) {
@@ -158,7 +158,7 @@ create_lineplots <- function(
       for (j in seq_len(nrow(temp.scores))) {
         temp.df <- rbind(
           temp.df,
-          c(
+          data.frame(
             algorithm = rownames(temp.scores)[j],
             geneset = colnames(temp.scores)[i],
             score = temp.scores[j, i],

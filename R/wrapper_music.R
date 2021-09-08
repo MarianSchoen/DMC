@@ -74,7 +74,7 @@ run_music <- function(
   Y <- bulks
 
   cts <- unique(pheno[, cell.type.column])
-  include.include.in.x <- cts
+  include.in.x <- cts
   # exclude samples of types contained in exclude.from.signature
   if (!is.null(exclude.from.signature)) {
     if (length(which(cts %in% exclude.from.signature)) > 0) {
@@ -146,7 +146,7 @@ run_music <- function(
   }
 
   # deconvolution
-  est.props <- apply(Y, 2, function(y){
+  est.props <- try({apply(Y, 2, function(y){
     MuSiC::music.basic(
       Y = y,
       X = X,
@@ -157,6 +157,13 @@ run_music <- function(
       eps = eps
     )$p.weight
   })
+  })
+
+  if (class(est.props) == "try-error") {
+    warning("Error in MuSiC. Returning NULL.")
+    return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+  }
+
   rownames(est.props) <- colnames(X)
 
   # complete the estimation matrix in case of cell type dropouts
