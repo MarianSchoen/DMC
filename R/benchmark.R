@@ -822,7 +822,15 @@ benchmark <- function(
 		  rm("benchmark.results")
 		}
 	}
-
+	cat("Creating plots...\t\t", as.character(Sys.time()), "\n", sep = "")
+	plot_all(
+	  temp_dir = output.folder,
+	  metric = metric,
+	  metric.name = metric.name,
+	  genesets = geneset,
+	  features = rownames(training.exprs)
+	)
+	
 	if (report) {
   	cat("preparing results...\t\t", as.character(Sys.time()), "\n", sep = "")
   	# deconvolution step is over

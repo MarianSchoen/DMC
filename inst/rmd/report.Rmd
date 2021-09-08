@@ -13,33 +13,9 @@ params:
    celltype.col: "cell_type"
 ---
 ```{r setup, include=FALSE}
-library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 temp.dir <- params$tempdir
 plot.dir <- paste(temp.dir, "report_plots", sep = '/')
-if (!dir.exists(plot.dir)) {
-  dir.create(plot.dir)
-}
-metric <- params$metric
-metric.name <- params$metric.name
-if (is.character(metric)) {
-  if (metric != "cor") {
-      stop("metric must be either \"cor\" or a function")
-  }else{
-	if (is.null(metric.name) || !is.character(metric.name)) {
-		metric.name <- "custom metric"
-	}
-    metric <- cor
-  }
-}else{
-	if (!is.function(metric)) {
-		stop("Function corresponding to 'metric' could not be found.")
-	}else{
-		if (is.null(metric.name) || !is.character(metric.name)) {
-				metric.name <- "custom metric"
-			}
-	}
-}
 
 benchmark.name <- strsplit(temp.dir, "/")[[1]][
   length(strsplit(temp.dir, "/")[[1]])
@@ -78,101 +54,11 @@ grouping <- input_params$grouping
 
 ## Real bulks
 
-```{r real_results, echo=FALSE}
-  require(ggplot2)
-  files <- list.files(
-    paste(temp.dir, "/results/real", sep = ""),
-    full.names = TRUE,
-    pattern = "deconv.*.h5"
-  )
-  results.lists <- list()
-  if (length(files) > 0) {
-    for (i in 1:length(files)) {
-      results.lists[[i]] <- read_result_list(files[i])
-    }
-
-    for (i in seq_len(length(results.lists))) {
-    	temp.df <- prepare_data(results.lists[[i]], metric, metric.name)
-    	if (!is.null(temp.df)) {
-    		if (!exists("real.df")) {
-    			real.df <- temp.df
-    		}else{
-    			real.df <- rbind(real.df, temp.df)
-     		}
-    	}
-    }
-    if (length(unique(real.df$algorithm)) > length(algorithm.names)) {
-  	  algorithm.names <- unique(real.df$algorithm)
-    }
-
-    files <- list.files(
-      paste(temp.dir, "/results/real", sep = ""),
-      full.names = TRUE,
-      pattern = "bootstrap.*.h5"
-    )
-    if (length(files) > 0) {
-      bootstrap.data <- c()
-      for (f in files) {
-  	  temp <- h5_read_mat(f)
-        bootstrap.data <- rbind(bootstrap.data, temp)
-      }
-      bootstrap.data <- as.data.frame(bootstrap.data)
-      bootstrap.data$score <- as.numeric(as.character(bootstrap.data$score))
-
-      bootstrap.plot.width <- length(unique(bootstrap.data$algorithm)) * 2
-      bootstrap.plot.height <- length(unique(bootstrap.data$cell_type)) * 2
-    }else{
-      bootstrap.plot.width <- 10
-      bootstrap.plot.height <- 10
-    }
-
-    score.plot.list <- evaluation_plot(
-      real.df,
-      "deconvolution quality",
-      metric,
-      metric.name
-    )
-    score.plot <- score.plot.list$plot
-    celltypes.ordered <- score.plot.list$celltype.order
-    algorithms.ordered <- score.plot.list$algorithm.order
-
-    runtime.plot <- plot_runtime(real.df, algorithm.order = algorithms.ordered)
-    scatter.plots.list <- list()
-    for (i in seq_len(length(results.lists))) {
-    	scatter.plots.list[[i]] <- create_scatterplots(
-        results.lists[[i]],
-        celltype.order = celltypes.ordered,
-        algorithm.order = algorithms.ordered
-      )
-    }
-    cond.num.plots <- plot_cond_num(
-      real.df,
-      metric = metric,
-      metric.name = metric.name,
-      algorithm.order = algorithms.ordered
-    )
-
-    score.width <- 2 * length(unique(real.df$cell_type))
-    score.height <- 2 * length(algorithm.names)
-  }else{
-	  score.width <- 1
-	  score.height <- 1
-	  bootstrap.plot.width <- 1
-	  bootstrap.plot.height <- 1
-  }
-```
-
 ### Score plot
-```{r score_plot, echo = FALSE, fig.width = score.width, fig.height = score.height}
-if (exists("score.plot")) {
-	plot(score.plot)
-	pdf(
-    paste(plot.dir, "score_plot_real.pdf", sep = "/"),
-    width = score.width,
-    height = score.height
-  )
-	plot(score.plot)
-	invisible(dev.off())
+```{r score_plot, echo = FALSE,  out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/score_plot_real.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -189,28 +75,10 @@ In case of multiple repetitions, the plotted scores are averages over all repeti
 </div>
 
 ### Scatter plots of quantities
-```{r scatter_plots, echo = FALSE, fig.width = score.width, fig.height = 6}
-if (exists("scatter.plots.list")) {
-for (l in scatter.plots.list) {
-	if (!is.null(l)) {
-		for (p in l) {
-			if (!is.null(p)) plot(p)
-		}
-	}
-}
-pdf(
-  paste(plot.dir, "scatter_plots_real.pdf", sep = "/"),
-  width = score.width,
-  height = 6
-)
-for (l in scatter.plots.list) {
-	if (!is.null(l)) {
-		for (p in l) {
-			if (!is.null(p)) plot(p)
-			}
-	}
-}
-invisible(dev.off())
+```{r scatter_plots, echo = FALSE, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/scatter_plots_real.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 <button  type="button"
@@ -226,16 +94,10 @@ Scatterplot / Boxplot of the real cell type quantities and the estimated quantit
 </div>
 
 ### Runtime plot
-```{r runtime_plot, echo = FALSE, fig.width = 16, fig.height = 9}
-if (exists("runtime.plot")) {
-	plot(runtime.plot)
-	pdf(
-    paste(plot.dir, "runtime_plot_real.pdf", sep = "/"),
-    width = 16,
-    height = 9
-  )
-	plot(runtime.plot)
-	invisible(dev.off())
+```{r runtime_plot, echo = FALSE, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/runtime_plot_real.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -260,20 +122,10 @@ Runtime per algorithm. Due to possible large differences in runtime the scale on
 </button>
 <div id="additional_info" style="display:none" >
 ### Condition number plots
-```{r condition_plots, fig.width = 16, fig.height = 9}
-if (exists("cond.num.plots")) {
-  plot(cond.num.plots$cond_num_plot)
-  plot(cond.num.plots$cond_vs_score)
-  plot(cond.num.plots$variation_plot)
-  pdf(
-    paste(plot.dir, "condition_number_plots_real.pdf", sep = "/"),
-    width = 16,
-    height = 9
-  )
-  plot(cond.num.plots$cond_num_plot)
-  plot(cond.num.plots$cond_vs_score)
-  plot(cond.num.plots$variation_plot)
-  invisible(dev.off())
+```{r condition_plots, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/condition_number_plots_real.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -285,21 +137,10 @@ if (exists("cond.num.plots")) {
 3) Standard deviation of the score of the model across multiple repetitions depending on the variation of the model's condition number across repetitions
 
 ### Bootstrapped Bulks
-```{r bootstrap_plots, fig.width = bootstrap.plot.width, fig.height = bootstrap.plot.height}
-if (exists("bootstrap.data")) {
-  bootstrap.plot <- ggplot2::ggplot(
-    bootstrap.data, aes(x = algorithm, y = score, col = algorithm)
-  ) + facet_grid(rows = vars(cell_type)) +
-  geom_boxplot() +
-  ylim(0,1)
-  plot(bootstrap.plot)
-  pdf(
-    paste(plot.dir, "bootstrap_plot_real.pdf", sep = "/"),
-    width = bootstrap.plot.width,
-    height = bootstrap.plot.height
-  )
-  plot(bootstrap.plot)
-  invisible(dev.off())
+```{r bootstrap_plots, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/bootstrap_plot_real.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -308,155 +149,13 @@ Bootstrapping performed to test the robustness of the chosen metric. After decon
 </div>
 
 ## Simulations
-```{r simulation_results, echo = FALSE}
-# bulk benchmark
-if (dir.exists(paste(temp.dir, "/results/simulation/bulks", sep = ""))) {
-	results.lists <- list()
-	files <- list.files(
-    paste(temp.dir,"/results/simulation/bulks", sep=""),
-    full.names = TRUE,
-    pattern = "*.h5"
-  )
-	if (length(files) > 0) {
-		for (i in seq_len(length(files))) {
-			results.lists[[i]] <- read_result_list(files[i])
-		}
-		bulks.df <- data.frame()
-		for (i in seq_len(length(results.lists))) {
-			bulks.df <- rbind(
-        bulks.df,
-        prepare_data(results.lists[[i]], metric, metric.name)
-      )
-		}
-
-		score.plot.sim.list <- evaluation_plot(
-      bulks.df,
-      "deconvolution quality (simulated bulks)",
-      metric,
-      metric.name
-    )
-
-		score.plot.sim <- score.plot.sim.list$plot
-		algorithms.ordered <- score.plot.sim.list$algorithm.order
-		celltypes.ordered <- score.plot.sim.list$celltype.order
-
-		runtime.plot.sim <- plot_runtime(
-      bulks.df,
-      algorithm.order = algorithms.ordered
-    )
-		scatter.plots.list.sim <- list()
-		for (i in seq_len(length(results.lists))) {
-			scatter.plots.list.sim[[i]] <- create_scatterplots(
-        results.lists[[i]],
-        celltype.order = celltypes.ordered,
-        algorithm.order = algorithms.ordered
-      )
-		}
-		score.width <- 2 * length(unique(bulks.df$cell_type))
-		score.height <- 2 * length(unique(bulks.df$algorithm))
-	}
-}else{
-  algorithms.ordered <- NULL
-  celltypes.ordered <- NULL
-}
-# sample benchmark
-if (dir.exists(paste(temp.dir, "/results/simulation/samples", sep = ""))) {
-	results.lists <- list()
-	files <- list.files(
-    paste(temp.dir, "/results/simulation/samples", sep = ""),
-    full.names = TRUE,
-    pattern = "*.h5"
-  )
-	if (length(files) > 0) {
-		for (i in seq_len(length(files))) {
-			results.lists[[i]] <- read_result_list(files[i])
-		}
-		samples.df <- data.frame()
-		for (i in seq_len(length(results.lists))) {
-			samples.df <- rbind(
-        samples.df,
-        prepare_data(results.lists[[i]], metric, metric.name)
-      )
-		}
-		sample.plots <- create_boxplots(
-      samples.df,
-      metric = metric,
-      metric.name = metric.name,
-      celltype.order = celltypes.ordered,
-      algorithm.order = algorithms.ordered
-    )
-	}
-}
-
-# gene benchmark
-if (dir.exists(paste(temp.dir, "/results/simulation/genes", sep = ""))) {
-	results.lists <- list()
-	files <- list.files(
-    paste(temp.dir, "/results/simulation/genes/", sep=""),
-    full.names = TRUE,
-    pattern = "*.h5"
-  )
-	if (length(files) > 0) {
-		for (i in seq_len(length(files))) {
-			results.lists[[i]] <- read_result_list(files[i])
-		}
-		genes.df <- data.frame()
-		for (i in seq_len(length(results.lists))) {
-			genes.df <- rbind(
-        genes.df,
-        prepare_data(results.lists[[i]], metric, metric.name)
-      )
-		}
-		gene.plots <- create_lineplots(
-      genes.df,
-      metric = metric,
-      metric.name,
-      genesets,
-      rownames(training.exprs),
-      algorithm.order = algorithms.ordered,
-      celltype.order = celltypes.ordered
-    )
-	}
-}
-
-# subtype benchmark
-if (dir.exists(paste(temp.dir, "/results/simulation/subtypes", sep = ""))) {
-	results.lists <- list()
-	files <- list.files(
-    paste(temp.dir, "/results/simulation/subtypes/", sep = ""),
-    full.names = TRUE,
-    pattern = "*.h5"
-  )
-	if (length(files) > 0) {
-		for (i in seq_len(length(files))) {
-			results.lists[[i]] <- read_result_list(files[i])
-		}
-		subtypes.df <- data.frame()
-		for (i in seq_len(length(results.lists))) {
-			subtypes.df <- rbind(
-        subtypes.df,
-        prepare_data(results.lists[[i]], metric, metric.name)
-      )
-		}
-		score.plot.subtype <- subtype_plot(subtypes.df)
-	}
-}
-```
 
 ### Bulk simulations
 ### Score plot
-```{r bulk_sim_scores, fig.width = score.width, fig.height = score.height}
-if (exists("score.plot.sim")) {
-	plot(score.plot.sim)
-  pdf(
-    paste(plot.dir, "score_plot_simulated.pdf", sep = "/"),
-    width = score.width,
-    height = score.height
-  )
-  plot(score.plot.sim)
-  invisible(dev.off())
-}else{
-	cat("No data available for plotting.\n")
+```{r bulk_sim_scores, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/score_plot_simulated.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -475,26 +174,10 @@ Bulks were simulated by taking the sum over a fixed number of randomly sampled s
 </div>
 
 ### Scatter plot of quantities
-```{r bulk_sim_scatter, fig.width = score.width, fig.height = 6}
-if (exists("scatter.plots.list.sim")) {
-	for (l in scatter.plots.list.sim) {
-		for (p in l) {
-			plot(p)
-		}
-	}
-  pdf(
-    paste(plot.dir, "scatter_plots_simulated.pdf", sep = "/"),
-    width = score.width,
-    height = 6
-  )
-	for (l in scatter.plots.list.sim) {
-		for (p in l) {
-			plot(p)
-		}
-	}
-  invisible(dev.off())
-}else{
-	cat("No data available for plotting.\n")
+```{r bulk_sim_scatter, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/scatter_plots_simulated.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -513,18 +196,10 @@ Comparison of the real cell type quantities (in the simulated bulks) and the est
 \pagebreak
 ### Training set size simulation
 ### Score boxplots
-```{r sample_sim, fig.width = 16, fig.height = 9}
-if (exists("sample.plots")) {
-	for (p in sample.plots$cell.type.plots) plot(p)
-  pdf(
-    paste(plot.dir, "sample_plots_simulated.pdf", sep = "/"),
-    width = 16,
-    height = 9
-  )
-  for (p in sample.plots$cell.type.plots) plot(p)
-  invisible(dev.off())
-}else{
-	cat("No data available for plotting.\n")
+```{r sample_sim, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/sample_plots_simulated.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -543,18 +218,10 @@ Variability of performance of algorithms using different amounts of randomly sel
 ### Geneset simulation
 
 ### Runtime lineplot
-```{r geneset_sim_time, fig.width = 16, fig.height = 9}
-if (exists("gene.plots")) {
-	plot(gene.plots$runtime.plot)
-  pdf(
-    paste(plot.dir, "gene_time_plot_simulated.pdf", sep = "/"),
-    width = 16,
-    height = 9
-  )
-  plot(gene.plots$runtime.plot)
-  invisible(dev.off())
-}else{
-	cat("No data available for plotting.\n")
+```{r geneset_sim_time, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/gene_time_plot_simulated.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -572,19 +239,10 @@ Runtime of algorithms depending on the gene set supplied for deconvolution. Each
 </div>
 
 ### Score lineplots
-```{r geneset_sim, fig.width = 16, fig.height = 9}
-if (exists("gene.plots")) {
-	for (p in gene.plots$cell.type.plots)
-		plot(p)
-  pdf(
-    paste(plot.dir, "gene_score_plots_simulated.pdf", sep = "/"),
-    width = 16,
-    height = 9
-  )
-	for (p in gene.plots$cell.type.plots) plot(p)
-  invisible(dev.off())
-}else{
-	cat("No data available for plotting.\n")
+```{r geneset_sim, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/gene_score_plots_simulated.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
@@ -603,14 +261,10 @@ Performance of algorithms depending on the gene set supplied for deconvolution. 
 
 ### Subtype simulation
 ### Score plot
-```{r subtype_sim, fig.width = score.width, fig.height = score.height}
-if (exists("score.plot.subtype")) {
-  plot(score.plot.subtype$overall)
-  pdf(paste(plot.dir, "subtype_plot.pdf", sep = "/"), width = 20, height = 10)
-  plot(score.plot.subtype$overall)
-  invisible(dev.off())
-}else{
-	cat("No data available for plotting.\n")
+```{r subtype_sim, out.width='100%', out.height = 400}
+plotfile <- paste0(plot.dir, "/subtype_plot.pdf")
+if(file.exists(plotfile)){
+  knitr::include_graphics(plotfile)
 }
 ```
 
