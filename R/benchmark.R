@@ -306,8 +306,7 @@ benchmark <- function(
 		for (a in input.algorithms) {
 			if (is.list(a)) {
 				# for now check only whether algorithm exists, not its output
-				if (exists(as.character(substitute(a$algorithm))) &&
-            is.character(a$name)) {
+				if (is.function(a$algorithm) && is.character(a$name)) {
 					new.algos <- c(new.algos, list(list(
             algorithm = a$algorithm, name = a$name, model = a$model
           )))

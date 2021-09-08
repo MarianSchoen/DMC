@@ -95,7 +95,7 @@ deconvolute <- function(
         include.in.bulks <- cts[-which(cts %in% exclude.from.bulks)]
       }
     }
-    set.seed(1)
+    
     validation.data <- create_bulks(
       exprs = test.expr
       , pheno = test.pheno
