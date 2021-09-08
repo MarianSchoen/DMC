@@ -635,19 +635,20 @@ benchmark <- function(
 
 	# select algorithms that have not been evaluated in a previous run
   result_dir <- paste(output.folder,"/results/real/",sep="")
-	present.algorithms <- present_algos(
+   
+  present.algorithms <- present_algos(
     target_dir = result_dir,
     name_pattern = "deconv.*.h5"
   )
+  
   if (is.null(present.algorithms)) {
     to.run <- seq_len(length(algorithms))
   }else{
 		if (verbose) print(present.algorithms)
 		to.run <- which(! algorithm.names %in% present.algorithms)
 	}
-  rm("present.algorithms")
 
-	res.no <- length(previous.results) + 1
+	res.no <- length(list.files(path = result_dir, pattern = "deconv.*.h5")) + 1
 	if (!is.null(bulk.counts) && !is.null(bulk.props)) {
   	# deconvolute real bulks
   	cat("deconvolve real bulks...\t", as.character(Sys.time()), "\n", sep = "")
@@ -732,7 +733,7 @@ benchmark <- function(
 			to.run <- which(! algorithm.names %in% present.algorithms)
 		}
     rm("present.algorithms")
-		res.no <- length(previous.results) + 1
+		res.no <- length(list.files(path = sim_dir, pattern = "*.h5")) + 1
 
 		# execute benchmark corresponding to s and save results
 		if (length(to.run) > 0) {
