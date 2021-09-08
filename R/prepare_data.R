@@ -183,32 +183,68 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
           )
           c.true <- results.list[["c.true"]]
           c.true.coarse <- results.list[["c.true.coarsly"]]
-          c.est.list <- results.list[["c.estimated.list"]]
-          c.est.list.coarse <- results.list[["c.estimated.coarsly.list"]]
+          
+          for (j in seq_len(length(results.list) - 2)) {
+            rep_name <- paste0("rep", j)
+            c.est.list <- results.list[[rep_name]][["c.estimated.list"]]
+            c.est.list.coarse <- results.list[[rep_name]][[
+              "c.estimated.coarsly.list"
+            ]]
 
-          # fine cell types
-          for (a in names(c.est.list)) {
-              a.est <- c.est.list[[a]]
-              coarse <- FALSE
-              scores <- c()
-              if (!is.null(a.est)) {
-                  for (t in intersect(rownames(a.est), rownames(c.true))) {
-                      temp.score <- metric(a.est[t, ], c.true[t, ])
-                      if (is.na(temp.score) || temp.score < 0) {
-                          temp.score <- 0
-                      }
-                      scores <- c(scores, temp.score)
-                      df <- rbind(
-                        df,
-                        c(a, temp.score, t, NA, metric.name,
-                          NA, NA, NA, coarse, avg.cells)
-                      )
-                  }
+            # fine cell types
+            for (a in names(c.est.list)) {
+                a.est <- c.est.list[[a]]
+                coarse <- FALSE
+                scores <- c()
+                if (!is.null(a.est)) {
+                    for (t in intersect(rownames(a.est), rownames(c.true))) {
+                        temp.score <- metric(a.est[t, ], c.true[t, ])
+                        if (is.na(temp.score) || temp.score < 0) {
+                            temp.score <- 0
+                        }
+                        scores <- c(scores, temp.score)
+                        df <- rbind(
+                          df,
+                          c(a, temp.score, t, NA, metric.name,
+                            NA, NA, NA, coarse, avg.cells)
+                        )
+                    }
+                    df <- rbind(
+                      df,
+                      c(a, mean(scores), "overall", NA, metric.name,
+                        NA, NA, NA, coarse, avg.cells)
+                    )
+                }else{
                   df <- rbind(
                     df,
-                    c(a, mean(scores), "overall", NA, metric.name,
+                    c(a, 0, "overall", NA, metric.name,
                       NA, NA, NA, coarse, avg.cells)
                   )
+                }
+            }
+            # aggregated cell types (coarse)
+            for (a in names(c.est.list.coarse)) {
+              a.est <- c.est.list.coarse[[a]]
+              coarse <- TRUE
+              scores <- c()
+              if (!is.null(a.est)) {
+                for (t in intersect(rownames(a.est), rownames(c.true.coarse))) {
+                  temp.score <- metric(a.est[t, ], c.true.coarse[t, ])
+                  if (is.na(temp.score) || temp.score < 0) {
+                      temp.score <- 0
+                  }
+                  scores <- c(scores, temp.score)
+                  df <- rbind(
+                    df,
+                    c(a, temp.score, t, NA, metric.name,
+                      NA, NA, NA, coarse, avg.cells)
+                  )
+                }
+                df <- rbind(
+                  df,
+                  c(a, mean(scores), "overall", NA,
+                    metric.name, NA, NA, NA, coarse, avg.cells)
+                )
               }else{
                 df <- rbind(
                   df,
@@ -216,36 +252,6 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                     NA, NA, NA, coarse, avg.cells)
                 )
               }
-          }
-          # aggregated cell types (coarse)
-          for (a in names(c.est.list.coarse)) {
-            a.est <- c.est.list.coarse[[a]]
-            coarse <- TRUE
-            scores <- c()
-            if (!is.null(a.est)) {
-              for (t in intersect(rownames(a.est), rownames(c.true.coarse))) {
-                temp.score <- metric(a.est[t, ], c.true.coarse[t, ])
-                if (is.na(temp.score) || temp.score < 0) {
-                    temp.score <- 0
-                }
-                scores <- c(scores, temp.score)
-                df <- rbind(
-                  df,
-                  c(a, temp.score, t, NA, metric.name,
-                    NA, NA, NA, coarse, avg.cells)
-                )
-              }
-              df <- rbind(
-                df,
-                c(a, mean(scores), "overall", NA,
-                  metric.name, NA, NA, NA, coarse, avg.cells)
-              )
-            }else{
-              df <- rbind(
-                df,
-                c(a, 0, "overall", NA, metric.name,
-                  NA, NA, NA, coarse, avg.cells)
-              )
             }
           }
         }

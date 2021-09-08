@@ -26,6 +26,8 @@
 #' @param patient.column string, which column of 'pheno'
 #' holds the patient information; optional, default "patient"
 #' @param n.bulks numeric > 0, number of bulks to simulate. default 500
+#' @param repeats numeric > 0,
+#' number of repetitions for each algorithm. default: 3
 #'
 #' @return list containing deconvolution results for
 #' different cell type granularities
@@ -40,7 +42,8 @@ fine_coarse_subtype_benchmark <- function(
   n.clusters = c(1, 2, 4, 8),
   verbose = FALSE,
   patient.column = "patient",
-  n.bulks = 500
+  n.bulks = 500,
+  repeats = 3
 ) {
   if (ncol(sc.counts) != nrow(sc.pheno)) {
     stop(
@@ -117,7 +120,7 @@ fine_coarse_subtype_benchmark <- function(
       , cell.type.column = column
       , algorithms = algorithm.list
       , verbose = TRUE
-      , n.repeats = 1
+      , n.repeats = repeats
       , patient.column = patient.column
       , n.bulks = n.bulks
     )
@@ -153,50 +156,62 @@ fine_coarse_subtype_benchmark <- function(
     algorithms <- names(some.estimates$results.list$`1`)
 
     # for the estimated C, initialise two list entries:
-    column.list[[column]][["c.estimated.list"]] <- vector(
-      mode = "list"
-      , length = length(algorithms)
-    )
-    names(column.list[[column]][["c.estimated.list"]]) <- algorithms
-
-
-    column.list[[column]][["c.estimated.coarsly.list"]] <- vector(
-      mode = "list"
-      , length = length(algorithms)
-    )
-    names(column.list[[column]][["c.estimated.coarsly.list"]]) <- algorithms
-
-    # go through all provided algorithms
-    for (algorithm in algorithms) {
-      # for the current algorithm, extract the estimated 'C's
-      c.estimated <- some.estimates$results.list$`1`[[algorithm]]$est.props
-      # store it:
-      column.list[[column]][["c.estimated.list"]][[algorithm]] <- c.estimated
-
-      # add up those subtypes, that origin from the same cell type:
-      c.estimated.coarsly <- matrix(
-        data = NA
-        , nrow = nrow(c.true.coarsly)
-        , ncol = ncol(c.true.coarsly)
+    for (j in seq_len(repeats)) {
+      column.list[[column]][[paste0("rep", j)]] <- list()
+      column.list[[column]][[paste0("rep", j)]][["c.estimated.list"]] <- vector(
+        mode = "list"
+        , length = length(algorithms)
       )
-      dimnames(c.estimated.coarsly) <- dimnames(c.true.coarsly)
-      for (major.cell.type in rownames(c.true.coarsly)) {
-        associated.subtypes <- rownames(c.estimated)[
-          which(grepl(pattern = major.cell.type, x = rownames(c.estimated)))
-        ]
-        if (length(associated.subtypes) > 0) {
-          c.estimated.coarsly[major.cell.type, ] <- colSums(
-            x = c.estimated[associated.subtypes, , drop = FALSE]
-          )
-        }else{
-          c.estimated.coarsly[major.cell.type, ] <- 0
+      names(
+        column.list[[column]][[paste0("rep", j)]][["c.estimated.list"]]
+      ) <- algorithms
+      
+      column.list[[column]][[paste0("rep", j)]][[
+        "c.estimated.coarsly.list"
+      ]] <- vector(
+        mode = "list"
+        , length = length(algorithms)
+        )
+      names(column.list[[column]][[paste0("rep", j)]][[
+        "c.estimated.coarsly.list"
+      ]]) <- algorithms
+    
+
+      # go through all provided algorithms
+      for (algorithm in algorithms) {
+        # for the current algorithm, extract the estimated 'C's
+        c.estimated <- some.estimates$results.list[[j]][[algorithm]]$est.props
+        # store it:
+        column.list[[column]][[paste0("rep", j)]][["c.estimated.list"]][[
+          algorithm
+        ]] <- c.estimated
+  
+        # add up those subtypes, that origin from the same cell type:
+        c.estimated.coarsly <- matrix(
+          data = NA
+          , nrow = nrow(c.true.coarsly)
+          , ncol = ncol(c.true.coarsly)
+        )
+        dimnames(c.estimated.coarsly) <- dimnames(c.true.coarsly)
+        for (major.cell.type in rownames(c.true.coarsly)) {
+          associated.subtypes <- rownames(c.estimated)[
+            which(grepl(pattern = major.cell.type, x = rownames(c.estimated)))
+          ]
+          if (length(associated.subtypes) > 0) {
+            c.estimated.coarsly[major.cell.type, ] <- colSums(
+              x = c.estimated[associated.subtypes, , drop = FALSE]
+            )
+          }else{
+            c.estimated.coarsly[major.cell.type, ] <- 0
+          }
         }
+        # and store again
+        column.list[[column]][[paste0("rep", j)]][[
+          "c.estimated.coarsly.list"
+        ]][[algorithm]] <- c.estimated.coarsly
       }
-      # and store again
-      column.list[[column]][["c.estimated.coarsly.list"]][[
-        algorithm
-      ]] <- c.estimated.coarsly
     }
   }
+  print(str(column.list))
   return(column.list)
 }
