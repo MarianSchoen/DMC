@@ -79,7 +79,7 @@ deconvolute <- function(
       max.genes <- NULL
   }
 
-  if (!length(algorithms) > 0 || any(sapply(algorithms, length) != 2)) {
+  if (!length(algorithms) > 0 || any(sapply(algorithms, length) < 3)) {
     stop("Check algorithm list")
   }
   if (is.null(bulks)) {

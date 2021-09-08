@@ -6,7 +6,7 @@
 #' @export
 
 check_algorithms <- function(algorithms) {
-    if (!length(algorithms) > 0 || any(sapply(algorithms, length) != 2)) {
+    if (!length(algorithms) > 0 || any(sapply(algorithms, length) < 3)) {
       stop("Check algorithm list. It seems to be incompatible.")
     }
     cat("Checking Algorithms for compatibility...\n")
