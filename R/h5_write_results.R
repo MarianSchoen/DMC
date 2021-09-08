@@ -13,7 +13,7 @@ write_result_list <- function(results.all, filename, group = NULL) {
   # any other case, try the usual structure
   if (!file.exists(filename)) rhdf5::h5createFile(filename)
   # if any object in the list is a list, call recursively
-  if (any(sapply(results.all, is.list))) {
+  if (any(sapply(results.all, is.list)) && !("model" %in% names(results.all))) {
     for (name in names(results.all)) {
       if (!is.null(group)) {
         groupname <- paste(group, name, sep = "/")

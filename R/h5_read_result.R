@@ -61,6 +61,9 @@ read_result_list <- function(filename, content = NULL, groupname = NULL) {
       content["est.props"] <- list(NULL)
       content["sig.matrix"] <- list(NULL)
     }
+    if ("est.props" %in% names(content)) {
+      content["model"] <- list(NULL)
+    }
   }
   return(content)
 }
