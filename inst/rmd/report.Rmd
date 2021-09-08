@@ -70,8 +70,16 @@ if(file.exists(plotfile)){
 </button>
 <div id="score_plot_info" style="display:none" >
 
-Deconvolution result for real bulks per algorithm and cell type. The value is the `r metric.name`, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined scores were set to 0. The first column contains the average performance of the algorithms across all cell types.
-In case of multiple repetitions, the plotted scores are averages over all repetitions. The score specified for each algorithm corresponds to the 'overall' column. Uncertainty (standard deviation) of the overall performance is specified for each algorithm as well.
+Deconvolution result for real bulks per algorithm and cell type. 
+The plotted value is the `r metric.name`, coded by rectangle size and color 
+(small to big, red to green with increasing performance).   
+Negative and undefined scores were set to 0. 
+The first column contains the average performance of each algorithm 
+across all cell types.
+In case of multiple repetitions (default), the individual scores for each cell
+type are averaged over all repetitions.
+The score specified for each algorithm corresponds to the 'overall' column. 
+Uncertainty (standard deviation) of the overall performance in case multiple runs.
 </div>
 
 ### Scatter plots of quantities
@@ -89,7 +97,9 @@ if(file.exists(plotfile)){
 </button>
 <div id="real_scatter_plot_info" style="display:none" >
 
-Scatterplot / Boxplot of the real cell type quantities and the estimated quantities per cell type for each algorithm.
+Scatterplot of the real cell type quantities (x-axis) and the 
+estimated quantities (y-axis) per cell type for each algorithm. Dashed line
+marks the identity.
 
 </div>
 
@@ -109,7 +119,10 @@ if(file.exists(plotfile)){
 </button>
 <div id="real_runtime_info" style="display:none" >
 
-Runtime per algorithm. Due to possible large differences in runtime the scale on the x-axis is transformed using log10. In case of multiple repetitions, the plotted times are averages over all repetitions.
+Runtime per algorithm. 
+Due to possible large differences in runtime the scale on the x-axis is 
+transformed to logarithmic scale (log10). 
+In case of multiple repetitions, the plotted times are averages over all repetitions.
 
 </div>
 
@@ -129,12 +142,15 @@ if(file.exists(plotfile)){
 }
 ```
 
+Condition number plots:  
 
-1) Average condition numbers of the reference matrices produced by different algorithms (models).
+1) Average condition numbers of the reference matrices 
+used by different algorithms (models).
 
-2) Dependency of score on condition number of the model
+2) Average score vs condition number of the model  
 
-3) Standard deviation of the score of the model across multiple repetitions depending on the variation of the model's condition number across repetitions
+3) Standard deviation of the score of the model across multiple repetitions 
+vs the variation of the model's condition number across repetitions
 
 ### Bootstrapped Bulks
 ```{r bootstrap_plots, out.width='100%', out.height = 400}
@@ -144,7 +160,11 @@ if(file.exists(plotfile)){
 }
 ```
 
-Bootstrapping performed to test the robustness of the chosen metric. After deconvolution, a number of bulks is repeatedly chosen randomly (bulks can be chosen more than once) and the score is calculated.
+Bootstrapping performed to test the robustness of the chosen metric. 
+After deconvolution, a number of bulks is repeatedly chosen at random 
+(with replacement) and the score is calculated each time. This gives an
+estimate of how robust the deconvolution result is. A large variance indicates 
+that the correlation may be driven by outliers.
 
 </div>
 
@@ -167,9 +187,20 @@ if(file.exists(plotfile)){
 </button>
 <div id="sim_score_plot_info" style="display:none" >
 
-Deconvolution result for simulated bulks per algorithm and cell type. The value is the `r metric.name`, coded by rectangle size and color (small to big, red to green with increasing performance). Negative and undefined scores were set to 0. The overall column contains the average performance of the algorithms across all cell types.
-In case of multiple repetitions, the plotted scores are averages over all repetitions. The score specified for each algorithm corresponds to the 'overall' column. Uncertainty (standard deviation) of the overall performance is specified for each algorithm as well.
-Bulks were simulated by taking the sum over a fixed number of randomly sampled single-cell profiles.
+Deconvolution result for simulated bulks per algorithm and cell type. 
+The value is the `r metric.name`, coded by rectangle size and color 
+(small to big, red to green with increasing performance). 
+Negative and undefined scores were set to 0. 
+The **overall** column contains the average performance of each algorithm 
+across all cell types.
+In case of multiple repetitions, the plotted scores are averages over all repetitions. 
+The score specified for each algorithm corresponds to the 'overall' column. 
+Uncertainty (standard deviation) of the overall performance is specified 
+for each algorithm as well.
+Bulks were simulated by taking the sum over a fixed number of 
+randomly sampled single-cell profiles. The distribution of cell types in the
+artificial bulks does not necessarily match the distribution of cell types in the single 
+cell data.
 
 </div>
 
@@ -189,7 +220,9 @@ if(file.exists(plotfile)){
 </button>
 <div id="sim_scatter_plot_info" style="display:none" >
 
-Comparison of the real cell type quantities (in the simulated bulks) and the estimated quantities per cell type for each algorithm.
+Comparison of the real cell type quantities in the simulated bulks (x-axis) 
+and the estimated quantities per cell type (y-axis) for each algorithm.
+Dashed line marks the identity.
 
 </div>
 
@@ -211,7 +244,10 @@ if(file.exists(plotfile)){
 </button>
 <div id="sim_training_plot_info" style="display:none" >
 
-Variability of performance of algorithms using different amounts of randomly selected training profiles for learning and reference profile creation. Overall denotes the average score of all cell types. Bulks used for deconvolution were simulated by taking the sum over a fixed number of randomly sampled expression profiles.
+Variability of performance of algorithms using different amounts 
+of randomly selected training profiles for learning and reference profile creation. 
+Overall denotes the average score of all cell types. 
+Bulks used for deconvolution are the same as in the simulated score plot above.
 
 </div>
 
@@ -234,7 +270,11 @@ if(file.exists(plotfile)){
 </button>
 <div id="sim_runtime_plot_info" style="display:none" >
 
-Runtime of algorithms depending on the gene set supplied for deconvolution. Each algorithm could perform a separate feature selection on the given gene set to obtain the features used in the model. Gene sets are ordered by the size of the intersect of features available in the gene set and the single-cell data.
+Runtime of algorithms depending on the amount of genes supplied for deconvolution. 
+Each algorithm can perform a separate feature selection on the given gene set 
+to obtain the features used in the model.  
+Gene sets are ordered by the size of the intersect of features 
+available in the gene set and the single-cell data.
 
 </div>
 
@@ -254,7 +294,13 @@ if(file.exists(plotfile)){
 </button>
 <div id="sim_lineplot_info" style="display:none" >
 
-Performance of algorithms depending on the gene set supplied for deconvolution. Each algorithm could perform a separate feature selection on the gene set to obtain the features used in the model. Gene sets are ordered by the size of the intersect of features available in the gene set and the single-cell data. Score is the `r metric.name` averaged over multiple repetitions. Errorbars show standard deviation of the score across repetitions.
+Performance of algorithms depending on the gene set supplied for deconvolution. 
+Each algorithm could perform a separate feature selection on the gene set to 
+obtain the features used in the model. 
+Gene sets are ordered by the size of the intersect of features available 
+in the gene set and the single-cell data. 
+Score is the `r metric.name`, averaged over multiple repetitions. 
+Errorbars show standard deviation of the score across repetitions.
 
 </div>
 
@@ -276,7 +322,13 @@ if(file.exists(plotfile)){
 </button>
 <div id="sim_subtype_plot_info" style="display:none" >
 
-Average performance of the different algorithms depending on cell type granularity. Cell types were simulated from single-cell data using hierarchical clustering on a umap embedding of the data. The number of distinct cell types increases from left to right. The right plot compares the deconvolution results with with the simulated cell type quantities. In the left plot, quantities of subtypes of the same cell type obtained by deconvolution were combined and compared to the coarse subtype classification that was contained in the single-cell pheno data.
+Average performance of the different algorithms depending on cell type granularity. 
+Cell types were simulated from single-cell data using hierarchical clustering 
+on a umap embedding of the data. 
+The number of distinct cell types increases from left to right. 
+Quantities of subtypes of the same cell type obtained by deconvolution are combined 
+and their sum is compared to the quantities of the coarse cell types 
+(classification that was contained in the single-cell pheno data).
 
 </div>
 
@@ -319,9 +371,12 @@ Corresponding phenotype data contained labels for `r length(unique(sc.pheno$cell
 Used algorithms: `r algorithm.names`
 
 
-`r ncol(real.counts)` real bulk profiles were available, with `r length(intersect(rownames(real.counts), rownames(sc.counts)))` overlapping features
+`r ncol(real.counts)` real bulk profiles were available, 
+with `r length(intersect(rownames(real.counts), rownames(sc.counts)))` 
+overlapping features.  
 
-Ground-truth cell type quantities were available for `r nrow(real.props)` cell types.
+Ground-truth cell type quantities were available for `r nrow(real.props)` 
+cell types.
 
 
 ```{r real_props, echo = FALSE}
