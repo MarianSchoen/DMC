@@ -45,24 +45,11 @@ create_boxplots <- function(
         stop("algorithm.order does not fit the algorithm column of results.df")
     }
   }
-  if (is.character(metric)) {
-    if (metric != "cor") {
-      stop("metric must be either \"cor\" or a function")
-    }else{
-      if (is.null(metric.name) || !is.character(metric.name)) {
-        metric.name <- "custom metric"
-      }
-      metric <- cor
-    }
-  }else{
-    if (!exists(as.character(substitute(metric)))) {
-      stop("Function corresponding to 'metric' could not be found.")
-    }else{
-      if (is.null(metric.name) || !is.character(metric.name)) {
-        metric.name <- "custom metric"
-      }
-    }
-  }
+  # check metric
+  metric.list <- check_metric(metric, metric.name)
+  metric <- metric.list$metric
+  metric.name <- metric.list$metric.name
+  
   overall.df <- results.df[which(results.df$cell_type == "overall"), ]
 
   # order algorithms by performance or by given vector

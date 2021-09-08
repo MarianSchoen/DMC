@@ -28,24 +28,11 @@ plot_cond_num <- function(
   if (!all(required_cols %in% colnames(results.df))) {
       stop("required columns missing from results.df")
   }
-  if (is.character(metric)) {
-    if (metric != "cor") {
-      stop("metric must be either \"cor\" or a function")
-    }else{
-      if (is.null(metric.name) || !is.character(metric.name)) {
-        metric.name <- "custom metric"
-      }
-      metric <- cor
-    }
-  }else{
-    if (!is.function(metric)) {
-      stop("Function corresponding to 'metric' could not be found.")
-    }else{
-      if (is.null(metric.name) || !is.character(metric.name)) {
-        metric.name <- "custom metric"
-      }
-    }
-  }
+  # check metric
+  metric.list <- check_metric(metric, metric.name)
+  metric <- metric.list$metric
+  metric.name <- metric.list$metric.name
+  
   if (!is.null(algorithm.order)) {
       if (!is.character(algorithm.order)) {
           stop("celltype.order must be a charcter vector")

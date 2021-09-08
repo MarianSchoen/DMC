@@ -202,27 +202,11 @@ benchmark <- function(
 		warning("No gene sets provided; skipping that benchmark")
 		simulation.genes <- FALSE
 	}
-	# check and handle metric parameter
-	if (is.character(metric)) {
-		if (metric != "cor") {
-			stop("metric must be either \"cor\" or a function")
-		}else{
-			metric <- cor
-			if (is.null(metric.name) || !is.character(metric.name)) {
-				metric.name <- "pearson correlation"
-			}
-		}
-	}else{
-		if (is.function(metric)) {
-			warning("Using custom evaluation function / metric.
-			        Unexpected results and plots may occur.")
-			if (is.null(metric.name) || !is.character(metric.name)) {
-				metric.name <- "custom metric"
-			}
-		}else{
-			stop("Function corresponding to 'metric' could not be found.")
-		}
-	}
+	# check metric parameters
+	metric.list <- check_metric(metric, metric.name)
+	metric <- metric.list$metric
+	metric.name <- metric.list$metric.name
+	
 	if (!is.null(grouping) && (!is.null(sc.counts) || !is.null(sc.pheno))) {
   	if (!is.factor(grouping) || !length(levels(grouping)) == 2 ||
   	   !length(grouping) == ncol(sc.counts)) {

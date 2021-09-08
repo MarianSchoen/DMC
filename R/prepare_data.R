@@ -13,24 +13,12 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
     # parameter check
     # however, if results.all is not a list as written to file by 'benchmark'
     # the function will most likely fail
-    if (is.character(metric)) {
-      if (metric != "cor") {
-  			stop("metric must be either \"cor\" or a function")
-      }else{
-        if (is.null(metric.name) || !is.character(metric.name)) {
-      	   metric.name <- "custom metric"
-      	}
-      	metric <- cor
-      }
-    }else{
-      if (!is.function(metric)) {
-        stop("Function corresponding to 'metric' could not be found.")
-      }else{
-        if (is.null(metric.name) || !is.character(metric.name)) {
-          metric.name <- "custom metric"
-        }
-      }
-    }
+    
+    # check metric
+    metric.list <- check_metric(metric, metric.name)
+    metric <- metric.list$metric
+    metric.name <- metric.list$metric.name
+    
     if (!is.list(results.all)) {
         stop(
           "results.all must be a list of lists that were returned
