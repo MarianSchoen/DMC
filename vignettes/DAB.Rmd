@@ -1,0 +1,375 @@
+---
+title: "Deconvolution Algorithm Benchmarking in R"
+output: 
+  html_document:
+    toc: TRUE
+vignette: >
+  %\VignetteIndexEntry{Deconvolution Algorithm Benchmarking in R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center"
+)
+```
+
+```{r setup}
+library(DAB)
+library(GEOquery)
+```  
+
+
+# What is DAB?  
+
+DAB (DeconvolutionAlgorithmBenchmarking) is a package for deconvolution of
+real and simulated bulk sequencing data in different conditions.  
+Deconvolutions are performed via a user-specified selection of algorithms,
+whose results can then easily be compared.  
+Its modular build allows users to write their own functions in order to include
+additional algorithms in the comparison.  
+
+DAB requires a single-cell data set with cell type annotations for simulation of
+bulks and training of the deconvolution algorithms.  
+Supplying real bulk data with known cellular composition in order to evaluate 
+the algorithms' performances on real data is also possible.  
+
+Therefore, DAB is suitable for a range of tasks, such as finding the best
+method of deconvolution for a specific data set, 
+discovering strengths and weaknesses of different algorithms via simulation or
+simply providing a simple framework to test new algorithms.
+
+
+# How to use DAB  
+
+This section concentrates on how to write deconvolution wrappers,
+load prepare the necessary data and perform a benchmark with multiple algorithms.
+
+## Writing algorithm wrappers  
+
+DAB comes with several algorithms built-in, namely **DTD, MuSiC, DeconRNASeq and
+Least Squares** . Wrappers for **CIBERSORT** and **BSEQ-sc** are also included. 
+However, in order to use these, the user must obtain the CIBERSORT source code
+from https://cibersort.stanford.edu due to licence restrictions.  
+
+Additionaly, users can extend DAB by writing their own wrapper functions for
+deconvolution algorithms. These functions only require a specific set of input
+parameters and have to return output in the correct format, as shown below. 
+
+```{r eval=FALSE}
+# example for a simple wrapper
+my_wrapper <- function(
+  exprs,
+  pheno,
+  bulks,
+  exclude.from.signature = NULL,
+  max.genes = 500,
+  cell.type.column = "cell_type",
+  patient.column = NULL,
+  scale.cpm = FALSE,
+  model = NULL,
+  model_exclude = NULL
+){
+  # ... put some sanity checks fro parameters here
+  
+  if (scale.cpm) {
+    exprs <- DAB:::scale_to_count(exprs, 1e6)
+  }
+  
+  # reduce to the most variable genes (or some other featuere selection)
+  var.genes <- rownames(exprs)[order(apply(exprs, 1, var), decreasing = TRUE)]
+  exprs <- exprs[var.genes[1:max.genes], ]
+  
+  # create reference profiles from single-cell data
+  reference_types <- unique(pheno[[cell.type.column]])
+  if (!is.null(exclude.from.signature)) {
+    if (any(reference_types %in% exclude.from.signature)) {
+      reference_types <- reference_types[
+        -which(reference_types %in% exclude.from.signature)
+      ]
+    }
+  }
+  sig_mat <- sapply(
+    reference_types,
+    FUN = function (ct) {
+      rowMeans(exprs[, which(pheno[[cell.type.column == ct]])])
+    }
+  )
+  rownames(sig_mat) <- rownames(exprs)
+  
+  # just an example
+  # est.props must be matrix of form cell_type x bulk containing estimated 
+  # quantities
+  est.props <- my_deconv_algo(bulks = bulks, reference = sig_mat)
+  
+  return(list(
+    est.props = est.props,
+    sig.matrix = sig_matrix,
+    model = NULL
+  ))
+}
+```  
+Note that this code is only a suggestion and does not run.  
+However, wrappers following this structure can be supplied to the DAB benchmark function.
+For further details on parameters, look at the help and code of one of the wrapper
+functions, e.g. `DAB:::run_dtd`.  
+The parameter `model` enables the user to supply a previously trained model
+to the algorithm. Similarly, the return list contains a parameter `model`, 
+enabling the user to return the model used by the algorithm for later use.
+The form of the model does not matter, as long as the input and output match.
+Use `DAB:::check_algorithms` to see whether the input and output of your 
+wrapper are compliant with DAB standards.
+
+## Loading single-cell data
+
+The following example uses single-cell RNA-Seq data of melanoma published by Tirosh et al. in 2016. It can be accessed via GEO entry ‘GSE72056’.
+
+### Download and import data  
+
+```{r load_data}
+# download the data set
+raw <- getGEOSuppFiles(
+  GEO = "GSE72056"
+)
+tirosh.melanoma <- read.table(
+  file = "GSE72056/GSE72056_melanoma_single_cell_revised_v2.txt.gz",
+  stringsAsFactors = FALSE,
+  header = TRUE,
+  sep = "\t"
+)
+
+# tirosh.melanoma contains pheno information (rows 1-3) and count data
+tm.pheno <- as.matrix(tirosh.melanoma[1:3, -1])
+rownames(tm.pheno) <- tirosh.melanoma[1:3, 1]
+
+# deal with duplicated rownames
+row.names <- as.character(tirosh.melanoma[4:nrow(tirosh.melanoma), 1])
+dupls.pos <- which(duplicated(row.names))
+unique.names <- paste0(row.names[dupls.pos], "--2")
+row.names[dupls.pos] <- unique.names
+
+# undo log transformation
+tm.expr <- as.matrix(2^(tirosh.melanoma[4:nrow(tirosh.melanoma), -1]) - 1)
+# scale to fixed number of counts
+tm.expr <- DAB:::scale_to_count(tm.expr)
+# reset rownames
+rownames(tm.expr) <- row.names
+```
+
+### Prepare pheno information  
+
+The cell type information within the pheno data is coded as integers, as is the
+information about malignancy of cells. 
+
+```{r pheno}
+map.malignant <- function(x) {
+  if (x == 1) return("NOT_malignant")
+  if (x == 2) return("malignant")
+  if (x == 3) return("unresolved")
+  return("unassigned")
+}
+map.cell.type <- function(x) {
+  if (x == 1) {
+    return("T")
+  }
+  if (x == 2) {
+    return("B")
+  }
+  if (x == 3) {
+    return("Macro")
+  }
+  if (x == 4) {
+    return("Endo")
+  }
+  if (x == 5) {
+    return("CAF")
+  }
+  if (x == 6) {
+    return("NK")
+  }
+  return("unknown")
+}
+
+tm.pheno.readable <- data.frame(
+  "sample" = colnames(tm.expr),
+  "tumor" = tm.pheno["tumor", ],
+  "malignant" = sapply(
+    tm.pheno["malignant(1=no,2=yes,0=unresolved)", ],
+    map.malignant
+  ),
+  "CellType" = sapply(
+    tm.pheno["non-malignant cell type (1=T,2=B,3=Macro.4=Endo.,5=CAF;6=NK)", ],
+    map.cell.type
+  )
+)
+```
+
+### Data
+
+We now have a count matrix containing measurements of `r nrow(tm.expr)` features for `r ncol(tm.expr)` profiles, as well as pheno data containing
+information about the cell types, malignancy and patients of origin for all profiles.
+
+```{r data, echo = FALSE}
+knitr::kable(tm.expr[1:4, 1:3])
+knitr::kable(tm.pheno.readable[1:5, ])
+```
+
+## Reconstruction of bulks
+
+The dataset consists of 4645 single-cell profiles from 19 tumors. Disregarding technical biases, one can get an approximation of the bulk tumour profiles by summing up all cells from the same tumor.
+
+```{r reconstruct}
+tumors <- as.character(unique(tm.pheno.readable$tumor))
+
+bulk.exprs <- matrix(
+  0,
+  nrow = nrow(tm.expr),
+  ncol = length(tumors),
+  dimnames = list(
+    rownames(tm.expr),
+    tumors
+  )
+)
+bulk.props <- matrix(
+  0,
+  nrow = length(unique(tm.pheno.readable$CellType)),
+  ncol = length(tumors),
+  dimnames = list(
+    unique(tm.pheno.readable$CellType),
+    tumors
+  )
+)
+
+for (tm in tumors) {
+  idx <- which(tm.pheno.readable$tumor == tm)
+  composition.table <- table(tm.pheno.readable$CellType[idx])
+  
+  bulk.exprs[, tm] <- rowSums(tm.expr[, idx])
+  bulk.props[names(composition.table), tm] <- as.numeric(composition.table) /
+    length(idx)
+}
+bulk.exprs <- DAB:::scale_to_count(bulk.exprs)
+```
+
+### Subsample single cells  
+
+In order to speed up the calculations, the single-cell data will now be subsampled to 10% for each cell type.
+
+```{r subsample}
+n.profiles <- ceiling(table(tm.pheno.readable$CellType) * 0.1)
+
+sampled <- c()
+for (ct in names(n.profiles)) {
+  idx <- which(tm.pheno.readable$CellType == ct)
+  sampled <- c(
+    sampled, 
+    sample(x = idx, size = n.profiles[ct], replace = FALSE)
+  )
+}
+tm.expr <- tm.expr[, sampled]
+tm.pheno.readable <- tm.pheno.readable[sampled, ]
+
+knitr::kable(table(tm.pheno.readable$CellType))
+```
+
+## Benchmarking
+
+Now that the data is ready, we can start the benchmark.
+
+```{r grouping}
+# create grouping vector for dividing the melanoma cells 
+# into training and test set
+training.tumors <- sample(
+  x = tumors, 
+  size = ceiling(0.66*length(tumors)), 
+  replace = FALSE
+)
+training.samples <- which(tm.pheno.readable$tumor %in% training.tumors)
+
+grouping <- rep(2, nrow(tm.pheno.readable))
+grouping[training.samples] <- 1
+grouping <- as.factor(grouping)
+```
+
+First, we generate some gene sets
+```{r genesets}
+# randomly sample genes
+# the smaller sets are subsets of the larger ones
+genesets <- list()
+set.sizes <- c(5000, 1000, 200)
+genesets[["1"]] <- sample(
+    x = rownames(tm.expr),
+    size = set.sizes[1],
+    replace = FALSE
+  )
+for (i in c(2,3)) {
+  genesets[[as.character(i)]] <- sample(
+    x = genesets[[as.character(i-1)]],
+    size = set.sizes[i],
+    replace = FALSE
+  )
+}
+```
+
+```{r benchmark}
+temp.dir <- paste0(getwd(), "/.tmp")
+
+report_path <- DAB::benchmark(
+  sc.counts = tm.expr,
+  sc.pheno = tm.pheno.readable,
+  bulk.counts = bulk.exprs,
+  bulk.props = bulk.props,
+  benchmark.name = "vignette_benchmark",
+  grouping = grouping,
+  cell.type.column = "CellType",
+  patient.column = "tumor",
+  sample.name.column = "sample",
+  simulation.bulks = TRUE,
+  simulation.genes = TRUE,
+  simulation.samples = TRUE,
+  simulation.subtypes = TRUE,
+  genesets = genesets,
+  repeats = 2,
+  temp.dir = temp.dir,
+  exclude.from.bulks = NULL,
+  exclude.from.signature = NULL,
+  n.bulks = 25,
+  cpm = FALSE,
+  verbose = FALSE,
+  n.cluster.sizes = c(1, 2, 4),
+  cibersort.path = NULL,
+  n.profiles.per.bulk = 100,
+  report = TRUE,
+  input.algorithms = list(
+    "DTD", 
+    "MuSiC",
+    list(
+      name = "Least_Squares", 
+      algorithm = DAB:::run_least_squares, 
+      model = NULL
+    )
+  )
+)
+```
+
+Note that for parameter `input.algorithms`, the list entries may either be
+strings (only for built-in algorithms) or lists, as in the case of *Least Squares*.
+This demonstrates, how custom algorithm wrappers can be supplied.  
+Because of option `report = TRUE`, the function generates a markdown report
+containing all relevant plots. If that option were set to `FALSE`, generated 
+plots could be found in `temp.dir` under *report_plots*.  
+
+The report can in this instance be found at `r report_path`. It is embedded below:  
+
+```{r move_report, echo = FALSE}
+moved <- file.rename(report_path, paste0(temp.dir, "/report.html"))
+```
+
+## Results
+
+```{r embed, echo = FALSE}
+htmltools::includeHTML(paste0(temp.dir, "/report.html"))
+```

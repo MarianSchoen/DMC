@@ -73,7 +73,7 @@
 #'  default: 1000
 #' @param report boolean, should an HTML report be generated? deafult TRUE
 #'
-#' @return NULL, results are stored via hdf5 to 'temp.dir'
+#' @return report path (string), NULL if no report is generated
 #' @export
 #'
 #' @examples see either 'working_example.R', or 'working_example_fast.R'
@@ -843,6 +843,8 @@ benchmark <- function(
   	cat("Done\t\t\t\t", as.character(Sys.time()), "\n\n", sep = "")
   	cat("Report generated: ", report.path, "\n", sep = "")
   	cat("Created plots can be found in: ", output.folder, "/report_plots/\n", sep = "")
+	}else{
+	  report.path <- NULL
 	}
 	if(dir.exists("CIBERSORT")){
 	  unlink("CIBERSORT", recursive = TRUE)
@@ -868,4 +870,5 @@ benchmark <- function(
 			}
 		}
 	}
+	return(report.path)
 }

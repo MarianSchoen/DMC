@@ -27,3 +27,6 @@ Remotes: spang-lab/DTD,
 	renozao/xbioc,
 	xuranw/MuSiC,
 	shenorrLab/bseqsc
+Suggests: 
+    knitr
+VignetteBuilder: knitr
