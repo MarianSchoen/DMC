@@ -247,6 +247,19 @@ plot_all <- function(
       score.plot.subtype <- subtype_plot(subtypes.df)
     }
   }
+
+  # score benchmark
+  score_dir <- paste0(temp_dir, "/results/simulation/scores")
+  if (dir.exists(score_dir)) {
+    results_file <- paste0(score_dir, "/deconv_output.h5")
+    results.list <- rhdf5::h5dump(paste0(results_file))
+    score_plots <- create_fit_plots(results.list)
+    
+    n_score_algorithms <- length(
+	unique(unlist(sapply(results.list, function(x){unique(x$algorithm)})))
+    )
+    n_score_celltypes <- length(unique(results.list[[1]]$celltype))
+  }
   
   # save plots
   if (exists("real_df")) {
@@ -365,6 +378,45 @@ plot_all <- function(
   if (exists("score.plot.subtype")) {
     pdf(paste0(plot_dir, "/subtype_plot.pdf"), width = 16, height = 8)
     plot(score.plot.subtype$overall)
+    dev.off()
+  }
+
+  # score plots / fits
+  if (exists("score_plots")) {
+    height <- 2 * n_score_algorithms
+    width <- 2 * n_score_celltypes
+    pdf(
+      paste0(plot_dir, "/correlation_fits.pdf"), 
+      width = width, 
+      height = height
+    )
+    
+    for (p in score_plots$fits) {
+      if (!is.null(p)) plot(p)
+    }
+    dev.off()
+
+    pdf(
+      paste0(plot_dir, "/fit_offsets.pdf"),
+      width = width, height = height
+    )
+    plot(score_plots$offset_plot)
+    dev.off()
+
+   
+    pdf(
+      paste0(plot_dir, "/fit_errors.pdf"),
+      width = width, height = height
+    )
+    plot(score_plots$error_plot)
+    dev.off()
+
+   
+    pdf(
+      paste0(plot_dir, "/fit_scores.pdf"),
+      width = width, height = height
+    )
+    plot(score_plots$combined_plot)
     dev.off()
   }
   return(NULL)

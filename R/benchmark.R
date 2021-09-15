@@ -85,6 +85,7 @@ benchmark <- function(
   input.algorithms = NULL,
   simulation.bulks = FALSE, simulation.genes = FALSE,
   simulation.samples = FALSE, simulation.subtypes = FALSE,
+  score.algorithms = FALSE,
   genesets = NULL,
   metric = "cor", metric.name = NULL,
   repeats = 5,
@@ -343,6 +344,7 @@ benchmark <- function(
 		}
 		algorithm.names <- sapply(algorithms, function(x) x$name)
 	}
+	names(algorithms) <- algorithm.names
 
   # BSEQ-sc configuration
 	if ("BSEQ-sc" %in% algorithm.names) {
@@ -499,6 +501,7 @@ benchmark <- function(
 			simulation.genes <- FALSE
 			simulation.samples <- FALSE
 			simulation.subtypes <- FALSE
+      score.algorithms <- FALSE
 		}
 
 	  # this is not needed any more
@@ -697,9 +700,10 @@ benchmark <- function(
 
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(
-    simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes
+    simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes,
+    score.algorithms
   )
-	names(available.sims) <- c("genes", "samples", "bulks", "subtypes")
+	names(available.sims) <- c("genes", "samples", "bulks", "subtypes", "scores")
 	if (any(available.sims)) {
     cat("starting simulations...\t\t", as.character(Sys.time()), "\n", sep = "")
   }
@@ -708,7 +712,30 @@ benchmark <- function(
 		# read previous results and exclude present algorithms
 
     sim_dir <- paste(output.folder, "/results/simulation/", s, "/", sep = "")
-    present.algorithms <- present_algos(sim_dir, name_pattern = "*.h5")
+    if (s != "scores") {
+      present.algorithms <- present_algos(sim_dir, name_pattern = "*.h5")
+    }else{
+      filename <- paste0(sim_dir, "deconv_output.h5")
+      if (file.exists(filename)) {
+        prev_res <- rhdf5::h5dump(filename)
+        prev_runs <- length(prev_res)
+        res.no <- prev_runs + 1
+        if (prev_runs > 0) {
+          present.algorithms <- unique(unlist(
+            sapply(
+              prev_res,
+              FUN = function(x) {
+                unique(x$algorithm)
+              }
+            )
+          ))
+        }
+      }else{
+        res.no <- 0
+        present.algorithms <- NULL
+      }
+    }
+    
     if (is.null(present.algorithms)) {
       to.run <- seq_len(length(algorithms))
     }else{
@@ -716,7 +743,9 @@ benchmark <- function(
 			to.run <- which(! algorithm.names %in% present.algorithms)
 		}
     rm("present.algorithms")
-		res.no <- length(list.files(path = sim_dir, pattern = "*.h5")) + 1
+    if (s != "scores") {
+		  res.no <- length(list.files(path = sim_dir, pattern = "*.h5")) + 1
+    }
 
 		# execute benchmark corresponding to s and save results
 		if (length(to.run) > 0) {
@@ -794,12 +823,47 @@ benchmark <- function(
 					algorithm.list = algorithms[to.run],
 					n.clusters = c(1, 2, 4, 8),
 					patient.column = patient.column,
-					n.bulks = n.bulks
+					n.bulks = n.bulks,
+          repeats = repeats
 				)
 
 			  rm(list = c("all.exprs", "all.pheno"))
 			  gc()
 			}
+
+      if (s == "scores") {
+        cat(
+          "scoring algorithms...\t\t", as.character(Sys.time()), "\n", sep = ""
+        )
+        data_file <- paste0(
+          output.folder,"/results/simulation/",s,"/datasets.rds"
+        )
+        if (res.no > 1 && file.exists(data_file)) {
+          datasets <- readRDS(data_file)
+        } else {
+          datasets <- NULL
+        }
+        # bulk cts problem
+        bulk.cts <- NULL
+        benchmark.results <- score_algorithms(
+          counts = training.exprs,
+          pheno = training.pheno,
+          bulk_counts = test.exprs,
+          bulk_pheno = test.pheno,
+          bulk_cell_types = bulk.cts,
+          exclude_from_signature = exclude.from.signature,
+          column_names = list(
+            cell.type.column = cell.type.column,
+            patient.column = patient.column,
+            sample.name.column = sample.name.column
+          ),
+          algorithm_list = algorithms[to.run],
+          nrep = repeats,
+          nsets = 4,
+          nbulks = 250,
+          dataset = datasets
+        )
+      }
 
 			if (!dir.exists(
             paste(output.folder, "/results/simulation/", s, sep = "")
@@ -809,18 +873,38 @@ benchmark <- function(
           recursive = TRUE
         )
 			}
-		  suppressMessages(suppressWarnings(
-        write_result_list(
-          benchmark.results,
-          filename = paste(
-            output.folder,
-            "/results/simulation/",
-            s, "/deconv_output_", res.no, ".h5", sep = ""
+      if (s != "scores") {
+        suppressMessages(suppressWarnings(
+          write_result_list(
+            benchmark.results,
+            filename = paste(
+              output.folder,
+              "/results/simulation/",
+              s, "/deconv_output_", res.no, ".h5", sep = ""
+            )
           )
+        ))
+      }else{
+        # scores does not produce a results list like the other simulations
+        # output is a data frame
+        filename <- paste0(
+          output.folder, 
+          "/results/simulation/", s, "/deconv_output.h5"
         )
-      ))
-		  rm("benchmark.results")
-		}
+        if (!file.exists(filename)) {
+          rhdf5::h5createFile(filename)
+        }
+        rhdf5::h5save(
+          benchmark.results$results, 
+          file = filename, 
+          name = paste0("results_", res.no)
+        )
+        if (!file.exists(data_file)) {
+          saveRDS(benchmark.results$datasets, file = data_file)
+        }
+      }
+      rm("benchmark.results")
+    }
 	}
 	cat("Creating plots...\t\t", as.character(Sys.time()), "\n", sep = "")
 	plot_all(
