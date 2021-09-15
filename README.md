@@ -10,19 +10,20 @@
 * Correlation per cell type + overall correlation + bootstrapped correlation
 
 ### scRNA-Seq data  
-* Missing reference profiles
-* highly similar/nearly indistinguishable reference profiles
-* wrong reference profiles in X, or the mixtures.  
-* algorithms behaviour towards less genes, or less biological variance in the training data (For this, we have to retrain every algorithm.)  
+* Fitting correlation model $`r_{ct} \propto \frac{1}{\sqrt(1 + error_{ct}/Var(C_{ct,.}))} - offset_{ct}`$ to deconvolution results obtained on datasets simulated with different variances of cellular composition
+* Performance on simulated bulks
+* Performance on simulated bulks with varying amount of training data
+* Performance on simulated bulks with different gene set
+* Performance on simulated bulks with finer cell type labels obtained by clustering of single-cell profiles
 
 ## Output: 
-RMD knitted html file. Or an interactive shiny visualization
+RMD knitted html file. Plots are saved to specified working directory under 'report_plots'
 
 # Aim of the package: 
 ## One model does not deconvolute every data best
 I think that an deconvolution model that is fitted to a tissue scenario leads to the best results.  
 However, the same model will underperform in another scenario. 
-## DTD is the best algorithm to fit a decnvolution model
+## DTD is the best algorithm to fit a deconvolution model
 DTD sees artificial mixtures during training, and adapts the residuals accorindgly.  
 Therefore, the benchmark package will ~~hopefully~~ show that DTD outperforms the other algorithm. 
 
@@ -39,7 +40,7 @@ The wrapper needs to support the following arguments:
 The function should return a list with two entries, `est.props` (the estimated proportions) and `sig.matrix`, the effectively used signature matrix.
 
 ## test your wrapper
-call `DeconvolutionAlgorithmBenchmarking::check_algorithm(run_<ALGO>)`???
+call `DeconvolutionAlgorithmBenchmarking::check_algorithm(list(algorithm = run_<ALGO>, name = "ALGO", model = NULL))`
 
 ## use it in the benchmark
 call the benchmark with a non-null `input.algorithms` parameter and include your wrapper as a list, such as `list(name="ALGO", algorithm=run_<ALGO>)` (where `run_<ALGO>` is your newly written wrapper function).
@@ -86,9 +87,19 @@ First, a joint tSNE embedding is computed on all single cell data and then perfo
 - TODO: bulk data does not "see" subtypes??? signature does?
 - TODO: Simulated bulk has (on average!) same distribution of subtypes as sc input!
 
+## correlation model
+enabled, if `score.algorithms = TRUE` is passed to `benchmark`
+
+This is a way of scoring algorithms that accounts for bulk composition. Correlation is strongly influenced by the variance of the quantity of a cell type across the bulks, e.g. outliers may strongly increase the correlation. 
+
+### detailed description
+20 bulk data sets are simulated with increasing variance of cellular composition (variance in the row of composition matrix C). Correlations are calculated and the data is then fitted to the model
+```math
+$`r_{ct} \propto \frac{1}{\sqrt(1 + error_{ct}/Var(C_{ct,.}))} - offset_{ct}`$
+```
+Each algorithm then has a celltype-specific offset and error which can be used to evaluate deconvolution performance indepent of dataset composition.
+
 
 # Simulation of bulks
-- TODO: I personally would find it better if not `fraction.per.bulk` was given but `ncells.per.bulk` (a typical bulk is a certain number of cells rather than a certain fraction of otherwise unrelated sc measurements)
-- TODO: may include other ways of simulating bulks???
 
 Every simulated bulk is averaged over a given fraction `fraction.per.bulk` of all single cells, i.e. the distribution of the single cell data determines the average distribution of the bulks. If `sum.to.count = TRUE`, every bulk profile is normed so that the sum over the gene expression is equal to the number of genes.
