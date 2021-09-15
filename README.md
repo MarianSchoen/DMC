@@ -10,7 +10,7 @@
 * Correlation per cell type + overall correlation + bootstrapped correlation
 
 ### scRNA-Seq data  
-* Fitting correlation model $`r_{ct} \propto \frac{1}{\sqrt(1 + error_{ct}/Var(C_{ct,.}))} - offset_{ct}`$ to deconvolution results obtained on datasets simulated with different variances of cellular composition
+* Fitting correlation model $`r_{ct} \propto \frac{1}{\sqrt(1 + \frac{error_{ct}}{Var(C_{ct,.})})} - offset_{ct}`$ to deconvolution results obtained on datasets simulated with different variances of cellular composition
 * Performance on simulated bulks
 * Performance on simulated bulks with varying amount of training data
 * Performance on simulated bulks with different gene set
@@ -95,7 +95,7 @@ This is a way of scoring algorithms that accounts for bulk composition. Correlat
 ### detailed description
 20 bulk data sets are simulated with increasing variance of cellular composition (variance in the row of composition matrix C). Correlations are calculated and the data is then fitted to the model
 ```math
-$`r_{ct} \propto \frac{1}{\sqrt(1 + error_{ct}/Var(C_{ct,.}))} - offset_{ct}`$
+r_{ct} \propto \frac{1}{\sqrt(1 + \frac{error_{ct}}{Var(C_{ct,.})})} - offset_{ct}
 ```
 Each algorithm then has a celltype-specific offset and error which can be used to evaluate deconvolution performance indepent of dataset composition.
 
