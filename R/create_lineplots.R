@@ -117,7 +117,7 @@ create_lineplots <- function(
     geneset.labs <- levels(results.df$geneset)
     geneset.limits <- levels(results.df$geneset)
   }
-
+  
   # create plot per cell type (including overall)
   cell.type.plots <- list()
   for (t in levels(results.df$cell_type)) {
@@ -135,7 +135,7 @@ create_lineplots <- function(
       sd
     )
     temp.times <- tapply(
-      sub.df$time,
+      as.numeric(as.character(sub.df$time)),
       list(sub.df$algorithm, sub.df$geneset),
       mean
     )
