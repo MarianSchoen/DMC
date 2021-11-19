@@ -73,9 +73,6 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                       rownames(real.props))
                     ) {
                       temp.score <- metric(r$est.props[t, ], real.props[t, ])
-                      if (is.na(temp.score) || temp.score < 0) {
-                        temp.score <- 0
-                      }
                       scores <- c(scores, temp.score)
                       df <- rbind(
                         df,
@@ -86,16 +83,21 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                     # overall performance
                     # (average over per-cell-type-performance);
                     # store as cell type "overall"
+                    if (!all(is.na(scores))) {
+                      avg_score <- mean(scores[!is.na(scores)])
+                    } else {
+                      avg_score <- NA
+                    }
                     df <- rbind(
                       df,
-                      c(name, mean(scores), "overall", geneset, metric.name,
+                      c(name, avg_score, "overall", geneset, metric.name,
                         time, fraction, cond.num
                       )
                     )
                 }else{
                     df <- rbind(
                       df,
-                      c(name, 0, "overall", geneset, metric.name,
+                      c(name, NA, "overall", geneset, metric.name,
                         time, fraction, cond.num
                       )
                     )
@@ -122,6 +124,7 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                       rownames(r$est.props),
                       rownames(real.props)
                     )
+                    # include only datasets with at least one cell type
                     if (length(common_ct) > 0) {
                       for (t in rownames(real.props)) {
                         if (t %in% rownames(r$est.props)) {
@@ -129,30 +132,32 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                             r$est.props[t,],
                             real.props[t,]
                           )
-                          if (is.na(temp.score) || temp.score < 0) {
-                            temp.score <- 0
-                          }
                           df <- rbind(
                             df,
                             c(name, temp.score, t, NA, metric.name,
                               time, 100, cond.num)
                           )
                         }else{
-                          temp.score <- 0
+                          temp.score <- NA
                         }
                         scores <- c(scores, temp.score)
                       }
                       # overall performance
+                      if (!all(is.na(scores))) {
+                        avg_score <- mean(scores[!is.na(scores)])
+                      } else {
+                        avg_score <- NA
+                      }
                       df <- rbind(
                         df,
-                        c(name, mean(scores), "overall", NA,
+                        c(name, avg_score, "overall", NA,
                           metric.name, time, 100, cond.num)
                       )
                     }
                   }else{
                     df <- rbind(
                       df,
-                      c(name, 0, "overall", NA,
+                      c(name, NA, "overall", NA,
                         metric.name, time, 100, cond.num)
                     )
                   }
@@ -199,9 +204,6 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                 if (!is.null(a.est)) {
                     for (t in intersect(rownames(a.est), rownames(c.true))) {
                         temp.score <- metric(a.est[t, ], c.true[t, ])
-                        if (is.na(temp.score) || temp.score < 0) {
-                            temp.score <- 0
-                        }
                         scores <- c(scores, temp.score)
                         df <- rbind(
                           df,
@@ -209,15 +211,20 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                             NA, NA, NA, coarse, avg.cells)
                         )
                     }
+                    if (!all(is.na(scores))) {
+                      avg_score <- mean(scores[!is.na(scores)])
+                    } else {
+                      avg_score <- NA
+                    }
                     df <- rbind(
                       df,
-                      c(a, mean(scores), "overall", NA, metric.name,
+                      c(a, avg_score, "overall", NA, metric.name,
                         NA, NA, NA, coarse, avg.cells)
                     )
                 }else{
                   df <- rbind(
                     df,
-                    c(a, 0, "overall", NA, metric.name,
+                    c(a, NA, "overall", NA, metric.name,
                       NA, NA, NA, coarse, avg.cells)
                   )
                 }
@@ -230,9 +237,6 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
               if (!is.null(a.est)) {
                 for (t in intersect(rownames(a.est), rownames(c.true.coarse))) {
                   temp.score <- metric(a.est[t, ], c.true.coarse[t, ])
-                  if (is.na(temp.score) || temp.score < 0) {
-                      temp.score <- 0
-                  }
                   scores <- c(scores, temp.score)
                   df <- rbind(
                     df,
@@ -240,15 +244,20 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
                       NA, NA, NA, coarse, avg.cells)
                   )
                 }
+                if (!all(is.na(scores))) {
+                  avg_score <- mean(scores[!is.na(scores)])
+                } else {
+                  avg_score <- NA
+                }
                 df <- rbind(
                   df,
-                  c(a, mean(scores), "overall", NA,
+                  c(a, avg_score, "overall", NA,
                     metric.name, NA, NA, NA, coarse, avg.cells)
                 )
               }else{
                 df <- rbind(
                   df,
-                  c(a, 0, "overall", NA, metric.name,
+                  c(a, NA, "overall", NA, metric.name,
                     NA, NA, NA, coarse, avg.cells)
                 )
               }
@@ -273,6 +282,6 @@ prepare_data <- function(results.all, metric = "cor", metric.name = NULL) {
         df$coarse <- as.logical(as.character(df$coarse))
         df$cluster_size <- as.numeric(as.character(df$cluster_size))
     }
-  }
+    }
   return(df)
 }
