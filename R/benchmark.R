@@ -576,15 +576,6 @@ benchmark <- function(
     ))
 	}
 
-	# rescale real quantities to be between 0 and 1
-	if (!is.null(bulk.props)) {
-		csums <- colSums(bulk.props)
-		if (any(csums == 0)) {
-			csums[csums == 0] <- 1
-		}
-		bulk.props <- sweep(bulk.props, 2, csums, "/")
-	}
-
 	if(!is.null(training.pheno) && !is.null(training.exprs)){
   	# assume that samples in expression and pheno data are in the correct order
   	# if names do not match, assign sample names from expression to pheno data
