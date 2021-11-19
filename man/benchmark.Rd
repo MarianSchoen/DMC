@@ -19,6 +19,7 @@ benchmark(
   simulation.genes = FALSE,
   simulation.samples = FALSE,
   simulation.subtypes = FALSE,
+  score.algorithms = FALSE,
   genesets = NULL,
   metric = "cor",
   metric.name = NULL,
@@ -61,13 +62,13 @@ for the results directory}
 \code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either
 test or train cohort. 1 marks training samples, 2 marks test samples.}
 
-\item{cell.type.column}{string, which column of 'pheno'
+\item{cell.type.column}{string, which column of 'sc.pheno'
 holds the cell type information? default 'cell_type'}
 
-\item{patient.column}{string, which column of 'pheno'
+\item{patient.column}{string, which column of 'sc.pheno'
 holds the patient information; optional, default 'patient'}
 
-\item{sample.name.column}{string, which column of 'pheno'
+\item{sample.name.column}{string, which column of 'sc.pheno'
 holds the sample name information; optional, default 'sample.name'}
 
 \item{input.algorithms}{list containing a list for each algorithm.
@@ -91,6 +92,9 @@ selected training profiles be performed? default: FALSE}
 
 \item{simulation.subtypes}{boolean, should deconvolution of simulated bulks
 with artificial subtypes of given cell types be performed? default: FALSE}
+
+\item{score.algorithms}{boolean, should algorithm scores be calculated and
+correlation fits be generated? default: FALSE}
 
 \item{genesets}{named list of string vectors, each must match subset of
 'rownames(sc.counts)'. default: NULL}
@@ -137,11 +141,10 @@ default: 1000}
 \item{report}{boolean, should an HTML report be generated? deafult TRUE}
 }
 \value{
-NULL, results are stored via hdf5 to 'temp.dir'
+list of\cr
+1) report_path: report path (string), NULL if no report is generated\cr
+2) bulk_results: deconvolution results for real bulks, NULL if no real bulks were supplied
 }
 \description{
 main function of the deconvolution benchmark
-}
-\examples{
-see either 'working_example.R', or 'working_example_fast.R'
 }

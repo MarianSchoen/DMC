@@ -19,11 +19,11 @@
 #' @param grouping factor with 2 levels, and \code{length(grouping)} must be
 #' \code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either
 #' test or train cohort. 1 marks training samples, 2 marks test samples.
-#' @param cell.type.column string, which column of 'pheno'
+#' @param cell.type.column string, which column of 'sc.pheno'
 #' holds the cell type information? default 'cell_type'
-#' @param patient.column string, which column of 'pheno'
+#' @param patient.column string, which column of 'sc.pheno'
 #' holds the patient information; optional, default 'patient'
-#' @param sample.name.column string, which column of 'pheno'
+#' @param sample.name.column string, which column of 'sc.pheno'
 #' holds the sample name information; optional, default 'sample.name'
 #' @param input.algorithms list containing a list for each algorithm.
 #' Each sublist contains \cr 1) name: character \cr 2) algorithm: function \cr
@@ -42,6 +42,8 @@
 #' selected training profiles be performed? default: FALSE
 #' @param simulation.subtypes boolean, should deconvolution of simulated bulks
 #' with artificial subtypes of given cell types be performed? default: FALSE
+#' @param score.algorithms boolean, should algorithm scores be calculated and
+#' correlation fits be generated? default: FALSE
 #' @param genesets named list of string vectors, each must match subset of
 #' 'rownames(sc.counts)'. default: NULL
 #' @param metric method of result evaluation; either "cor" (default)
@@ -73,18 +75,23 @@
 #'  default: 1000
 #' @param report boolean, should an HTML report be generated? deafult TRUE
 #'
-#' @return report path (string), NULL if no report is generated
+#' @return list of\cr
+#' 1) report_path: report path (string), NULL if no report is generated\cr
+#' 2) bulk_results: deconvolution results for real bulks, NULL if no real bulks were supplied
 #' @export
-#'
-#' @examples see either 'working_example.R', or 'working_example_fast.R'
 
 benchmark <- function(
-  sc.counts, sc.pheno, bulk.counts, bulk.props, benchmark.name, grouping,
-  cell.type.column = "cell_type", patient.column = "patient",
+  sc.counts, sc.pheno, 
+  bulk.counts, bulk.props, 
+  benchmark.name, grouping,
+  cell.type.column = "cell_type",
+  patient.column = "patient",
   sample.name.column = "sample.name",
   input.algorithms = NULL,
-  simulation.bulks = FALSE, simulation.genes = FALSE,
-  simulation.samples = FALSE, simulation.subtypes = FALSE,
+  simulation.bulks = FALSE, 
+  simulation.genes = FALSE,
+  simulation.samples = FALSE, 
+  simulation.subtypes = FALSE,
   score.algorithms = FALSE,
   genesets = NULL,
   metric = "cor", metric.name = NULL,
@@ -172,6 +179,7 @@ benchmark <- function(
 	output.folder <- paste(temp.dir, "/", benchmark.name, sep = "")
 
 	# check input parameters
+	# single-cell counts and pheno data need to match
 	if (!is.null(sc.counts) || !is.null(sc.pheno)) {
   	if (ncol(sc.counts) != nrow(sc.pheno)) {
   		stop("Dimensions of sc.counts and sc.pheno do not match")
@@ -182,7 +190,12 @@ benchmark <- function(
   		sc.pheno <- sc.pheno[-to.remove, ]
   		sc.counts <- sc.counts[, -to.remove]
   	}
+	} else {
+	  grouping <- NULL
 	}
+	
+	# bulk counts and pheno data need to match and cell types must
+	# overlap in single cell data and bulks if a report is to be generated
 	if (!is.null(bulk.counts) && !is.null(bulk.props)) {
   	if (ncol(bulk.counts) != ncol(bulk.props)) {
   		stop("Number of bulks in bulk.counts and bulk.props do not match")
@@ -203,14 +216,15 @@ benchmark <- function(
 		warning("No gene sets provided; skipping that benchmark")
 		simulation.genes <- FALSE
 	}
+	
 	# check metric parameters
 	metric.list <- check_metric(metric, metric.name)
 	metric <- metric.list$metric
 	metric.name <- metric.list$metric.name
 	
 	if (!is.null(grouping) && (!is.null(sc.counts) || !is.null(sc.pheno))) {
-  	if (!is.factor(grouping) || !length(levels(grouping)) == 2 ||
-  	   !length(grouping) == ncol(sc.counts)) {
+  	if (!is.factor(grouping) || length(levels(grouping)) != 2 ||
+  	   length(grouping) != ncol(sc.counts)) {
   		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts)
   		     with two levels indicating training and validation set")
   	}
@@ -234,7 +248,7 @@ benchmark <- function(
 		warning("Repeats must be greater than 0. Setting to 1.")
 		repeats <- 1
 	}
-	if (n.cluster.sizes < 1 || as.integer(n.cluster.sizes) != n.cluster.sizes) {
+	if (any(n.cluster.sizes < 1) | any(as.integer(n.cluster.sizes) != n.cluster.sizes)) {
 		stop("n.cluster.sizes must be integer > 0")
 	}
 	if (n.bulks < 1) {
@@ -253,11 +267,11 @@ benchmark <- function(
 			     Please select only cell types present in pheno data.")
 		}
 	}
-	if (!rmarkdown::pandoc_available()) {
-		warning("pandoc was not found on your system.
-		        You can perform the benchmark but will not be able to render
-		        the report until this dependency is fulfilled.")
-	}
+	#if (!rmarkdown::pandoc_available()) {
+	#	warning("pandoc was not found on your system.
+	#	        You can perform the benchmark but will not be able to render
+	#	        the report until this dependency is fulfilled.")
+	#}
 
 	# CIBERSORT
 	# check / source script path
@@ -287,8 +301,9 @@ benchmark <- function(
 			   list(algorithm = run_dtd, name = "DTD", model = NULL),
 			   list(algorithm = run_cibersort, name = "CIBERSORT", model = NULL),
 			   list(algorithm = run_deconrnaseq, name = "DeconRNASeq", model = NULL),
-			   list(algorithm = run_least_squares, name = "Least_Squares",
-              model = NULL),
+			   list(
+			     algorithm = run_least_squares, name = "Least_Squares", model = NULL
+			   ),
 			   list(algorithm = run_music, name = "MuSiC", model = NULL),
 			   list(algorithm = run_bseqsc, name = "BSEQ-sc", model = NULL)
 	)
@@ -373,7 +388,7 @@ benchmark <- function(
 		algorithm.names <- algorithm.names[to.use]
 	}
 	check_algorithms(algorithms)
-
+	
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
 	if (!is.null(sc.counts)) {
@@ -467,7 +482,7 @@ benchmark <- function(
 		if (!is.null(grouping)) {
   		if(verbose) cat("splitting into test and training data\n")
   		# split data into test and validation set
-  		if (length(unique(grouping)) == 2) {
+  		if (length(unique(grouping)) == 2 && all(unique(grouping) %in% c(1, 2))) {
   			split.data <- split_dataset(
           sc.counts, sc.pheno, method = "predefined", grouping = grouping
         )
@@ -490,7 +505,10 @@ benchmark <- function(
   			simulation.samples <- FALSE
   			simulation.subtypes <- FALSE
   		}else{
-  			stop("Invalid grouping vector")
+  			stop(
+  			  "Invalid grouping vector. Must be a vector of 
+  			  1 (training samples) and 2 (test samples)."
+  			  )
   		}
 		}else{
 			training.exprs <- NULL
@@ -536,7 +554,7 @@ benchmark <- function(
 			  sum.to.count = cpm,
 			  cell.type.column = cell.type.column,
 			  n.profiles.per.bulk = n.profiles.per.bulk,
-			  frac = 10
+			  frac = 15
 			)
 		}else{
 			sim.bulks <- list(bulks = NULL, props = NULL)
@@ -561,7 +579,9 @@ benchmark <- function(
 	# rescale real quantities to be between 0 and 1
 	if (!is.null(bulk.props)) {
 		csums <- colSums(bulk.props)
-		if (any(csums == 0)) csums[csums == 0] <- 1
+		if (any(csums == 0)) {
+			csums[csums == 0] <- 1
+		}
 		bulk.props <- sweep(bulk.props, 2, csums, "/")
 	}
 
@@ -630,7 +650,7 @@ benchmark <- function(
   if (is.null(present.algorithms)) {
     to.run <- seq_len(length(algorithms))
   }else{
-		if (verbose) print(present.algorithms)
+		if (verbose) cat("Found results for: ", present.algorithms, "\n")
 		to.run <- which(! algorithm.names %in% present.algorithms)
 	}
 
@@ -641,7 +661,7 @@ benchmark <- function(
   	if (length(to.run) > 0) {
   		if (verbose) {
         cat(
-          "algorithms:",
+          "algorithms to run:",
           sapply(algorithms[to.run], function(x) {x$name}),
           "\n", sep = " "
         )
@@ -696,6 +716,8 @@ benchmark <- function(
     	rm(list = c("real.benchmark", "estimates", "props", "bootstrap.real"))
     	gc()
   	}
+	}else{
+	  real.benchmark <- NULL
 	}
 
 	# iterate through supplied simulation vector and perform those that are TRUE
@@ -843,7 +865,7 @@ benchmark <- function(
         } else {
           datasets <- NULL
         }
-        # bulk cts problem
+        
         bulk.cts <- NULL
         benchmark.results <- score_algorithms(
           counts = training.exprs,
@@ -906,7 +928,9 @@ benchmark <- function(
       rm("benchmark.results")
     }
 	}
-	cat("Creating plots...\t\t", as.character(Sys.time()), "\n", sep = "")
+	if (verbose) cat(
+	  "Creating plots...\t\t", as.character(Sys.time()), "\n", sep = ""
+	  )
 	plot_all(
 	  temp_dir = output.folder,
 	  metric = metric,
@@ -954,5 +978,5 @@ benchmark <- function(
 			}
 		}
 	}
-	return(report.path)
+	return(list(report_path = report.path, bulk_results = real.benchmark))
 }
