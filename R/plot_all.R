@@ -84,11 +84,16 @@ plot_all <- function(
     # scatterplots
     scatter.plots.list <- list()
     for (i in seq_len(length(result_lists))) {
+	    if("bulk.props" %in% names(result_lists[[i]])){
       scatter.plots.list[[i]] <- create_scatterplots(
         result_lists[[i]],
         celltype.order = celltypes.ordered,
         algorithm.order = algorithms.ordered
       )
+	    }else{
+		    cat("Something went wrong. bulk.props?")
+	    	print(str(result_lists))
+	    }
     }
     
     # condition number plots
