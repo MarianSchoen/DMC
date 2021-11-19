@@ -23,23 +23,37 @@ fit_data <- function(results, datasets, nbulks = NULL, nsets = NULL) {
       algo_params[[algo]][[ct]] <- params
     }
   }
-
-
+  
+  if (is.null(nbulks)) {
+	  n_bulks_per_ds <- TRUE
+  } else {
+	  n_bulks_per_ds <- FALSE
+  }
+  if (is.null(nsets)) {
+	  nsets <- 1
+  }
+  
   # prepare data for fitting
   df <- c()
   for (i in names(results)) {
+	  if (n_bulks_per_ds) {
+		nbulks <- ncol(datasets[[i]]$props)
+	  }
     if (i == "covariances") next
     for (j in 1:nsets) {
       # create subset of bulks
+	    if(nsets == 1){
+		bulks <- 1:ncol(datasets[[i]]$props)
+	    }else{
       bulks <- sample(
         1:ncol(datasets[[i]]$props),
         size = nbulks, replace = TRUE
       )
+   }
 
       real_props <- datasets[[i]]$props[, bulks]
       # covariances
       cov_mat <- create_cov_mat(real_props)
-
       for (algo in names(results[[i]])) {
         # estimate for each algorithm
         est_props <- results[[i]][[algo]][, bulks]
@@ -47,6 +61,7 @@ fit_data <- function(results, datasets, nbulks = NULL, nsets = NULL) {
           rownames(real_props),
           rownames(results[[i]][[algo]])
         )
+	if (length(intersect) == 0) next
 
         for (ct in cts) {
           ct_var <- cov_mat[ct, ct]
@@ -82,7 +97,7 @@ fit_data <- function(results, datasets, nbulks = NULL, nsets = NULL) {
       sorted_vars <- sort(sub_df$variance)
       # select data points with similar underlying variances
       var_pos <- which(sorted_vars == v)
-      variances <- sorted_vars[max(0, var_pos - 3):min(var_pos + 3, length(sorted_vars))]
+      variances <- sorted_vars[max(0, var_pos - 2):min(var_pos + 2, length(sorted_vars))]
       # calculate sd from correlations in the bin
       sds <- c(sds, sd(sub_df[which(sub_df$variance %in% variances), "correlation"]))
     }
@@ -92,12 +107,14 @@ fit_data <- function(results, datasets, nbulks = NULL, nsets = NULL) {
   # minimization
   algo_results <- list()
 
+  if (any(is.na(df$correlation))) {
+	  cat("Removing ", length(which(is.na(df$correlation))), " rows containing NAs\n")
+  	df <- df[which(!is.na(df$correlation)),]
+  }
   for (algo in unique(df$algorithm)) {
     algo_results[[algo]] <- list()
     cat(algo, "...\n\t")
     algo_df <- df[which(df$algorithm == algo), ]
-
-
 
     temp_df <- algo_df
     offsets_algo <- c()
@@ -112,7 +129,6 @@ fit_data <- function(results, datasets, nbulks = NULL, nsets = NULL) {
         temp_df = temp_df,
         ct = ct
       )
-
 
       offsets_algo <- c(offsets_algo, abs(opt_result$par["offset"]))
       E_algo <- c(E_algo, abs(opt_result$par["E"]))
