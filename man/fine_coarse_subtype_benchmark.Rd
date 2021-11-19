@@ -14,7 +14,8 @@ fine_coarse_subtype_benchmark(
   n.clusters = c(1, 2, 4, 8),
   verbose = FALSE,
   patient.column = "patient",
-  n.bulks = 500
+  n.bulks = 500,
+  repeats = 3
 )
 }
 \arguments{
@@ -46,6 +47,9 @@ This means that in the finest clustering, each celltype will be split in
 holds the patient information; optional, default "patient"}
 
 \item{n.bulks}{numeric > 0, number of bulks to simulate. default 500}
+
+\item{repeats}{numeric > 0,
+number of repetitions for each algorithm. default: 3}
 }
 \value{
 list containing deconvolution results for
