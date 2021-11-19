@@ -40,49 +40,53 @@ run_music <- function(
   ) {
   suppressWarnings(suppressMessages(library(xbioc, quietly = TRUE)))
 	# parameters checks
-  if (nrow(pheno) != ncol(exprs)) {
+  if (is.null(model)) {
+    if (is.null(exprs) || is.null(pheno)) {
+      stop("If no model is given, expression and pheno data are required.")
+    }
+    if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
-  }
-  features <- intersect(rownames(exprs), rownames(bulks))
-  if (length(features) > 0) {
+    }
+    features <- intersect(rownames(exprs), rownames(bulks))
+    if (length(features) > 0) {
       exprs <- exprs[features, ]
       bulks <- bulks[features, ]
-  }
-  if (is.null(patient.column)) {
-	  cat("Patient column variable not present\n")
-    return(list(est.props = NULL, sig.matrix = NULL))
-  }
-  if (!patient.column %in% colnames(pheno)) {
-	  cat("Patient column not present\n")
-    return(list(est.props = NULL, sig.matrix = NULL))
-  }
-
-  if (scale.cpm) {
-    # prepare phenotype data and cell types to use
-    exprs <- scale_to_count(exprs)
-  }
-  # MuSiC uses all supplied genes
-  exprs <- Matrix::as.matrix(exprs)
-  bulks <- Matrix::as.matrix(bulks)
-  colnames(bulks) <- make.names(colnames(bulks))
-
-  # ExpressionSet creation may fail without this...
-  colnames(exprs) <- make.names(colnames(exprs))
-  rownames(exprs) <- make.names(rownames(exprs))
-  rownames(bulks) <- make.names(rownames(bulks))
-  rownames(pheno) <- colnames(exprs)
-  Y <- bulks
-
-  cts <- unique(pheno[, cell.type.column])
-  include.in.x <- cts
-  # exclude samples of types contained in exclude.from.signature
-  if (!is.null(exclude.from.signature)) {
-    if (length(which(cts %in% exclude.from.signature)) > 0) {
-      include.in.x <- cts[-which(cts %in% exclude.from.signature)]
     }
-  }
-
-  if (is.null(model)) {
+    if (is.null(patient.column)) {
+      cat("Patient column variable not present\n")
+      return(list(est.props = NULL, sig.matrix = NULL))
+    }
+    if (!patient.column %in% colnames(pheno)) {
+      cat("Patient column not present\n")
+      return(list(est.props = NULL, sig.matrix = NULL))
+    }
+    
+    if (scale.cpm) {
+      # prepare phenotype data and cell types to use
+      exprs <- scale_to_count(exprs)
+    }
+    
+    # MuSiC uses all supplied genes
+    exprs <- Matrix::as.matrix(exprs)
+    bulks <- Matrix::as.matrix(bulks)
+    colnames(bulks) <- make.names(colnames(bulks))
+    
+    # ExpressionSet creation may fail without this...
+    colnames(exprs) <- make.names(colnames(exprs))
+    rownames(exprs) <- make.names(rownames(exprs))
+    rownames(bulks) <- make.names(rownames(bulks))
+    rownames(pheno) <- colnames(exprs)
+    Y <- bulks
+    
+    cts <- unique(pheno[, cell.type.column])
+    include.in.x <- cts
+    # exclude samples of types contained in exclude.from.signature
+    if (!is.null(exclude.from.signature)) {
+      if (length(which(cts %in% exclude.from.signature)) > 0) {
+        include.in.x <- cts[-which(cts %in% exclude.from.signature)]
+      }
+    }
+    
     # create ExpressionSets from exprs, pheno and bulks
     sc.exprs <- Biobase::ExpressionSet(
       assayData = exprs,
@@ -131,6 +135,11 @@ run_music <- function(
     iter.max <- model$iter.max
     nu <- model$nu
     eps <- model$eps
+    
+    # prepare bulks
+    Y <- Matrix::as.matrix(bulks)
+    colnames(Y) <- make.names(colnames(Y))
+    rownames(Y) <- make.names(rownames(Y))
     Y <- Y[rownames(X),]
 
     if (!is.null(model_exclude)) {
@@ -168,7 +177,7 @@ run_music <- function(
 
   # complete the estimation matrix in case of cell type dropouts
   if(!all(include.in.x %in% rownames(est.props))){
-    est.props <- complete_estimates(est.props, include.in.x)
+    est.props <- complete_estimates(est.props, colnames(X))
   }
 
   return(list(

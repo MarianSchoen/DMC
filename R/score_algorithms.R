@@ -34,7 +34,7 @@
 
 score_algorithms <- function(counts, pheno,
                              bulk_counts, bulk_pheno,
-                             bulk_cell_types = NULL, 
+                             bulk_cell_types = NULL,
                              exclude_from_signature = NULL,
                              column_names = list(
                                cell.type.column = "celltype",
@@ -43,27 +43,40 @@ score_algorithms <- function(counts, pheno,
                              ),
                              algorithm_list, nrep = 5, nsets = 4, nbulks = 250,
                              datasets = NULL) {
-  # make sure counts and pheno data match
-  if (!ncol(counts) == nrow(pheno)) {
-    stop("Data dimensions do not match.")
+  if (!is.null(counts) && !is.null(pheno)) {
+    # make sure counts and pheno data match
+    if (!ncol(counts) == nrow(pheno)) {
+      stop("Data dimensions do not match.")
+    }
+    
+    # check column names
+    for (cn in column_names) {
+      if (!cn %in% colnames(pheno)) {
+        stop(
+          paste0("Column name '", cn, "' not found in pheno data frame.")
+        )
+      }
+      if (!cn %in% colnames(bulk_pheno)) {
+        stop(
+          paste0("Column name '", cn, "' not found in pheno data frame.")
+        )
+      }
+    }
+  
+    if (any(rownames(bulk_counts) != rownames(counts))) {
+      stop("counts and bulk counts do not agree.")
+    }
   }
   
-  # check column names
-  for (cn in column_names) {
-    if (!cn %in% colnames(pheno)) {
-      stop(
-        paste0("Column name '", cn, "' not found in pheno data frame.")
-      )
-    }
-    if (!cn %in% colnames(bulk_pheno)) {
-      stop(
-        paste0("Column name '", cn, "' not found in pheno data frame.")
-      )
-    }
+  if ((is.null(bulk_counts) || is.null(bulk_pheno)) && is.null(datasets)) {
+    stop("Either supply bulk_counts and bulk_pheno or a valid 'datasets'")
+    return(NULL)
   }
-
-  if (any(rownames(bulk_counts) != rownames(counts))) {
-    stop("counts and bulk counts do not agree.")
+  if (!is.null(datasets)) {
+    if (!all(sapply(datasets, function(x) {length(x) == 2 && all(c("bulks", "props") %in% names(x))}))) {
+      stop("'datasets' not valid")
+      return(NULL)
+    }
   }
 
   # check algorithm list
@@ -98,9 +111,7 @@ score_algorithms <- function(counts, pheno,
   variances <- as.integer(seq(from = 1, to = 100, length.out = 20))
   results <- list()
   C_all <- c()
-
   cat("Creating datasets\t", as.character(Sys.time()), "\n")
-  
   if (is.null(datasets)) {
     datasets <- list()
     for (v in variances) {
@@ -148,14 +159,15 @@ score_algorithms <- function(counts, pheno,
     cat(v, ":\t")
     results[[v]] <- list()
     for (a in names(algorithm_list)) {
-      cat(a, "...\t")
+      cat(a, "...\t") 
       results[[v]][[a]] <- algorithm_list[[a]]$algorithm(
         exprs = counts,
         pheno = pheno,
         bulks = datasets[[v]]$bulks,
         cell.type.column = column_names$cell.type.column,
         exclude.from.signature = exclude_from_signature,
-        patient.column = column_names$patient.column
+        patient.column = column_names$patient.column,
+        model = algorithm_list[[a]]$model
       )$est.props
     }
     cat("\n")

@@ -61,9 +61,11 @@ deconvolute <- function(
   if (n.repeats < 1) {
     n.repeats <- 1
   }
+  if (!is.null(training.expr) && !is.null(training.pheno)) {
   if (nrow(training.pheno) != ncol(training.expr) && !is.null(training.expr)) {
       stop("Number of columns in training.expr and
            rows in training.pheno do not match")
+  }
   }
   if (!is.null(test.pheno) && !is.null(test.expr)) {
   	if (nrow(test.pheno) != ncol(test.expr)) {
@@ -147,7 +149,8 @@ deconvolute <- function(
           exclude.from.signature,
           cell.type.column = cell.type.column,
           max.genes = max.genes,
-          patient.column = patient.column
+          patient.column = patient.column,
+	  model = f$model
         )
       })[3]
       results.list[[as.character(i)]][[f$name]]$name <- f$name

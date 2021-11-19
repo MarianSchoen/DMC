@@ -42,28 +42,38 @@ run_dtd <- function(
   model_exclude = NULL
 ) {
   suppressMessages(suppressWarnings(library(Matrix, quietly = TRUE)))
-  # error checking
-  if (nrow(pheno) != ncol(exprs)) {
-      stop("Number of columns in exprs and rows in pheno do not match")
-  }
-  features <- intersect(rownames(exprs), rownames(bulks))
-  if (length(features) > 0) {
-      exprs <- exprs[features, ]
-      bulks <- bulks[features, ]
-  } else {
-      stop("no common features in bulks and expression data.")
+
+  if (is.null(model)) {
+    # error checking
+    if (is.null(exprs) || is.null(pheno)){
+      stop("If no model is given, expression and pheno data are required.")
+    }
+    if (nrow(pheno) != ncol(exprs)) {
+        stop("Number of columns in exprs and rows in pheno do not match")
+    }
+    features <- intersect(rownames(exprs), rownames(bulks))
+    if (length(features) > 0) {
+        exprs <- exprs[features, ]
+        bulks <- bulks[features, ]
+    } else {
+        stop("no common features in bulks and expression data.")
+    }
+    if (scale.cpm) {
+      # prepare phenotype data and cell types to use
+      exprs <- scale_to_count(exprs)
+    }
   }
   if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
   }
-  if (scale.cpm) {
-    # prepare phenotype data and cell types to use
-    exprs <- scale_to_count(exprs)
-  }
+ 
+  if (!is.null(exprs)) {
+	 
   if (!is.matrix(exprs)) {
 	  if (! class(exprs) == "dgCMatrix") {
 		  stop("exprs must be a matrix or sparse matrix (dgCMatrix)")
 	  }
+  }
   }
   if(!is.matrix(bulks)){
 	  if(! class(bulks) == "dgCMatrix"){
@@ -71,20 +81,20 @@ run_dtd <- function(
 	  }
   }
 
-  # prepare phenotype data and cell types to use
-  cell.types <- as.character(pheno[, cell.type.column])
-  names(cell.types) <- colnames(exprs)
-
-  cts <- unique(cell.types)
-  include.in.x <- cts
-  if (! is.null(exclude.from.signature)) {
-    if (length(which(cts %in% exclude.from.signature)) > 0) {
-      include.in.x <- cts[-which(cts %in% exclude.from.signature)]
-    }
-  }
-  rm(cts)
-
   if(is.null(model)){
+    # prepare phenotype data and cell types to use
+    cell.types <- as.character(pheno[, cell.type.column])
+    names(cell.types) <- colnames(exprs)
+    
+    cts <- unique(cell.types)
+    include.in.x <- cts
+    if (! is.null(exclude.from.signature)) {
+      if (length(which(cts %in% exclude.from.signature)) > 0) {
+        include.in.x <- cts[-which(cts %in% exclude.from.signature)]
+      }
+    }
+    rm(cts)
+    
     if (is.null(max.genes)) max.genes <- 1000
     # create reference profiles
     sample.X <- DTD::sample_random_X(
@@ -155,17 +165,22 @@ run_dtd <- function(
     sig.matrix <- dtd.model$reference.X
   }
 
+  genes <- intersect(rownames(bulks), rownames(dtd.model$reference.X))
+  dtd.model$reference.X <- dtd.model$reference.X[genes,]
+  dtd.model$best.model$Tweak <- dtd.model$best.model$Tweak[genes]
   if (!class(dtd.model) == "try-error") {
     # use the model to estimate the composition of the supplied bulks
     est.props <- DTD::estimate_c(
-      new.data = Matrix::as.matrix(bulks[rownames(sig.matrix), , drop = F]),
+      new.data = Matrix::as.matrix(bulks)[genes, , drop = F],
       DTD.model = dtd.model,
       estimate.c.type = "direct"
     )
 
-    # if any cell types dropped out during estimation complete the matrix
-    if(!all(include.in.x %in% rownames(est.props))){
-      est.props <- complete_estimates(est.props, include.in.x)
+    if (exists("include.in.x")) {
+      # if any cell types dropped out during estimation complete the matrix
+      if(!all(include.in.x %in% rownames(est.props))){
+        est.props <- complete_estimates(est.props, include.in.x)
+      }
     }
   } else {
     # if the model building failed,

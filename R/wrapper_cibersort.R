@@ -44,21 +44,24 @@ run_cibersort <- function(
   suppressMessages(library(parallel, quietly = TRUE))
   suppressMessages(library(preprocessCore, quietly = TRUE))
     # error checking
-    if (nrow(pheno) != ncol(exprs)) {
+    if (is.null(model)) {
+      if (is.null(exprs) || is.null(pheno)) {
+        stop("If no model is given, expression and pheno data are required.")
+      }
+      if (nrow(pheno) != ncol(exprs)) {
         stop("Number of columns in exprs and rows in pheno do not match")
-    }
-    features <- intersect(rownames(exprs), rownames(bulks))
-    if (length(features) > 0) {
+      }
+      features <- intersect(rownames(exprs), rownames(bulks))
+      if (length(features) > 0) {
         exprs <- exprs[features, ]
         bulks <- bulks[features, ]
-    }
-    if (!is.null(max.genes) && max.genes == 0) {
+      } else {
+        stop("No common features in bulk and single-cell data.")
+      }
+      if (!is.null(max.genes) && max.genes == 0) {
         max.genes <- NULL
-    }
-
-    if (is.null(model)) {
+      }
       if (scale.cpm) {
-          # prepare phenotype data and cell types to use
           exprs <- scale_to_count(exprs)
       }
 
@@ -94,6 +97,13 @@ run_cibersort <- function(
           stop("Not all cell types in 'model_exclude' are present in the model")
         }
       }
+      features <- intersect(rownames(bulks), rownames(df.sig))
+      if (length(features) > 0) {
+        bulks <- bulks[features,]
+        df.sig <- df.sig[features,]
+      } else {
+        stop("No common features in bulks and model.")
+      }
     }
 
     # CIBERSORT expects input to be supplied as .txt files
@@ -128,7 +138,7 @@ run_cibersort <- function(
 
     # complete the estimation matrix in case of cell type dropouts
     if (!all(colnames(ref.profiles) %in% rownames(est.props))) {
-        est.props <- complete_estimates(est.props, colnames(ref.profiles))
+        est.props <- complete_estimates(est.props, colnames(df.sig)[-1])
     }
     # CIBERSORT automatically stores the results in a file,
     # but we do not need it
@@ -139,7 +149,7 @@ run_cibersort <- function(
 
     return(list(
       est.props = est.props,
-      sig.matrix = ref.profiles,
+      sig.matrix = as.matrix(df.sig[,-1]),
       model = model
     ))
 }

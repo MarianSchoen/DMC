@@ -39,21 +39,22 @@ run_deconrnaseq <- function(
   model = NULL,
   model_exclude = NULL
   ) {
-  library(DeconRNASeq)
   # error checking
-  if (nrow(pheno) != ncol(exprs)) {
+  if (is.null(model)) {
+    if (is.null(exprs) || is.null(pheno)){
+      stop("If no model is given, expression and pheno data are required.")
+    }
+    if (nrow(pheno) != ncol(exprs)) {
       stop("Number of columns in exprs and rows in pheno do not match")
-  }
-  features <- intersect(rownames(exprs), rownames(bulks))
-  if (length(features) > 0) {
+    }
+    features <- intersect(rownames(exprs), rownames(bulks))
+    if (length(features) > 0) {
       exprs <- exprs[features, ]
       bulks <- bulks[features, ]
-  }
-  if (!is.null(max.genes) && max.genes == 0) {
+    }
+    if (!is.null(max.genes) && max.genes == 0) {
       max.genes <- NULL
-  }
-
-  if (is.null(model)) {
+    }
     if (scale.cpm) {
       # prepare phenotype data and cell types to use
       exprs <- scale_to_count(exprs)

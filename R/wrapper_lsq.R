@@ -42,33 +42,35 @@ run_least_squares <- function(
   model_exclude = NULL
 ) {
   # error checking
-  if (nrow(pheno) != ncol(exprs)) {
-      stop("Number of columns in exprs and rows in pheno do not match")
-  }
-  features <- intersect(rownames(exprs), rownames(bulks))
-  if (length(features) > 0) {
-      exprs <- exprs[features, ]
-      bulks <- bulks[features, ]
-  }
-  if (!is.null(max.genes)) {
-    if (max.genes == 0) {
-        max.genes <- NULL
-    }
-  }
-
-  cell.types <- as.character(pheno[, cell.type.column])
-  names(cell.types) <- colnames(exprs)
-
-  cts <- unique(cell.types)
-  include.in.x <- cts
-  # exclude samples of types contained in exclude.from.signature
-  if (!is.null(exclude.from.signature)) {
-    if (length(which(cts %in% exclude.from.signature)) > 0) {
-      include.in.x <- cts[-which(cts %in% exclude.from.signature)]
-    }
-  }
 
   if (is.null(model)) {
+    if (is.null(exprs) || is.null(pheno)) {
+      stop("If no model is given, expression and pheno data are required.")
+    }
+    if (nrow(pheno) != ncol(exprs)) {
+      stop("Number of columns in exprs and rows in pheno do not match")
+    }
+    features <- intersect(rownames(exprs), rownames(bulks))
+    if (length(features) > 0) {
+      exprs <- exprs[features, ]
+      bulks <- bulks[features, ]
+    }
+    if (!is.null(max.genes)) {
+      if (max.genes == 0) {
+        max.genes <- NULL
+      }
+    }
+    cell.types <- as.character(pheno[, cell.type.column])
+    names(cell.types) <- colnames(exprs)
+    
+    cts <- unique(cell.types)
+    include.in.x <- cts
+    # exclude samples of types contained in exclude.from.signature
+    if (!is.null(exclude.from.signature)) {
+      if (length(which(cts %in% exclude.from.signature)) > 0) {
+        include.in.x <- cts[-which(cts %in% exclude.from.signature)]
+      }
+    }
     if(scale.cpm){
       # prepare phenotype data and cell types to use
       exprs <- scale_to_count(exprs)
@@ -123,7 +125,7 @@ run_least_squares <- function(
 
   # if any cell types dropped out during estimation complete the matrix
   if (!all(include.in.x %in% rownames(est.props))) {
-    est.props <- complete_estimates(est.props, include.in.x)
+    est.props <- complete_estimates(est.props, colnames(sig.matrix))
   }
 
   return(list(
