@@ -6,27 +6,14 @@
 #' within the bulks (cell type x bulk)
 #' 2) real - matrix containing the true fractions of cell types
 #' within the bulks (cell type x bulk)
-#' @param metric evaluation metric; either "cor" (default) or
-#' a function conforming to the required format. See benchmark() for details.
 #' @return matrix containing all bootstrap runs with columns
 #' 'algorithm', 'cell_type' and 'score'
 
-bootstrap_bulks <- function(props, metric = "cor") {
+bootstrap_bulks <- function(props) {
   # parameter check
   if (!is.list(props) || length(props) != 2 ||
       !all(c("est", "real") %in% names(props))) {
         stop("Invalid estimated proportions ('props')")
-  }
-  if (is.character(metric)) {
-    if (metric != "cor") {
-      stop("metric must be either \"cor\" or a function")
-    }else{
-      metric <- cor
-    }
-  }else{
-    if (!is.function(metric)) {
-      stop("Function corresponding to 'metric' could not be found.")
-    }
   }
 
   estimates <- props$est
@@ -54,7 +41,7 @@ bootstrap_bulks <- function(props, metric = "cor") {
     for (a in names(estimates)) {
       scores <- c()
       for (t in cts) {
-        temp.score <- metric(bootstrap.estimates[[a]][t, ], bootstrap.real[t, ])
+        temp.score <- cor(bootstrap.estimates[[a]][t, ], bootstrap.real[t, ])
         # NAs and negative correlations are set to 0
         if (is.na(temp.score) | temp.score < 0) {
           temp.score <- 0

@@ -8,8 +8,6 @@ output:
          smooth_scroll: true
 params:
    tempdir: ""
-   metric: "cor"
-   metric.name: ""
    celltype.col: "cell_type"
 ---
 ```{r setup2, include=FALSE}
@@ -72,7 +70,7 @@ if(file.exists(plotfile)){
 <div id="score_plot_info" style="display:none" >
 
 Deconvolution result for real bulks per algorithm and cell type. 
-The plotted value is the `r metric.name`, coded by rectangle size and color 
+The plotted value is the pearson correlation coefficient, coded by rectangle size and color 
 (small to big, red to green with increasing performance).   
 Negative and undefined scores were set to 0. 
 The first column contains the average performance of each algorithm 
@@ -161,7 +159,7 @@ if(file.exists(plotfile)){
 }
 ```
 
-Bootstrapping performed to test the robustness of the chosen metric. 
+Bootstrapping performed to test the robustness of the chosen correlation. 
 After deconvolution, a number of bulks is repeatedly chosen at random 
 (with replacement) and the score is calculated each time. This gives an
 estimate of how robust the deconvolution result is. A large variance indicates 
@@ -189,7 +187,7 @@ if(file.exists(plotfile)){
 <div id="sim_score_plot_info" style="display:none" >
 
 Deconvolution result for simulated bulks per algorithm and cell type. 
-The value is the `r metric.name`, coded by rectangle size and color 
+The value is the pearson correlation coefficient, coded by rectangle size and color 
 (small to big, red to green with increasing performance). 
 Negative and undefined scores were set to 0. 
 The **overall** column contains the average performance of each algorithm 
@@ -300,7 +298,7 @@ Each algorithm could perform a separate feature selection on the gene set to
 obtain the features used in the model. 
 Gene sets are ordered by the size of the intersect of features available 
 in the gene set and the single-cell data. 
-Score is the `r metric.name`, averaged over multiple repetitions. 
+Score is the pearson correlation coefficient, averaged over multiple repetitions. 
 Errorbars show standard deviation of the score across repetitions.
 
 </div>

@@ -2,17 +2,13 @@
 #' temp_dir/report_plots
 #' 
 #' @param temp_dir string, directory containing benchmark results
-#' @param metric the metric used to evaluate deconvolution performance
-#' @param metric.name name of the evaluation metric
 #' @param genesets list of cahracter vectors specifying gene sets used
 #' @param features character vector containing all available features in data
 #' @return NULL, save plots to disk
 #' @export
 
 plot_all <- function(
-    temp_dir, 
-    metric, 
-    metric.name, 
+    temp_dir,
     genesets,
     features
   ) {
@@ -20,10 +16,6 @@ plot_all <- function(
   if (!dir.exists(plot_dir)) {
     dir.create(plot_dir)
   }
-  
-  metric.list <- check_metric(metric, metric.name)
-  metric <- metric.list$metric
-  metric.name <- metric.list$metric.name
   
   # check for results on real bulks
   real_dir <- paste0(temp_dir, "/results/real/")
@@ -39,7 +31,7 @@ plot_all <- function(
       result_lists[[f]] <- read_result_list(f)
       real_df <- rbind(
         real_df,
-        prepare_data(result_lists[[f]], metric, metric.name)
+        prepare_data(result_lists[[f]])
       )
     }
   }
@@ -67,9 +59,7 @@ plot_all <- function(
     # table plot
     score.plot.list <- evaluation_plot(
       real_df,
-      "deconvolution quality",
-      metric,
-      metric.name
+      "deconvolution quality"
     )
     score.plot <- score.plot.list$plot
     celltypes.ordered <- score.plot.list$celltype.order
@@ -99,8 +89,6 @@ plot_all <- function(
     # condition number plots
     cond.num.plots <- plot_cond_num(
       real_df,
-      metric = metric,
-      metric.name = metric.name,
       algorithm.order = algorithms.ordered
     )
   }
@@ -133,15 +121,13 @@ plot_all <- function(
       for (i in seq_len(length(results.lists))) {
         bulks.df <- rbind(
           bulks.df,
-          prepare_data(results.lists[[i]], metric, metric.name)
+          prepare_data(results.lists[[i]])
         )
       }
       
       score.plot.sim.list <- evaluation_plot(
         bulks.df,
-        "deconvolution quality (simulated bulks)",
-        metric,
-        metric.name
+        "deconvolution quality (simulated bulks)"
       )
       
       score.plot.sim <- score.plot.sim.list$plot
@@ -184,13 +170,11 @@ plot_all <- function(
       for (i in seq_len(length(results.lists))) {
         samples.df <- rbind(
           samples.df,
-          prepare_data(results.lists[[i]], metric, metric.name)
+          prepare_data(results.lists[[i]])
         )
       }
       sample.plots <- create_boxplots(
         samples.df,
-        metric = metric,
-        metric.name = metric.name,
         celltype.order = celltypes.ordered.sim,
         algorithm.order = algorithms.ordered.sim
       )
@@ -214,13 +198,11 @@ plot_all <- function(
       for (i in seq_len(length(results.lists))) {
         genes.df <- rbind(
           genes.df,
-          prepare_data(results.lists[[i]], metric, metric.name)
+          prepare_data(results.lists[[i]])
         )
       }
       gene.plots <- create_lineplots(
         genes.df,
-        metric = metric,
-        metric.name,
         genesets,
         features,
         algorithm.order = algorithms.ordered.sim,
@@ -246,7 +228,7 @@ plot_all <- function(
       for (i in seq_len(length(results.lists))) {
         subtypes.df <- rbind(
           subtypes.df,
-          prepare_data(results.lists[[i]], metric, metric.name)
+          prepare_data(results.lists[[i]])
         )
       }
       score.plot.subtype <- subtype_plot(subtypes.df)

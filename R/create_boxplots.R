@@ -1,11 +1,6 @@
 #' create boxplots of deconvolution results for each algorithm
 #'
 #' @param results.df data frame as returned by prepare_data
-#' @param metric evaluation metric; either string 'cor' (default) or a function
-#' @param metric.name string, name of the evaluation metric used;
-#' not needed if metric is a string ("cor").
-#' If metric is a function and metric.name
-#' is NULL, the default will be "custom metric"
 #' @param celltype.order character vector of cell types
 #' specifying the plotting order
 #' @param algorithm.order character vector of algorithm names
@@ -15,8 +10,6 @@
 
 create_boxplots <- function(
   results.df,
-  metric = "cor",
-  metric.name = NULL,
   celltype.order = NULL,
   algorithm.order = NULL
 ) {
@@ -45,10 +38,6 @@ create_boxplots <- function(
         stop("algorithm.order does not fit the algorithm column of results.df")
     }
   }
-  # check metric
-  metric.list <- check_metric(metric, metric.name)
-  metric <- metric.list$metric
-  metric.name <- metric.list$metric.name
   
   overall.df <- results.df[which(results.df$cell_type == "overall"), ]
 
@@ -80,7 +69,7 @@ create_boxplots <- function(
     cell.type.plots[[t]] <- ggplot(sub.df, aes(x = algorithm, y = score)) +
       geom_boxplot(aes(col = algorithm)) +
       xlab("algorithm") +
-      ylab(metric.name) +
+      ylab("correlation") +
       ggtitle("quality of deconvolution results", subtitle = t) +
       theme(
         legend.text = element_text(size = 20),

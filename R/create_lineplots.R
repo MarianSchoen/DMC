@@ -1,11 +1,6 @@
 #' create lineplots of deconvolution results and runtime for different gene sets
 #'
 #' @param results.df data frame as returned by prepare_data
-#' @param metric evaluation metric; either string 'cor' (default) or a function
-#' @param metric.name string, name of the evaluation metric used;
-#' not needed if metric is a string ("cor").
-#' If metric is a function and metric.name
-#' is NULL, the default will be "custom metric"
 #' @param genesets list of gene sets (character vectors)
 #' @param available.features character vector containing names
 #' of available features
@@ -19,8 +14,6 @@
 
 create_lineplots <- function(
   results.df,
-  metric = "cor",
-  metric.name = NULL,
   genesets = NULL,
   available.features = NULL,
   celltype.order = NULL,
@@ -31,7 +24,7 @@ create_lineplots <- function(
     stop("results.df must be a data frame")
   }
   required_cols <- c(
-    "algorithm", "score", "metric", "geneset", "cell_type", "time"
+    "algorithm", "score","geneset", "cell_type", "time"
   )
   if (!all(required_cols %in% colnames(results.df))) {
     stop("required columns missing from results.df")
@@ -64,10 +57,6 @@ create_lineplots <- function(
       stop("algorithm.order does not fit the algorithm column of results.df")
     }
   }
-  # check metric
-  metric.list <- check_metric(metric, metric.name)
-  metric <- metric.list$metric
-  metric.name <- metric.list$metric.name
 
   overall.df <- results.df[which(results.df$cell_type == "overall"), ]
   # order algorithms by performance or given order
@@ -167,7 +156,7 @@ create_lineplots <- function(
       width = 0.2
     ) +
     xlab("gene set (increasing size)") +
-    ylab(metric.name) +
+    ylab("correlation") +
     ggtitle(paste(
       "deconvolution quality using different gene sets (", t, ")", sep = ""
     )) +

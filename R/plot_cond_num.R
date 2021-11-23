@@ -1,11 +1,6 @@
 #' create condition number plots for deconvolution results
 #'
 #' @param results.df data frame containing results as returned by prepare_data
-#' @param metric evaluation metric; either string 'cor' (default) or a function
-#' @param metric.name string, name of the evaluation metric used;
-#' not needed if metric is a string ("cor", default).
-#' If metric is a function and metric.name is NULL,
-#' the default will be "custom metric"
 #' @param algorithm.order character vector of algorithm names
 #' specifying the plotting order
 #' @return list containing 3 plots:\cr
@@ -17,8 +12,6 @@
 
 plot_cond_num <- function(
   results.df,
-  metric = "cor",
-  metric.name = NULL,
   algorithm.order = NULL
 ) {
   if (!is.data.frame(results.df)) {
@@ -28,10 +21,6 @@ plot_cond_num <- function(
   if (!all(required_cols %in% colnames(results.df))) {
       stop("required columns missing from results.df")
   }
-  # check metric
-  metric.list <- check_metric(metric, metric.name)
-  metric <- metric.list$metric
-  metric.name <- metric.list$metric.name
   
   if (!is.null(algorithm.order)) {
       if (!is.character(algorithm.order)) {

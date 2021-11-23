@@ -2,10 +2,6 @@
 #'
 #' @param results.df data frame as returned by prepare_data
 #' @param title character, plot title
-#' @param metric evaluation metric; either string 'cor' (default) or a function
-#' @param metric.name string, name of the evaluation metric used;
-#' not needed if metric is a string ("cor", default). If metric is a function
-#' and metric.name is NULL, the default will be "custom metric"
 #' @param real.props non-negative numeric matrix, with cell types as rows,
 #' and bulk RNA-Seq profiles.
 #' @param celltype.order character vector of cell types specifying
@@ -20,8 +16,6 @@
 evaluation_plot <- function(
   results.df,
   title = NULL,
-  metric = "cor",
-  metric.name = NULL,
   real.props = NULL,
   celltype.order = NULL,
   algorithm.order = NULL
@@ -30,17 +24,13 @@ evaluation_plot <- function(
   if (!is.data.frame(results.df)) {
     stop("results.df must be a data frame")
   }
-  required_names <- c("algorithm", "score", "cell_type", "metric")
+  required_names <- c("algorithm", "score", "cell_type")
   if (!all(required_names %in% colnames(results.df))) {
     stop("required columns missing from results.df")
   }
   if (is.null(title)) {
       title <- "deconvolution quality"
   }
-  # check metric
-  metric.list <- check_metric(metric, metric.name)
-  metric <- metric.list$metric
-  metric.name <- metric.list$metric.name
   
   if (!is.null(real.props) && !is.matrix(real.props)) {
     stop("real.props is not a matrix")
@@ -80,7 +70,7 @@ evaluation_plot <- function(
           c(
             mean(results.df[subset, ]$score),
             sd(results.df[subset, ]$score),
-            ct, a, metric.name
+            ct, a, "correlation"
           )
         )
       }
@@ -162,7 +152,7 @@ evaluation_plot <- function(
   geom_point(aes(size = value, col = value, fill = value), shape = 22)  +
   geom_point(shape = 22, fill = NA, color = "black", size = 25) +
   xlab("cell type") + ylab("algorithm") +
-  ggtitle(title, subtitle = metric.name) +
+  ggtitle(title, subtitle = "correlation") +
   scale_size_continuous(limits = c(0, 1), range = c(0, 25), guide = "none") +
   theme(
     axis.text.x = element_text(size = 14),

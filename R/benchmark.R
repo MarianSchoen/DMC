@@ -46,14 +46,6 @@
 #' correlation fits be generated? default: FALSE
 #' @param genesets named list of string vectors, each must match subset of
 #' 'rownames(sc.counts)'. default: NULL
-#' @param metric method of result evaluation; either "cor" (default)
-#' or a function. An evaluation function must receive two vectors
-#' (real and estimated proportions of a cell type across all bulks) as input and
-#' return a single value as output.
-#' Note that the score should be between 0 and 1.
-#' @param metric.name string, name of the evaluation metric used;
-#' not needed if metric is a string ("cor"). If metric is a function and
-#' metric.name is NULL, the default will be "custom metric"
 #' @param repeats numeric > 0,
 #' number of repetitions for each algorithm in each setting. default: 5
 #' @param temp.dir string, directory where data, and benchmarks get stored.
@@ -94,7 +86,6 @@ benchmark <- function(
   simulation.subtypes = FALSE,
   score.algorithms = FALSE,
   genesets = NULL,
-  metric = "cor", metric.name = NULL,
   repeats = 5,
   temp.dir = NULL,
   exclude.from.bulks = NULL,
@@ -216,11 +207,6 @@ benchmark <- function(
 		warning("No gene sets provided; skipping that benchmark")
 		simulation.genes <- FALSE
 	}
-	
-	# check metric parameters
-	metric.list <- check_metric(metric, metric.name)
-	metric <- metric.list$metric
-	metric.name <- metric.list$metric.name
 	
 	if (!is.null(grouping) && (!is.null(sc.counts) || !is.null(sc.pheno))) {
   	if (!is.factor(grouping) || length(levels(grouping)) != 2 ||
@@ -924,8 +910,6 @@ benchmark <- function(
 	  )
 	plot_all(
 	  temp_dir = output.folder,
-	  metric = metric,
-	  metric.name = metric.name,
 	  genesets = geneset,
 	  features = rownames(training.exprs)
 	)
@@ -936,7 +920,7 @@ benchmark <- function(
   	# create results markdown
   	report.path <- suppressWarnings(
       render_results(
-        output.folder, metric, metric.name, benchmark.name, cell.type.column
+        output.folder, benchmark.name, cell.type.column
       )
     )
   	cat("Done\t\t\t\t", as.character(Sys.time()), "\n\n", sep = "")

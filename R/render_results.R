@@ -4,10 +4,6 @@
 #' Usually \code{paste(temp.dir,"/",benchmark.name,sep="")},
 #' where \code{temp.dir} and \code{benchmark.name}
 #' are parameters of \link{benchmark}.
-#' @param metric evaluation metric; either string 'cor' (default) or a function
-#' @param metric.name string, name of the evaluation metric used;
-#' not needed if metric is a string ("cor"). If metric is a function and
-#' metric.name is NULL, the default will be "custom metric"
 #' @param benchmark.name string, name of the benchmark to be included in
 #' report filename
 #' @param celltype.col string, name of the column in sc.pheno that contains
@@ -17,8 +13,6 @@
 
 render_results <- function(
 	temp.dir,
-	metric = "cor",
-	metric.name = NULL,
 	benchmark.name = "",
 	celltype.col = "cell_type"
 ) {
@@ -26,10 +20,6 @@ render_results <- function(
 	if (!dir.exists(temp.dir)) {
 		stop("Invalid temp directory")
 	}
-  # check metric
-  metric.list <- check_metric(metric, metric.name)
-  metric <- metric.list$metric
-  metric.name <- metric.list$metric.name
 
 	# render the template to pdf with the data stored in temp.dir
 	rmarkdown::render(
@@ -40,8 +30,6 @@ render_results <- function(
 		),
   	params = list(
 			tempdir = temp.dir,
-			metric = metric,
-			metric.name = metric.name,
 			celltype.col = celltype.col
 		),
 	  output_file = paste(
