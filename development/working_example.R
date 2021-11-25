@@ -34,7 +34,7 @@ grouping <- rep(1, (length(training.samples)+length(test.samples)))
 grouping[test.samples] <- 2
 
 tic("working example")
-benchmark(
+result <- benchmark(
   sc.counts = cll.exprs
   , sc.pheno = cll.pheno
   , bulk.counts = bulks$bulks
@@ -46,9 +46,10 @@ benchmark(
   , simulation.genes = TRUE
   , simulation.samples = TRUE
   , simulation.subtypes = TRUE
-  , repeats = 1
+  , repeats = 2
   , grouping = as.factor(grouping)
-  , temp.dir = "/data/tim/DAB_test_temp"
-  , input.algorithms = list("DTD", "MuSiC", "Least_Squares", "DeconRNASeq")
+  , temp.dir = "/home/tim/Git/DeconvolutionAlgorithmBenchmarking/.tmp/DAB_test_temp"
+  , input.algorithms = list("DTD", "Least_Squares")
+  , verbose = TRUE
   )
 toc()

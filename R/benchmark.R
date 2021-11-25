@@ -690,7 +690,7 @@ benchmark <- function(
       )
 
       # remove real bulk results from RAM
-    	rm(list = c("real.benchmark", "estimates", "props", "bootstrap.real"))
+    	rm(list = c("estimates", "props", "bootstrap.real"))
     	gc()
   	}
 	}else{
@@ -910,7 +910,7 @@ benchmark <- function(
 	  )
 	plot_all(
 	  temp_dir = output.folder,
-	  genesets = geneset,
+	  genesets = genesets,
 	  features = rownames(training.exprs)
 	)
 	
@@ -953,5 +953,9 @@ benchmark <- function(
 			}
 		}
 	}
-	return(list(report_path = report.path, bulk_results = real.benchmark))
+	if (exists("real.benchmark")) {
+		return(list(report_path = report.path, bulk_results = real.benchmark))
+	} else {
+		return(list(report_path = report.path, bulk_results = NULL))
+	}
 }

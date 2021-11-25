@@ -308,7 +308,7 @@ plot_all <- function(
   # bulk simulation
   if (exists("bulks.df")) {
     score.width <- length(unique(bulks.df$cell_type)) * 2
-    score.height <- length(unique(bulks,df$algorithm)) * 2
+    score.height <- length(unique(bulks.df$algorithm)) * 2
     pdf(
       paste0(plot_dir, "/score_plot_simulated.pdf"),
       width = score.width,

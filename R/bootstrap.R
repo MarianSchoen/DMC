@@ -12,7 +12,7 @@ bootstrap_results <- function(real, estimate, nrep = 1000) {
     samples <- sample(1:length(estimate), length(estimate), replace = TRUE)
     correlations <- c(correlations, cor(real[samples], estimate[samples]))
   }
-  print(cor(real, estimate))
-  print(mean(correlations))
+  #print(cor(real, estimate))
+  #print(mean(correlations))
   return(list(mean_cor = mean(correlations), error = sd(correlations)))
 }

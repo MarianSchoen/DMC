@@ -69,6 +69,7 @@ evaluation_plot <- function(
           quality.scores,
           c(
             mean(results.df[subset, ]$score),
+            mean(results.df[subset, ]$error),
             sd(results.df[subset, ]$score),
             ct, a, "correlation"
           )
@@ -84,7 +85,7 @@ evaluation_plot <- function(
   # convert to data frame for plotting
   quality.scores <- as.data.frame(quality.scores)
   colnames(quality.scores) <- c(
-    "value", "sd", "cell_type", "algorithm", "measure"
+    "value", "bootstrap_error","sd", "cell_type", "algorithm", "measure"
   )
   # create labels for cell types in table plots
   if (is.null(celltype.order)) {
