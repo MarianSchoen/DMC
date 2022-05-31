@@ -42,8 +42,6 @@
 #' selected training profiles be performed? default: FALSE
 #' @param simulation.subtypes boolean, should deconvolution of simulated bulks
 #' with artificial subtypes of given cell types be performed? default: FALSE
-#' @param score.algorithms boolean, should algorithm scores be calculated and
-#' correlation fits be generated? default: FALSE
 #' @param genesets named list of string vectors, each must match subset of
 #' 'rownames(sc.counts)'. default: NULL
 #' @param repeats numeric > 0,
@@ -84,7 +82,6 @@ benchmark <- function(
   simulation.genes = FALSE,
   simulation.samples = FALSE, 
   simulation.subtypes = FALSE,
-  score.algorithms = FALSE,
   genesets = NULL,
   repeats = 5,
   temp.dir = NULL,
@@ -841,40 +838,6 @@ benchmark <- function(
 			  rm(list = c("all.exprs", "all.pheno"))
 			  gc()
 			}
-
-      if (s == "scores") {
-        cat(
-          "scoring algorithms...\t\t", as.character(Sys.time()), "\n", sep = ""
-        )
-        data_file <- paste0(
-          output.folder,"/results/simulation/",s,"/datasets.rds"
-        )
-        if (res.no > 1 && file.exists(data_file)) {
-          datasets <- readRDS(data_file)
-        } else {
-          datasets <- NULL
-        }
-        
-        bulk.cts <- NULL
-        benchmark.results <- score_algorithms(
-          counts = training.exprs,
-          pheno = training.pheno,
-          bulk_counts = test.exprs,
-          bulk_pheno = test.pheno,
-          bulk_cell_types = bulk.cts,
-          exclude_from_signature = exclude.from.signature,
-          column_names = list(
-            cell.type.column = cell.type.column,
-            patient.column = patient.column,
-            sample.name.column = sample.name.column
-          ),
-          algorithm_list = algorithms[to.run],
-          nrep = repeats,
-          nsets = 4,
-          nbulks = 250,
-          dataset = datasets
-        )
-      }
 
 			if (!dir.exists(
             paste(output.folder, "/results/simulation/", s, sep = "")
