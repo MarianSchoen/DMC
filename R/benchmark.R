@@ -378,17 +378,29 @@ benchmark <- function(
 	# Data preparation
 	cat("data preparation...\t\t", as.character(Sys.time()), "\n", sep = "")
 	if (!is.null(sc.counts)) {
-  	if (class(sc.counts) != "dgCMatrix") {
+  	if (length(class(sc.counts)) > 1) {
   	  cat("Converting count matrix to sparse matrix...\n")
   		sc.counts <- Matrix(sc.counts, sparse = TRUE)
   		class(sc.counts) <- "dgCMatrix"
+  	} else {
+  	  if (class(sc.counts) != "dgCMatrix") {
+  	    cat("Converting count matrix to sparse matrix...\n")
+  	    sc.counts <- Matrix(sc.counts, sparse = TRUE)
+  	    class(sc.counts) <- "dgCMatrix"
+  	  }
   	}
 	}
 	if (!is.null(bulk.counts)) {
-		if (class(bulk.counts) != "dgCMatrix") {
-	     bulk.counts <- Matrix(bulk.counts, sparse = TRUE)
-       class(bulk.counts) <- "dgCMatrix"
-		}
+	  if (length(class(bulk.counts)) == 1) {
+	    if (class(bulk.counts) != "dgCMatrix") {
+	      bulk.counts <- Matrix(bulk.counts, sparse = TRUE)
+	      class(bulk.counts) <- "dgCMatrix"
+	    }
+	  } else if (length(class(bulk.counts)) > 1) {
+	    bulk.counts <- Matrix(bulk.counts, sparse = TRUE)
+	    class(bulk.counts) <- "dgCMatrix"
+	  }
+		
 	}
 
 	# load / process / store data

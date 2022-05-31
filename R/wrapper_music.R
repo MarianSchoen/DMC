@@ -168,7 +168,7 @@ run_music <- function(
   })
   })
 
-  if (class(est.props) == "try-error") {
+  if (length(class(est.props)) == 1 && class(est.props) == "try-error") {
     warning("Error in MuSiC. Returning NULL.")
     return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
   }

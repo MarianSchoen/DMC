@@ -21,7 +21,7 @@ biocViews:
 Depends: ggplot2, Matrix
 Imports: DTD, qvalue, DescTools, DeconRNASeq, e1071, rhdf5, parallel,
   preprocessCore, MuSiC, Biobase, bseqsc, xbioc, rmarkdown, digest,
-  Rtsne, tictoc, umap, uwot, reshape2, multtest, DescTools
+  Rtsne, tictoc, umap, uwot, reshape2, multtest, DescTools, GEOquery
 RoxygenNote: 7.1.1
 Remotes: spang-lab/DTD,
 	renozao/xbioc,
