@@ -119,9 +119,13 @@ run_cibersort_random_genes <- function(
       mixture_file = "CIBERSORT/mixture.txt",
       QN = TRUE, perm = 0
   )})
-  if (class(result) == "try-error") {
-    return(list(est.props = NULL, sig.matrix = NULL))
+  if (length(class(result)) == 1)
+  {
+    if (class(result) == "try-error") {
+      return(list(est.props = NULL, sig.matrix = NULL))
+    }
   }
+  
 
   # drop the additional information in the last 3 columns
   last_cols <- (ncol(result) - 2):ncol(result)

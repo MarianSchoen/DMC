@@ -130,10 +130,14 @@ run_bseqsc <- function(
         ct.scale = TRUE
       )
     })
-    if (class(B) == "try-error") {
-      warning("BSEQ-sc signature matrix creation failed")
-      return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+    if (length(class(B)) == 1)
+    {
+      if (class(B) == "try-error") {
+        warning("BSEQ-sc signature matrix creation failed")
+        return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+      }
     }
+    
     model <- list(B = B)
   }else{
     B <- model$B
@@ -152,10 +156,13 @@ run_bseqsc <- function(
   fit <- try(
     bseqsc::bseqsc_proportions(bulks, B, log = F, verbose = verbose)
   )
-  if (class(fit) == "try-error") {
-    warning("BSEQ-sc estimation failed")
-    return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+  if (length(class(fit)) == 1) {
+    if (class(fit) == "try-error") {
+      warning("BSEQ-sc estimation failed")
+      return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+    }
   }
+  
 
   # complete the estimation matrix in case of dropout cell types
   if (!all(unique(pheno[[cell.type.column]]) %in% rownames(fit$coefficients))) {

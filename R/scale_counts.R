@@ -8,8 +8,14 @@
 
 scale_to_count <- function(exprs, count = NULL) {
   # parameter check
-  if (!(is.matrix(exprs) || class(exprs) == "dgCMatrix")) {
-    stop("exprs must be a matrix")
+  if (length(class(exprs)) == 1)
+  {
+    if (class(exprs) != "dgCMatrix" && !is.matrix(exprs))
+      stop("exprs must be a matrix")
+  } else {
+    if (!is.matrix(exprs)) {
+      stop("exprs must be a matrix")
+    }
   }
   # scale total sum either to given value (count)
   # or to the number of rows

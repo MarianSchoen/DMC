@@ -97,17 +97,19 @@ run_deconrnaseq <- function(
     )
   ))
 
-  if (!class(result) == "try-error") {
-    # select the interesting rows and transpose to have bulks = columns
-    result <- t(result$out.all[1:ncol(bulks), , drop = FALSE])
-    colnames(result) <- colnames(bulks)
-
-    # complete estimation matrix in case of droput cell types
-    if (!all(colnames(ref.profiles) %in% rownames(result))) {
-      result <- complete_estimates(result, colnames(ref.profiles))
+  if (length(class(result)) == 1)
+  {
+    if (class(result) == "try-error") {
+      return(list(est.props = NULL, sig.matrix = ref.profiles, model = model))
     }
-    return(list(est.props = result, sig.matrix = ref.profiles, model = model))
-  } else {
-    return(list(est.props = NULL, sig.matrix = ref.profiles, model = model))
   }
+  # select the interesting rows and transpose to have bulks = columns
+  result <- t(result$out.all[1:ncol(bulks), , drop = FALSE])
+  colnames(result) <- colnames(bulks)
+
+  # complete estimation matrix in case of droput cell types
+  if (!all(colnames(ref.profiles) %in% rownames(result))) {
+    result <- complete_estimates(result, colnames(ref.profiles))
+  }
+  return(list(est.props = result, sig.matrix = ref.profiles, model = model))
 }

@@ -26,11 +26,18 @@ write_data <- function(
   # assume that sc.counts and sc.pheno are never written independently...
   # in the context of this benchmark this is sensible
   if (!is.null(sc.counts) && !is.null(sc.pheno)) {
-    if (!(is.matrix(sc.counts) || class(sc.counts) == "dgCMatrix") ||
-        !is.data.frame(sc.pheno) || is.null(rownames(sc.counts)) ||
+    if (length(class(sc.counts)) > 1 && !is.matrix(sc.counts))
+    {
+      stop("Invalid count data.")
+    }
+    if (length(class(sc.counts)) == 1 && !(class(sc.counts) == "dgCMatrix"))
+    {
+      stop("Invalid count data.")
+    }
+    if (!is.data.frame(sc.pheno) || is.null(rownames(sc.counts)) ||
         is.null(colnames(sc.counts)) || is.null(rownames(sc.pheno)) ||
         is.null(colnames(sc.pheno))) {
-      stop("Invalid counts and pheno data.")
+      stop("Invalid count data.")
     }
     rhdf5::h5createGroup(filename, "singlecell")
     rhdf5::h5write(
@@ -62,8 +69,11 @@ write_data <- function(
   }
   # write bulks if present
   if (!is.null(bulk.counts)) {
-    if (!(is.matrix(bulk.counts) || class(bulk.counts) == "dgCMatrix") ||
-        is.null(rownames(bulk.counts)) || is.null(colnames(bulk.counts))) {
+    if (length(class(bulk.counts)) == 1 && class(bulk.counts) != "dgCMatrix")
+      stop(
+        "Invalid bulk counts data. Must be matrix with colnames and rownames."
+      )
+    if (! is.matrix(bulk.counts) || is.null(rownames(bulk.counts)) || is.null(colnames(bulk.counts))) {
       stop(
         "Invalid bulk counts data. Must be matrix with colnames and rownames."
       )

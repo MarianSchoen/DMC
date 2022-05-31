@@ -125,8 +125,11 @@ run_cibersort_lm22_genes <- function(
       QN = TRUE, perm = 0
     )
   })
-  if (class(result) == "try-error") {
-    return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+  if (length(class(result)) == 1)
+  {
+    if (class(result) == "try-error") {
+      return(list(est.props = NULL, sig.matrix = NULL, model = NULL))
+    }
   }
 
   # drop the additional information in the last 3 columns

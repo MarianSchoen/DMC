@@ -64,7 +64,8 @@ check_algorithms <- function(algorithms) {
         )
       })
 
-      if (class(res) == "try-error" || !is.list(res) ||
+      if (length(class(res)) == 1) {
+        if (class(res) == "try-error" || !is.list(res) ||
           !all(c("est.props", "sig.matrix", "model") %in% names(res))) {
             warning(
               paste(
@@ -73,7 +74,12 @@ check_algorithms <- function(algorithms) {
                   (est.props, sig.matrix, model). Please check implementation"
               )
             )
-      }
+        }
+      } else {
+        warning(
+          "Algorithm ", a$name, "did not return expected values. (est.props, sig.matrix, model). Please check implementation"
+        )
+      } 
     }
     cat("\n")
 }

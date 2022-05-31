@@ -70,15 +70,19 @@ run_dtd <- function(
   if (!is.null(exprs)) {
 	 
   if (!is.matrix(exprs)) {
-	  if (! class(exprs) == "dgCMatrix") {
-		  stop("exprs must be a matrix or sparse matrix (dgCMatrix)")
-	  }
+    if (length(class(exprs)) == 1) {
+      if (! class(exprs) == "dgCMatrix") {
+		    stop("exprs must be a matrix or sparse matrix (dgCMatrix)")
+	    }
+    }
   }
   }
   if(!is.matrix(bulks)){
-	  if(! class(bulks) == "dgCMatrix"){
+    if (length(class(bulks)) == 1) {
+      if(! class(bulks) == "dgCMatrix"){
 		    stop("bulks must be a matrix or sparse matrix (dgCMatrix)")
-	  }
+	    }
+    }
   }
 
   if(is.null(model)){
@@ -168,7 +172,7 @@ run_dtd <- function(
   genes <- intersect(rownames(bulks), rownames(dtd.model$reference.X))
   dtd.model$reference.X <- dtd.model$reference.X[genes,]
   dtd.model$best.model$Tweak <- dtd.model$best.model$Tweak[genes]
-  if (!class(dtd.model) == "try-error") {
+  if (class(dtd.model) != "try-error") {
     # use the model to estimate the composition of the supplied bulks
     est.props <- DTD::estimate_c(
       new.data = Matrix::as.matrix(bulks)[genes, , drop = F],
