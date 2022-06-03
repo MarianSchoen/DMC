@@ -57,6 +57,7 @@ evaluation_plot <- function(
   
   # cannot plot negative values -> cutoff at 0
   results.df[which(!is.na(results.df$score) & results.df$score < 0), "score"] <- 0
+  print(str(results.df))
 
   # reduce to one entry per cell type and algorithm
   # by taking the mean over repetitions
@@ -108,11 +109,13 @@ evaluation_plot <- function(
     }
   }
 
+  
   # cleaner plot by setting negative correlations to 0
   quality.scores$value <- as.numeric(as.character(quality.scores$value))
   quality.scores$sd <- as.numeric(as.character(quality.scores$sd))
-  if (any(quality.scores$value < 0)) {
-    quality.scores$value[quality.scores$value < 0] <- 0
+  non_NA_indices <- which(!is.na(quality.scores$value))
+  if (any(quality.scores$value[non_NA_indices] < 0)) {
+    quality.scores$value[non_NA_indices[non_NA_indices < 0]] <- 0
   }
   #if (any(is.na(quality.scores$value))) {
   #  #warning("NAs detected")

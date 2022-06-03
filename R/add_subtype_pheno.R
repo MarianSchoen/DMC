@@ -61,6 +61,7 @@ add_subtype_pheno <- function(
 
     for (cell.type in unique(sc.pheno[[cell.type.column]])) {
       profiles.pos <- which(sc.pheno[[cell.type.column]] == cell.type)
+      n.new.clusters <- min(n.new.clusters, length(profiles.pos))
 
       if (n.new.clusters < 2) {
         sc.pheno[[new.entry.name]][profiles.pos] <- cell.type

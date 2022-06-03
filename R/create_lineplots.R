@@ -79,6 +79,11 @@ create_lineplots <- function(
     )
   }
 
+  if (any(is.na(results.df$geneset))) {
+	 geneset_vec <- as.character(results.df$geneset)
+	 geneset_vec[is.na(geneset_vec)] <- "default"
+	 results.df$geneset <- as.factor(geneset_vec)
+  }
 
   # create display labels for gene sets and
   # sort according to number of genes if possible
@@ -106,11 +111,13 @@ create_lineplots <- function(
     geneset.labs <- levels(results.df$geneset)
     geneset.limits <- levels(results.df$geneset)
   }
-  
+ 
+   
   # create plot per cell type (including overall)
   cell.type.plots <- list()
   for (t in levels(results.df$cell_type)) {
     sub.df <- results.df[which(results.df$cell_type == t), ]
+    print(sub.df)
     # create data frame containing score for each
     # algorithm and gene set for this cell type
     temp.scores <- tapply(
@@ -128,6 +135,7 @@ create_lineplots <- function(
       list(sub.df$algorithm, sub.df$geneset),
       mean
     )
+    
     temp.df <- data.frame()
     for (i in seq_len(ncol(temp.scores))) {
       for (j in seq_len(nrow(temp.scores))) {
@@ -143,6 +151,8 @@ create_lineplots <- function(
         )
       }
     }
+    if (nrow(temp.df) == 0)
+	    next
     temp.df$geneset <- factor(temp.df$geneset, levels = geneset.limits)
 
     cell.type.plots[[t]] <- ggplot(
@@ -173,6 +183,7 @@ create_lineplots <- function(
     )
     cell.type.plots[[t]] <- cell.type.plots[[t]] + ylim(0, 1)
     # create only one runtime plot
+    
     if (t == "overall") {
       runtime.plot <- ggplot(
         temp.df,
