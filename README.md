@@ -1,4 +1,4 @@
-# Deconvolution Algorithm Benchmarking
+# Deconvolution Model Comparison  
 
 One model does not deconvolute all datasets best. There are several factors, biological and technical, that influence deconvolution performance, which may have different effects on different algorithms.  
 This package enables easy comparison of deconvolution models on a given dataset, which may be used to determine the best algorithm for a specific use case.
@@ -55,7 +55,7 @@ The function must return a list with two entries, `est.props` (the estimated pro
 ## Test your wrapper
 The package contains a function for checking whether a wrapper function complies with the package standards
 ```
-DAB::check_algorithm(list(algorithm = run_<ALGO>, name = "ALGO", model = NULL))
+DMC::check_algorithm(list(algorithm = run_<ALGO>, name = "ALGO", model = NULL))
 ```
 
 ## Use it in the benchmark
