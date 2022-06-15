@@ -10,9 +10,6 @@ check_algorithms(algorithms)
 \item{algorithms}{list containing a list for each algorithm. Each sublist
 contains \cr 1) name: character  \cr 2) algorithm: function}
 }
-\value{
-
-}
 \description{
 check a list of algorithms for compatitbility with \link{benchmark}
 }

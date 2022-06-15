@@ -4,22 +4,10 @@
 \alias{plot_cond_num}
 \title{create condition number plots for deconvolution results}
 \usage{
-plot_cond_num(
-  results.df,
-  metric = "cor",
-  metric.name = NULL,
-  algorithm.order = NULL
-)
+plot_cond_num(results.df, algorithm.order = NULL)
 }
 \arguments{
 \item{results.df}{data frame containing results as returned by prepare_data}
-
-\item{metric}{evaluation metric; either string 'cor' (default) or a function}
-
-\item{metric.name}{string, name of the evaluation metric used;
-not needed if metric is a string ("cor", default).
-If metric is a function and metric.name is NULL,
-the default will be "custom metric"}
 
 \item{algorithm.order}{character vector of algorithm names
 specifying the plotting order}

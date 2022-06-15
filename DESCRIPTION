@@ -19,14 +19,9 @@ LazyData: true
 biocViews:
 Depends: ggplot2, Matrix
 Imports: DTD, qvalue, DescTools, e1071, rhdf5, parallel,
-  preprocessCore, Biobase, xbioc, rmarkdown, digest,
+  preprocessCore, Biobase, rmarkdown, digest,
   Rtsne, tictoc, umap, uwot, reshape2, multtest, DescTools, GEOquery
-Suggests: DeconRNASeq, MuSiC, bseqsc
-RoxygenNote: 7.1.1
-Remotes: spang-lab/DTD,
-	renozao/xbioc,
-	xuranw/MuSiC,
-	shenorrLab/bseqsc
-Suggests: 
-    knitr
+Suggests: knitr
+RoxygenNote: 7.2.0
+Remotes: spang-lab/DTD
 VignetteBuilder: knitr

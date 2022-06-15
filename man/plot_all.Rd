@@ -5,14 +5,10 @@
 \title{load results from temp_dir, create all possible plots and save them into
 temp_dir/report_plots}
 \usage{
-plot_all(temp_dir, metric, metric.name, genesets, features)
+plot_all(temp_dir, genesets, features)
 }
 \arguments{
 \item{temp_dir}{string, directory containing benchmark results}
-
-\item{metric}{the metric used to evaluate deconvolution performance}
-
-\item{metric.name}{name of the evaluation metric}
 
 \item{genesets}{list of cahracter vectors specifying gene sets used}
 

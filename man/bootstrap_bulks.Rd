@@ -5,7 +5,7 @@
 \title{this functions performs bootstrapping on the real bulk deconvolution results
 to determine the stability of the deconvolution results}
 \usage{
-bootstrap_bulks(props, metric = "cor")
+bootstrap_bulks(props)
 }
 \arguments{
 \item{props}{list with two entries:
@@ -13,9 +13,6 @@ bootstrap_bulks(props, metric = "cor")
 within the bulks (cell type x bulk)
 2) real - matrix containing the true fractions of cell types
 within the bulks (cell type x bulk)}
-
-\item{metric}{evaluation metric; either "cor" (default) or
-a function conforming to the required format. See benchmark() for details.}
 }
 \value{
 matrix containing all bootstrap runs with columns

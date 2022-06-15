@@ -19,10 +19,7 @@ benchmark(
   simulation.genes = FALSE,
   simulation.samples = FALSE,
   simulation.subtypes = FALSE,
-  score.algorithms = FALSE,
   genesets = NULL,
-  metric = "cor",
-  metric.name = NULL,
   repeats = 5,
   temp.dir = NULL,
   exclude.from.bulks = NULL,
@@ -31,7 +28,6 @@ benchmark(
   cpm = FALSE,
   verbose = FALSE,
   n.cluster.sizes = c(1, 2, 4, 8),
-  cibersort.path = NULL,
   n.profiles.per.bulk = 1000,
   report = TRUE
 )
@@ -93,21 +89,8 @@ selected training profiles be performed? default: FALSE}
 \item{simulation.subtypes}{boolean, should deconvolution of simulated bulks
 with artificial subtypes of given cell types be performed? default: FALSE}
 
-\item{score.algorithms}{boolean, should algorithm scores be calculated and
-correlation fits be generated? default: FALSE}
-
 \item{genesets}{named list of string vectors, each must match subset of
 'rownames(sc.counts)'. default: NULL}
-
-\item{metric}{method of result evaluation; either "cor" (default)
-or a function. An evaluation function must receive two vectors
-(real and estimated proportions of a cell type across all bulks) as input and
-return a single value as output.
-Note that the score should be between 0 and 1.}
-
-\item{metric.name}{string, name of the evaluation metric used;
-not needed if metric is a string ("cor"). If metric is a function and
-metric.name is NULL, the default will be "custom metric"}
 
 \item{repeats}{numeric > 0,
 number of repetitions for each algorithm in each setting. default: 5}
@@ -131,9 +114,6 @@ default: FALSE}
 
 \item{n.cluster.sizes}{vector of integers, number of artificial subtypes
 to generate per cell type; default: c(1, 2, 4, 8)}
-
-\item{cibersort.path}{string, path to CIBERSORT source code.
-Necessary, if cibersort or bseq-sc wrappers are used. default NULL}
 
 \item{n.profiles.per.bulk}{positive numeric, number of samples to be randomly,
 default: 1000}

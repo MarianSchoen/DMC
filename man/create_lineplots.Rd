@@ -6,8 +6,6 @@
 \usage{
 create_lineplots(
   results.df,
-  metric = "cor",
-  metric.name = NULL,
   genesets = NULL,
   available.features = NULL,
   celltype.order = NULL,
@@ -16,13 +14,6 @@ create_lineplots(
 }
 \arguments{
 \item{results.df}{data frame as returned by prepare_data}
-
-\item{metric}{evaluation metric; either string 'cor' (default) or a function}
-
-\item{metric.name}{string, name of the evaluation metric used;
-not needed if metric is a string ("cor").
-If metric is a function and metric.name
-is NULL, the default will be "custom metric"}
 
 \item{genesets}{list of gene sets (character vectors)}
 

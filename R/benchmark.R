@@ -59,8 +59,6 @@
 #'  default: FALSE
 #' @param n.cluster.sizes vector of integers, number of artificial subtypes
 #'  to generate per cell type; default: c(1, 2, 4, 8)
-#' @param cibersort.path string, path to CIBERSORT source code.
-#' Necessary, if cibersort or bseq-sc wrappers are used. default NULL
 #' @param n.profiles.per.bulk positive numeric, number of samples to be randomly,
 #'  default: 1000
 #' @param report boolean, should an HTML report be generated? deafult TRUE
@@ -91,7 +89,6 @@ benchmark <- function(
   cpm = FALSE,
   verbose = FALSE,
   n.cluster.sizes = c(1, 2, 4, 8),
-  cibersort.path = NULL,
   n.profiles.per.bulk = 1000,
   report = TRUE
   ) {
@@ -256,39 +253,13 @@ benchmark <- function(
 	#	        the report until this dependency is fulfilled.")
 	#}
 
-	# CIBERSORT
-	# check / source script path
-	use.cibersort <- FALSE
-	if (exists("CIBERSORT") && is.function(CIBERSORT)) {
-		use.cibersort <- TRUE
-	}else{
-		if (!is.null(cibersort.path)) {
-			if (file.exists(cibersort.path)) {
-				source(cibersort.path)
-				if (!exists("CIBERSORT")) {
-					warning("Could not source CIBERSORT.")
-				}else{
-					use.cibersort <- TRUE
-				}
-			}else{
-				warning(paste("Specified file not found:", cibersort.path))
-			}
-		}else{
-			warning("No CIBERSORT source file supplied.
-			        Any wrappers depending on CIBERSORT can not be used.")
-		}
-	}
 
 	# check and process algorithms input
 	algorithms <- list(
-			   list(algorithm = run_dtd, name = "DTD", model = NULL),
-			   list(algorithm = run_cibersort, name = "CIBERSORT", model = NULL),
-			   list(algorithm = run_deconrnaseq, name = "DeconRNASeq", model = NULL),
+			   list(algorithm = run_dtd, name = "DTD", model = NULL), 
 			   list(
 			     algorithm = run_least_squares, name = "Least_Squares", model = NULL
-			   ),
-			   list(algorithm = run_music, name = "MuSiC", model = NULL),
-			   list(algorithm = run_bseqsc, name = "BSEQ-sc", model = NULL)
+			   )
 	)
 	algorithm.names <- sapply(algorithms, function(x) {x$name})
 
@@ -343,33 +314,7 @@ benchmark <- function(
 		algorithm.names <- sapply(algorithms, function(x) x$name)
 	}
 	names(algorithms) <- algorithm.names
-
-  # BSEQ-sc configuration
-	if ("BSEQ-sc" %in% algorithm.names) {
-		if (!is.null(cibersort.path)) {
-			if (file.exists(cibersort.path)) {
-				bseqsc::bseqsc_config(file = cibersort.path)
-			}else{
-				warning("Could not find CIBERSORT source file.
-				        If BSEQ-sc is not already correctly configured,
-				        errors may occur.")
-			}
-		}else{
-			warning("No path for CIBERSORT source file supplied.
-			This is needed by BSEQ-sc. If BSEQ-sc has already been configured
-					(i.e. the CIBERSORT source code is present in ~/R-data/bseqsc/)
-			     you may ignore this warning. Otherwise, BSEQ-sc will likely fail.")
-		}
-	}
-
-	if (("CIBERSORT" %in% algorithm.names || "BSEQ-sc" %in% algorithm.names) &&
-      !use.cibersort) {
-		warning("CIBERSORT and/or BSEQ-sc are among the specified algorithms
-            but CIBERSORT is not available. Removing algorithm(s)...")
-		to.use <- which(!algorithm.names %in% c("BSEQ-sc", "CIBERSORT"))
-		algorithms <- algorithms[to.use]
-		algorithm.names <- algorithm.names[to.use]
-	}
+	
 	check_algorithms(algorithms)
 	
 	# Data preparation

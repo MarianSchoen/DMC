@@ -47,21 +47,21 @@ fine_coarse_subtype_benchmark <- function(
 ) {
   if (ncol(sc.counts) != nrow(sc.pheno)) {
     stop(
-      "In DAB::fine_coarse_subtype_benchmark: 'sc.counts' does not fit
+      "In DMC::fine_coarse_subtype_benchmark: 'sc.counts' does not fit
       'sc.pheno'. 'ncol(sc.counts)' must equal 'nrow(sc.pheno)'"
     )
   }
 
   if (! cell.type.column %in% colnames(sc.pheno)) {
     stop(
-      "In DAB::fine_coarse_subtype_benchmark: 'cell.type.column' is not in
+      "In DMC::fine_coarse_subtype_benchmark: 'cell.type.column' is not in
       'colnames(sc.pheno)'"
     )
   }
 
   if (! sample.name.column %in% colnames(sc.pheno)) {
     stop(
-      "In DAB::fine_coarse_subtype_benchmark: 'sample.name.column' is not in
+      "In DMC::fine_coarse_subtype_benchmark: 'sample.name.column' is not in
       'colnames(sc.pheno)'"
     )
   }

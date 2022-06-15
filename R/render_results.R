@@ -26,7 +26,7 @@ render_results <- function(
 	  input = system.file(
 	   	"rmd",
 	    "report.Rmd",
-	    package = "DAB"
+	    package = "DMC"
 		),
   	params = list(
 			tempdir = temp.dir,

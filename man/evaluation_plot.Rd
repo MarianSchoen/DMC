@@ -7,8 +7,6 @@
 evaluation_plot(
   results.df,
   title = NULL,
-  metric = "cor",
-  metric.name = NULL,
   real.props = NULL,
   celltype.order = NULL,
   algorithm.order = NULL
@@ -18,12 +16,6 @@ evaluation_plot(
 \item{results.df}{data frame as returned by prepare_data}
 
 \item{title}{character, plot title}
-
-\item{metric}{evaluation metric; either string 'cor' (default) or a function}
-
-\item{metric.name}{string, name of the evaluation metric used;
-not needed if metric is a string ("cor", default). If metric is a function
-and metric.name is NULL, the default will be "custom metric"}
 
 \item{real.props}{non-negative numeric matrix, with cell types as rows,
 and bulk RNA-Seq profiles.}
