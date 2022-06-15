@@ -2,24 +2,31 @@
 #'
 #' @param algorithms list containing a list for each algorithm. Each sublist
 #' contains \cr 1) name: character  \cr 2) algorithm: function
+#' @param feature_list, character vector of feature names for simulated data; default NULL
 #' @return
 #' @export
 
-check_algorithms <- function(algorithms) {
+check_algorithms <- function(algorithms, feature_list = NULL) {
     if (!length(algorithms) > 0 || any(sapply(algorithms, length) < 3)) {
       stop("Check algorithm list. It seems to be incompatible.")
     }
     cat("Checking Algorithms for compatibility...\n")
 
+    nFeatures <- 25
+    if (!is.null(feature_list)) {
+	    nFeatures <- length(feature_list)
+    }
+
     # generate random scRNA-seq like data
     random.data <- DTD::generate_random_data(
         n.types = 3,
         n.samples.per.type = 60,
-        n.features = 25,
+        n.features = nFeatures,
         sample.type = "Cell",
         feature.type = "gene",
         seed = 1234
     )
+    rownames(random.data) <- feature_names
     # for each scRNA-seq profile, get its's "cell type"
     pheno.data <- sapply(
       strsplit(colnames(random.data), ".", fixed = TRUE),
