@@ -4,11 +4,13 @@
 \alias{check_algorithms}
 \title{check a list of algorithms for compatitbility with \link{benchmark}}
 \usage{
-check_algorithms(algorithms)
+check_algorithms(algorithms, feature_list = NULL)
 }
 \arguments{
 \item{algorithms}{list containing a list for each algorithm. Each sublist
 contains \cr 1) name: character  \cr 2) algorithm: function}
+
+\item{feature_list, }{character vector of feature names for simulated data; default NULL}
 }
 \description{
 check a list of algorithms for compatitbility with \link{benchmark}

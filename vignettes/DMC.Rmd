@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(DAB)
+library(DMC)
 library(GEOquery)
 ```  
 
@@ -317,7 +317,7 @@ for (i in c(2,3)) {
 ```{r benchmark}
 temp.dir <- paste0(getwd(), "/.tmp")
 
-report_path <- DAB::benchmark(
+report_path <- DMC::benchmark(
   sc.counts = tm.expr,
   sc.pheno = tm.pheno.readable,
   bulk.counts = bulk.exprs,
@@ -340,19 +340,17 @@ report_path <- DAB::benchmark(
   cpm = FALSE,
   verbose = FALSE,
   n.cluster.sizes = c(1, 2, 4),
-  cibersort.path = NULL,
   n.profiles.per.bulk = 100,
   report = TRUE,
   input.algorithms = list(
     "DTD", 
-    "MuSiC",
     list(
       name = "Least_Squares", 
       algorithm = DAB:::run_least_squares, 
       model = NULL
     )
   )
-)
+)$report_path
 ```
 
 Note that for parameter `input.algorithms`, the list entries may either be
@@ -365,7 +363,7 @@ plots could be found in `temp.dir` under *report_plots*.
 The report can in this instance be found at `r report_path`. It is embedded below:  
 
 ```{r move_report, echo = FALSE}
-moved <- file.rename(report_path, paste0(temp.dir, "/report.html"))
+moved <- file.rename(from=report_path, to=paste0(temp.dir, "/report.html"))
 ```
 
 ## Results
