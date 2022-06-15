@@ -69,14 +69,18 @@ write_data <- function(
   }
   # write bulks if present
   if (!is.null(bulk.counts)) {
-    if (length(class(bulk.counts)) == 1 && class(bulk.counts) != "dgCMatrix")
-      stop(
-        "Invalid bulk counts data. Must be matrix with colnames and rownames."
-      )
+	if (length(class(bulk.counts)) == 1) {
+	    if(class(bulk.counts) != "dgCMatrix"){
+     	        stop(
+        	"Invalid bulk counts data (dgCMatrix). Must be matrix with colnames and rownames."
+      		)
+	    }
+    } else {
     if (! is.matrix(bulk.counts) || is.null(rownames(bulk.counts)) || is.null(colnames(bulk.counts))) {
       stop(
-        "Invalid bulk counts data. Must be matrix with colnames and rownames."
+        "Invalid bulk counts data (Normal Matrix). Must be matrix with colnames and rownames."
       )
+    }
     }
     rhdf5::h5createGroup(filename, "bulk")
     rhdf5::h5write(
