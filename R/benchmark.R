@@ -459,8 +459,7 @@ benchmark <- function(
 			simulation.genes <- FALSE
 			simulation.samples <- FALSE
 			simulation.subtypes <- FALSE
-      score.algorithms <- FALSE
-		}
+     		}
 
 	  # this is not needed any more
 	  rm(list = c("sc.counts", "sc.pheno", "grouping"))
@@ -653,10 +652,9 @@ benchmark <- function(
 
 	# iterate through supplied simulation vector and perform those that are TRUE
 	available.sims <- c(
-    simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes,
-    score.algorithms
+    simulation.genes, simulation.samples, simulation.bulks, simulation.subtypes
   )
-	names(available.sims) <- c("genes", "samples", "bulks", "subtypes", "scores")
+	names(available.sims) <- c("genes", "samples", "bulks", "subtypes")
 	if (any(available.sims)) {
     cat("starting simulations...\t\t", as.character(Sys.time()), "\n", sep = "")
   }
