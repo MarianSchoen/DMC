@@ -1,6 +1,6 @@
 Package: DMC
 Title: Comparison of different Deconvolution Models in several scenarios
-Version: 0.4
+Version: 0.4.1
 Authors@R:
     person(given = "Tim",
            family = "Mirus",
