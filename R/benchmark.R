@@ -165,6 +165,14 @@ benchmark <- function(
 
 	# check input parameters
 	# single-cell counts and pheno data need to match
+	if (!is.numeric(bulk.props))
+	{
+		stop("bulk.props must be a numeric matrix")
+	}
+	if (length(class(bulk.props)) != 2 || class(bulk.props)[1] != "matrix")
+	{
+		stop("bulk.props must be a numeric matrix")
+	}
 	if (!is.null(sc.counts) || !is.null(sc.pheno)) {
   	if (ncol(sc.counts) != nrow(sc.pheno)) {
   		stop("Dimensions of sc.counts and sc.pheno do not match")
