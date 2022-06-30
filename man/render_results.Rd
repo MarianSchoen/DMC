@@ -4,7 +4,13 @@
 \alias{render_results}
 \title{render markdown report for data produced by \link{benchmark}}
 \usage{
-render_results(temp.dir, benchmark.name = "", celltype.col = "cell_type")
+render_results(
+  temp.dir,
+  benchmark.name = "",
+  celltype.col = "cell_type",
+  celltype.order = NULL,
+  celltype.order.sim = NULL
+)
 }
 \arguments{
 \item{temp.dir}{directory containing the benchmark data. \cr
@@ -17,6 +23,10 @@ report filename}
 
 \item{celltype.col}{string, name of the column in sc.pheno that contains
 cell type information; default "cell_type"}
+
+\item{celltype.order}{character vector, order of celltypes in real data plot}
+
+\item{celltype.order.sim}{character vector, order of celltypes in simulated data plot}
 }
 \description{
 render markdown report for data produced by \link{benchmark}

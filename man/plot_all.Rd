@@ -15,7 +15,9 @@ plot_all(temp_dir, genesets, features)
 \item{features}{character vector containing all available features in data}
 }
 \value{
-NULL, save plots to disk
+list containing two elements:\cr
+1) celltype_order: vector containing cell types in same order as displayed in plot on real data\cr
+2) celltype_order_simulated: same as above, for simulated data
 }
 \description{
 load results from temp_dir, create all possible plots and save them into
