@@ -14,7 +14,9 @@
 render_results <- function(
 	temp.dir,
 	benchmark.name = "",
-	celltype.col = "cell_type"
+	celltype.col = "cell_type",
+	celltype.order = NULL,
+	celltype.order.sim = NULL
 ) {
 	# parameter checks
 	if (!dir.exists(temp.dir)) {
@@ -30,7 +32,9 @@ render_results <- function(
 		),
   	params = list(
 			tempdir = temp.dir,
-			celltype.col = celltype.col
+			celltype.col = celltype.col,
+			celltype.order = celltype.order,
+			celltype.order.sim = celltype.order.sim
 		),
 	  output_file = paste(
 			temp.dir, "/", benchmark.name, "_report_",

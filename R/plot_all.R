@@ -12,6 +12,8 @@ plot_all <- function(
     genesets,
     features
   ) {
+  celltype_order <- NULL
+  celltype_order_simulated <- NULL
   plot_dir <- paste0(temp_dir, "/report_plots")
   if (!dir.exists(plot_dir)) {
     dir.create(plot_dir)
@@ -63,6 +65,7 @@ plot_all <- function(
     )
     score.plot <- score.plot.list$plot
     celltypes.ordered <- score.plot.list$celltype.order
+    celltype_order <- celltypes.ordered
     algorithms.ordered <- score.plot.list$algorithm.order
     
     # runtime
@@ -133,6 +136,7 @@ plot_all <- function(
       score.plot.sim <- score.plot.sim.list$plot
       algorithms.ordered.sim <- score.plot.sim.list$algorithm.order
       celltypes.ordered.sim <- score.plot.sim.list$celltype.order
+      celltype_order_simulated <- celltypes.ordered.sim
       
       runtime.plot.sim <- plot_runtime(
         bulks.df,
@@ -406,5 +410,5 @@ plot_all <- function(
     plot(score_plots$combined_plot)
     dev.off()
   }
-  return(NULL)
+  return(list(celltype_order = celltype_order, celltype_order_simulated = celltype_order_simulated))
 }

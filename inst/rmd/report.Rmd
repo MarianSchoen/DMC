@@ -15,6 +15,8 @@ options(width = 1000)
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 temp.dir <- params$tempdir
 plot.dir <- paste(temp.dir, "report_plots", sep = '/')
+celltype.order <- params$celltype.order
+celltype.order.sim <- params$celltype.order.sim
 
 benchmark.name <- strsplit(temp.dir, "/")[[1]][
   length(strsplit(temp.dir, "/")[[1]])
@@ -69,7 +71,9 @@ if(file.exists(plotfile)){
 </button>
 <div id="score_plot_info" style="display:none" >
 
-Deconvolution result for real bulks per algorithm and cell type. 
+Deconvolution result for real bulks per algorithm and cell type.  
+Celltype order (left to right): `r celltype.order`  
+
 The plotted value is the pearson correlation coefficient, coded by rectangle size and color 
 (small to big, red to green with increasing performance).   
 Negative and undefined scores were set to 0. 
@@ -186,7 +190,8 @@ if(file.exists(plotfile)){
 </button>
 <div id="sim_score_plot_info" style="display:none" >
 
-Deconvolution result for simulated bulks per algorithm and cell type. 
+Deconvolution result for simulated bulks per algorithm and cell type.  
+Celltype order (left to right): `r celltype.order.sim`  
 The value is the pearson correlation coefficient, coded by rectangle size and color 
 (small to big, red to green with increasing performance). 
 Negative and undefined scores were set to 0. 

@@ -826,7 +826,7 @@ benchmark <- function(
 	if (verbose) cat(
 	  "Creating plots...\t\t", as.character(Sys.time()), "\n", sep = ""
 	  )
-	plot_all(
+	celltype_order_list <- plot_all(
 	  temp_dir = output.folder,
 	  genesets = genesets,
 	  features = rownames(training.exprs)
@@ -838,7 +838,8 @@ benchmark <- function(
   	# create results markdown
   	report.path <- suppressWarnings(
       render_results(
-        output.folder, benchmark.name, cell.type.column
+        output.folder, benchmark.name, cell.type.column, 
+		celltype_order_list$celltype_order, celltype_order_list$celltype_order_simulated
       )
     )
   	cat("Done\t\t\t\t", as.character(Sys.time()), "\n\n", sep = "")
