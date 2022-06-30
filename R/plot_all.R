@@ -4,7 +4,9 @@
 #' @param temp_dir string, directory containing benchmark results
 #' @param genesets list of cahracter vectors specifying gene sets used
 #' @param features character vector containing all available features in data
-#' @return NULL, save plots to disk
+#' @return list containing two elements:\cr
+#' 1) celltype_order: vector containing cell types in same order as displayed in plot on real data\cr
+#' 2) celltype_order_simulated: same as above, for simulated data
 #' @export
 
 plot_all <- function(

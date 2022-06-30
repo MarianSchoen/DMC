@@ -255,12 +255,6 @@ benchmark <- function(
 			     Please select only cell types present in pheno data.")
 		}
 	}
-	#if (!rmarkdown::pandoc_available()) {
-	#	warning("pandoc was not found on your system.
-	#	        You can perform the benchmark but will not be able to render
-	#	        the report until this dependency is fulfilled.")
-	#}
-
 
 	# check and process algorithms input
 	algorithms <- list(

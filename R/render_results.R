@@ -8,6 +8,8 @@
 #' report filename
 #' @param celltype.col string, name of the column in sc.pheno that contains
 #' cell type information; default "cell_type"
+#' @param celltype.order character vector, order of celltypes in real data plot
+#' @param celltype.order.sim character vector, order of celltypes in simulated data plot
 #' @return NULL
 #' @export
 

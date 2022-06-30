@@ -116,10 +116,6 @@ evaluation_plot <- function(
   if (any(quality.scores$value[non_NA_indices] < 0)) {
     quality.scores$value[non_NA_indices[non_NA_indices < 0]] <- 0
   }
-  #if (any(is.na(quality.scores$value))) {
-  #  #warning("NAs detected")
-  #  quality.scores$value[is.na(quality.scores$value)] <- 0
-  #}
 
   # order algorithms by performance if ordering is not given
   algos <- quality.scores$algorithm[
