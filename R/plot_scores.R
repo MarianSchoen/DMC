@@ -57,7 +57,6 @@ evaluation_plot <- function(
   
   # cannot plot negative values -> cutoff at 0
   results.df[which(!is.na(results.df$score) & results.df$score < 0), "score"] <- 0
-  print(str(results.df))
 
   # reduce to one entry per cell type and algorithm
   # by taking the mean over repetitions
