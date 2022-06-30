@@ -187,7 +187,8 @@ evaluation_plot <- function(
     labels = labels,
     minor_breaks = seq(
       0., length(levels(quality.scores$cell_type)) + 1., 0.01
-    )
+    ),
+    sec.axis = dup_axis()
   ) +
   labs(fill = "Score") +
   scale_color_gradient2(
