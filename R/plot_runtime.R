@@ -70,7 +70,7 @@ plot_runtime <- function(
   ) +
   scale_x_continuous(
       labels = function(x) {
-        round(10^as.numeric(x) - 1)
+        round(10^as.numeric(x) - 1, 2)
       }
   )
   return(runtime.plot)
