@@ -250,8 +250,8 @@ plot_all <- function(
   
   # save plots
   if (exists("real_df")) {
-    score_width <- 2 * length(unique(real_df$cell_type))
-    score_height <- 2 * length(unique(real_df$algorithm))
+    score_width <- max(2 * length(unique(real_df$cell_type)), 10)
+    score_height <- max(2 * length(unique(real_df$algorithm)), 10)
     
     pdf(
       paste0(plot_dir, "/score_plot_real.pdf"),
@@ -307,8 +307,8 @@ plot_all <- function(
   
   # bulk simulation
   if (exists("bulks.df")) {
-    score.width <- length(unique(bulks.df$cell_type)) * 2
-    score.height <- length(unique(bulks.df$algorithm)) * 2
+    score.width <- max(length(unique(bulks.df$cell_type)) * 2, 10)
+    score.height <- max(length(unique(bulks.df$algorithm)) * 2, 10)
     pdf(
       paste0(plot_dir, "/score_plot_simulated.pdf"),
       width = score.width,
@@ -370,8 +370,8 @@ plot_all <- function(
 
   # score plots / fits
   if (exists("score_plots")) {
-    height <- 2 * n_score_algorithms
-    width <- 2 * n_score_celltypes
+    height <- max(2 * n_score_algorithms, 10)
+    width <- max(2 * n_score_celltypes, 10)
     pdf(
       paste0(plot_dir, "/correlation_fits.pdf"), 
       width = width, 
