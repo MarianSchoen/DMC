@@ -1,10 +1,10 @@
 ---
-title: "Deconvolution Algorithm Benchmarking in R"
+title: "Deconvolution Model Comparison in R"
 output: 
   html_document:
     toc: TRUE
 vignette: >
-  %\VignetteIndexEntry{Deconvolution Algorithm Benchmarking in R}
+  %\VignetteIndexEntry{Deconvolution Model Comparison in R}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -23,40 +23,42 @@ library(GEOquery)
 ```  
 
 
-# What is DAB?  
+# What is DMC?  
 
-DAB (DeconvolutionAlgorithmBenchmarking) is a package for deconvolution of
+DMC (DeconvolutionModelComparison) is a package for deconvolution of
 real and simulated bulk sequencing data in different conditions.  
-Deconvolutions are performed via a user-specified selection of algorithms,
+Deconvolutions are performed via a user-specified selection of algorithms/models,
 whose results can then easily be compared.  
 Its modular build allows users to write their own functions in order to include
-additional algorithms in the comparison.  
+additional algorithms or models in the comparison.  
 
-DAB requires a single-cell data set with cell type annotations for simulation of
-bulks and training of the deconvolution algorithms.  
+DMC requires a single-cell data set with cell type annotations for simulation of
+bulks and training of the deconvolution models.  
 Supplying real bulk data with known cellular composition in order to evaluate 
-the algorithms' performances on real data is also possible.  
+the models' performances on real data is also possible.  
 
-Therefore, DAB is suitable for a range of tasks, such as finding the best
+Therefore, DMC is suitable for a range of tasks, such as finding the best
 method of deconvolution for a specific data set, 
-discovering strengths and weaknesses of different algorithms via simulation or
-simply providing a simple framework to test new algorithms.
+discovering strengths and weaknesses of different models via simulation or
+simply providing a simple framework to test new models/algorithms.
+
+We distinguish between algorithms and models, where a model is already fully trained and can be applied to 
+new data in order to obtain predictions for cell type quantities, while an algorithm according to our definition 
+includes both the training and application of a model to a data set.
+Note that the same algorithm can result in different models, depending on the training data and cell type labels used. 
 
 
-# How to use DAB  
+# How to use DMC  
 
 This section concentrates on how to write deconvolution wrappers,
-load prepare the necessary data and perform a benchmark with multiple algorithms.
+load prepare the necessary data and perform a benchmark with multiple models.
 
-## Writing algorithm wrappers  
+## Writing algorithm/model wrappers  
 
-DAB comes with several algorithms built-in, namely **DTD, MuSiC, DeconRNASeq and
-Least Squares** . Wrappers for **CIBERSORT** and **BSEQ-sc** are also included. 
-However, in order to use these, the user must obtain the CIBERSORT source code
-from https://cibersort.stanford.edu due to licence restrictions.  
+DMC comes with two algorithms for model building built-in, namely **DTD and Least Squares**.
 
-Additionaly, users can extend DAB by writing their own wrapper functions for
-deconvolution algorithms. These functions only require a specific set of input
+Additionaly, users can extend DMC by writing their own wrapper functions for
+deconvolution algorithms or models. These functions only require a specific set of input
 parameters and have to return output in the correct format, as shown below. 
 
 ```{r eval=FALSE}
@@ -76,7 +78,7 @@ my_wrapper <- function(
   # ... put some sanity checks fro parameters here
   
   if (scale.cpm) {
-    exprs <- DAB:::scale_to_count(exprs, 1e6)
+    exprs <- DMC:::scale_to_count(exprs, 1e6)
   }
   
   # reduce to the most variable genes (or some other featuere selection)
@@ -113,15 +115,15 @@ my_wrapper <- function(
 }
 ```  
 Note that this code is only a suggestion and does not run.  
-However, wrappers following this structure can be supplied to the DAB benchmark function.
+However, wrappers following this structure can be supplied to the DMC benchmark function.
 For further details on parameters, look at the help and code of one of the wrapper
-functions, e.g. `DAB:::run_dtd`.  
+functions, e.g. `DMC:::run_dtd`.  
 The parameter `model` enables the user to supply a previously trained model
-to the algorithm. Similarly, the return list contains a parameter `model`, 
+to the wrapper. Similarly, the return list contains a parameter `model`, 
 enabling the user to return the model used by the algorithm for later use.
 The form of the model does not matter, as long as the input and output match.
-Use `DAB:::check_algorithms` to see whether the input and output of your 
-wrapper are compliant with DAB standards.
+Use `DMC:::check_algorithms` to see whether the input and output of your 
+wrapper are compliant with DMC standards.
 
 ## Loading single-cell data
 
@@ -154,7 +156,7 @@ row.names[dupls.pos] <- unique.names
 # undo log transformation
 tm.expr <- as.matrix(2^(tirosh.melanoma[4:nrow(tirosh.melanoma), -1]) - 1)
 # scale to fixed number of counts
-tm.expr <- DAB:::scale_to_count(tm.expr)
+tm.expr <- DMC:::scale_to_count(tm.expr)
 # reset rownames
 rownames(tm.expr) <- row.names
 ```
@@ -193,7 +195,7 @@ map.cell.type <- function(x) {
   return("unknown")
 }
 
-tm.pheno.readable <- data.frame(
+tm.pheno.reaDMCle <- data.frame(
   "sample" = colnames(tm.expr),
   "tumor" = tm.pheno["tumor", ],
   "malignant" = sapply(
@@ -214,7 +216,7 @@ information about the cell types, malignancy and patients of origin for all prof
 
 ```{r data, echo = FALSE}
 knitr::kable(tm.expr[1:4, 1:3])
-knitr::kable(tm.pheno.readable[1:5, ])
+knitr::kable(tm.pheno.reaDMCle[1:5, ])
 ```
 
 ## Reconstruction of bulks
@@ -222,7 +224,7 @@ knitr::kable(tm.pheno.readable[1:5, ])
 The dataset consists of 4645 single-cell profiles from 19 tumors. Disregarding technical biases, one can get an approximation of the bulk tumour profiles by summing up all cells from the same tumor.
 
 ```{r reconstruct}
-tumors <- as.character(unique(tm.pheno.readable$tumor))
+tumors <- as.character(unique(tm.pheno.reaDMCle$tumor))
 
 bulk.exprs <- matrix(
   0,
@@ -235,23 +237,23 @@ bulk.exprs <- matrix(
 )
 bulk.props <- matrix(
   0,
-  nrow = length(unique(tm.pheno.readable$CellType)),
+  nrow = length(unique(tm.pheno.reaDMCle$CellType)),
   ncol = length(tumors),
   dimnames = list(
-    unique(tm.pheno.readable$CellType),
+    unique(tm.pheno.reaDMCle$CellType),
     tumors
   )
 )
 
 for (tm in tumors) {
-  idx <- which(tm.pheno.readable$tumor == tm)
-  composition.table <- table(tm.pheno.readable$CellType[idx])
+  idx <- which(tm.pheno.reaDMCle$tumor == tm)
+  composition.table <- table(tm.pheno.reaDMCle$CellType[idx])
   
   bulk.exprs[, tm] <- rowSums(tm.expr[, idx])
   bulk.props[names(composition.table), tm] <- as.numeric(composition.table) /
     length(idx)
 }
-bulk.exprs <- DAB:::scale_to_count(bulk.exprs)
+bulk.exprs <- DMC:::scale_to_count(bulk.exprs)
 ```
 
 ### Subsample single cells  
@@ -259,20 +261,20 @@ bulk.exprs <- DAB:::scale_to_count(bulk.exprs)
 In order to speed up the calculations, the single-cell data will now be subsampled to 10% for each cell type.
 
 ```{r subsample}
-n.profiles <- ceiling(table(tm.pheno.readable$CellType) * 0.1)
+n.profiles <- ceiling(table(tm.pheno.reaDMCle$CellType) * 0.1)
 
 sampled <- c()
 for (ct in names(n.profiles)) {
-  idx <- which(tm.pheno.readable$CellType == ct)
+  idx <- which(tm.pheno.reaDMCle$CellType == ct)
   sampled <- c(
     sampled, 
     sample(x = idx, size = n.profiles[ct], replace = FALSE)
   )
 }
 tm.expr <- tm.expr[, sampled]
-tm.pheno.readable <- tm.pheno.readable[sampled, ]
+tm.pheno.reaDMCle <- tm.pheno.reaDMCle[sampled, ]
 
-knitr::kable(table(tm.pheno.readable$CellType))
+knitr::kable(table(tm.pheno.reaDMCle$CellType))
 ```
 
 ## Benchmarking
@@ -287,9 +289,9 @@ training.tumors <- sample(
   size = ceiling(0.66*length(tumors)), 
   replace = FALSE
 )
-training.samples <- which(tm.pheno.readable$tumor %in% training.tumors)
+training.samples <- which(tm.pheno.reaDMCle$tumor %in% training.tumors)
 
-grouping <- rep(2, nrow(tm.pheno.readable))
+grouping <- rep(2, nrow(tm.pheno.reaDMCle))
 grouping[training.samples] <- 1
 grouping <- as.factor(grouping)
 ```
@@ -319,7 +321,7 @@ temp.dir <- paste0(getwd(), "/.tmp")
 
 report_path <- DMC::benchmark(
   sc.counts = tm.expr,
-  sc.pheno = tm.pheno.readable,
+  sc.pheno = tm.pheno.reaDMCle,
   bulk.counts = bulk.exprs,
   bulk.props = bulk.props,
   benchmark.name = "vignette_benchmark",
@@ -346,7 +348,7 @@ report_path <- DMC::benchmark(
     "DTD", 
     list(
       name = "Least_Squares", 
-      algorithm = DAB:::run_least_squares, 
+      algorithm = DMC:::run_least_squares, 
       model = NULL
     )
   )
