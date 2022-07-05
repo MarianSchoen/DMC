@@ -124,7 +124,7 @@ benchmark <- function(
         "Could not create temp directory. Please provide a writeable directory."
       )
 		}
-		flag <- dir.create(paste(temp.dir, benchmark.name, sep = "/"))
+		flag <- dir.create(paste(temp.dir, benchmark.name, sep = "/"), recursive = TRUE)
     if (!flag) {
       stop(
         "Could not create benchmark directory.
