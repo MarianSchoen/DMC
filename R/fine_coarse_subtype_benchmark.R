@@ -212,6 +212,5 @@ fine_coarse_subtype_benchmark <- function(
       }
     }
   }
-  print(str(column.list))
   return(column.list)
 }

@@ -9,6 +9,8 @@ output:
 params:
    tempdir: ""
    celltype.col: "cell_type"
+   celltype.order: ""
+   celltype.order.sim: ""
 ---
 ```{r setup2, include=FALSE}
 options(width = 1000)
@@ -335,56 +337,6 @@ and their sum is compared to the quantities of the coarse cell types
 (classification that was contained in the single-cell pheno data).
 
 </div>
-
-### Correlation Fits
-```{r fits, out.width='100%', out.height = 400}
-plotfile <- paste0(plot.dir, "/correlation_fits.pdf")
-if(file.exists(plotfile)) {
-  knitr::include_graphics(plotfile)
-}
-plotfile <- paste0(plot.dir, "/fit_offsets.pdf")
-if(file.exists(plotfile)) {
-  knitr::include_graphics(plotfile)
-}
-plotfile <- paste0(plot.dir, "/fit_errors.pdf")
-if(file.exists(plotfile)) {
-  knitr::include_graphics(plotfile)
-}
-plotfile <- paste0(plot.dir, "/fit_scores.pdf")
-if(file.exists(plotfile)) {
-  knitr::include_graphics(plotfile)
-}
-```
-
-<button  type="button"
-   onclick="if(document.getElementById('sim_score_plot_info') .style.display=='none')
-              {document.getElementById('sim_score_plot_info') .style.display=''}
-            else{document.getElementById('sim_score_plot_info') .style.display='none'}">
-  Show/hide description
-</button>
-<div id="sim_score_plot_info" style="display:none" >
-
-Some text for description...
-</div>
-
-The following tables contain the numerical values of the averaged fit parameters 
-shown in the plots above.
-
-### Offsets
-```{r offset_plot, out.width='100%', out.height = 400}
-results_file <- paste0(temp.dir, "/results/simulation/scores/deconv_output.h5")
-if (file.exists(results_file)) {
-  score_results <- rhdf5::h5dump(results_file)
-  knitr::kable(score_results$offsets)
-}
-```
-
-### Error sizes
-```{r error_plot, out.width='100%', out.height = 400}
-if (exists("score_results")) {
-  knitr::kable(score_results$errors)
-}
-```
 
 ## Input data
 <button  type="button"

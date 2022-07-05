@@ -150,7 +150,7 @@ deconvolute <- function(
           cell.type.column = cell.type.column,
           max.genes = max.genes,
           patient.column = patient.column,
-	  model = f$model
+	        model = f$model
         )
       })[3]
       results.list[[as.character(i)]][[f$name]]$name <- f$name

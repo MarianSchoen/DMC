@@ -26,7 +26,9 @@ check_algorithms <- function(algorithms, feature_list = NULL) {
         feature.type = "gene",
         seed = 1234
     )
-    rownames(random.data) <- feature_list
+    if (!is.null(feature_list)){
+    	rownames(random.data) <- feature_list
+    }
     # for each scRNA-seq profile, get its's "cell type"
     pheno.data <- sapply(
       strsplit(colnames(random.data), ".", fixed = TRUE),

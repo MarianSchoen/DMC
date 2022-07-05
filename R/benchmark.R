@@ -792,7 +792,6 @@ benchmark <- function(
           recursive = TRUE
         )
 			}
-      if (s != "scores") {
         suppressMessages(suppressWarnings(
           write_result_list(
             benchmark.results,
@@ -803,25 +802,7 @@ benchmark <- function(
             )
           )
         ))
-      }else{
-        # scores does not produce a results list like the other simulations
-        # output is a data frame
-        filename <- paste0(
-          output.folder, 
-          "/results/simulation/", s, "/deconv_output.h5"
-        )
-        if (!file.exists(filename)) {
-          rhdf5::h5createFile(filename)
-        }
-        rhdf5::h5save(
-          benchmark.results$results, 
-          file = filename, 
-          name = paste0("results_", res.no)
-        )
-        if (!file.exists(data_file)) {
-          saveRDS(benchmark.results$datasets, file = data_file)
-        }
-      }
+      
       rm("benchmark.results")
     }
 	}

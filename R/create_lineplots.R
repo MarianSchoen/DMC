@@ -117,7 +117,7 @@ create_lineplots <- function(
   cell.type.plots <- list()
   for (t in levels(results.df$cell_type)) {
     sub.df <- results.df[which(results.df$cell_type == t), ]
-    print(sub.df)
+    
     # create data frame containing score for each
     # algorithm and gene set for this cell type
     temp.scores <- tapply(
