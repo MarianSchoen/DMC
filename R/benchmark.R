@@ -16,9 +16,11 @@
 #' bulk RNA-Seq profiles as columns.
 #' @param benchmark.name string, name of the benchmark. Will be used as name
 #' for the results directory
-#' @param grouping factor with 2 levels, and \code{length(grouping)} must be
+#' @param grouping Can be either\cr
+#' 1) factor with 2 levels, and \code{length(grouping)} must be
 #' \code{ncol(sc.counts)}. Assigns each scRNA-Seq profile to either
-#' test or train cohort. 1 marks training samples, 2 marks test samples.
+#' test or train cohort. 1 marks training samples, 2 marks test samples.\cr
+#' 2) string, name of a column in sc.pheno containing "training" or "test" for all cells
 #' @param cell.type.column string, which column of 'sc.pheno'
 #' holds the cell type information? default 'cell_type'
 #' @param patient.column string, which column of 'sc.pheno'
@@ -213,8 +215,20 @@ benchmark <- function(
 	if (!is.null(grouping) && (!is.null(sc.counts) || !is.null(sc.pheno))) {
   	if (!is.factor(grouping) || length(levels(grouping)) != 2 ||
   	   length(grouping) != ncol(sc.counts)) {
-  		stop("Invalid sample grouping. Must be a factor of length nrow(sc.counts)
-  		     with two levels indicating training and validation set")
+		if (is.character(grouping) && length(grouping) == 1 && grouping %in% colnames(sc.pheno))
+		{
+			if (length(unique(sc.pheno[[grouping]])) == 2 && all(c("training", "test") %in% sc.pheno[[grouping]]))
+			{
+				grouping <- factor(sc.pheno[[grouping]], levels = c("training", "test"))
+			} else {
+				stop("Invalid column selected for grouping.")
+			}
+		} else {
+  		stop("Invalid sample grouping. Must be either a factor of length nrow(sc.counts)
+  		     with two levels indicating training and validation set or name of a column in pheno that contains
+			 entries 'training' or 'test' for each cell.
+			")
+		}
   	}
 	}
 	if (!all(is.logical(c(
