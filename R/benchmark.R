@@ -219,7 +219,7 @@ benchmark <- function(
 		{
 			if (length(unique(sc.pheno[[grouping]])) == 2 && all(c("training", "test") %in% sc.pheno[[grouping]]))
 			{
-				grouping <- factor(sc.pheno[[grouping]], levels = c("training", "test"))
+				grouping <- factor(ifelse(sc.pheno[[grouping]] == "training", 1, 2), levels = c(1,2))
 			} else {
 				stop("Invalid column selected for grouping.")
 			}

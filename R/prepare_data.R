@@ -323,5 +323,6 @@ prepare_data <- function(results.all) {
         df$cluster_size <- as.numeric(as.character(df$cluster_size))
     }
   }
+    saveRDS(df, "prepared_data.rds")
   return(df)
 }

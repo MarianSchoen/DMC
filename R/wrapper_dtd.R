@@ -171,6 +171,7 @@ run_dtd <- function(
 
   if (class(dtd.model) != "try-error") {
     genes <- intersect(rownames(bulks), rownames(dtd.model$reference.X))
+    
     dtd.model$reference.X <- dtd.model$reference.X[genes,]
     dtd.model$best.model$Tweak <- dtd.model$best.model$Tweak[genes]
     # use the model to estimate the composition of the supplied bulks

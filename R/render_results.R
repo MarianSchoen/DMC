@@ -25,9 +25,6 @@ render_results <- function(
 		stop("Invalid temp directory")
 	}
 
-	print(str(celltype.order))
-	print(str(celltype.order.sim))
-
 	# render the template to pdf with the data stored in temp.dir
 	rmarkdown::render(
 	  input = system.file(
