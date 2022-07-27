@@ -367,7 +367,7 @@ print(paste(adjusted.names, function.call.list))
 Single-cell data contained `r nrow(sc.counts)` features for `r ncol(sc.counts)` cells.
 
 
-Corresponding phenotype data contained labels for `r length(unique(sc.pheno$cell_type))` cell types:
+Corresponding phenotype data contained labels for `r length(unique(sc.pheno[[celltype.col]]))` cell types:
 ```{r}
   t <- table(sc.pheno[[celltype.col]])
   print(paste(names(t), t, sep = ": "))
@@ -379,7 +379,7 @@ Used algorithms: `r algorithm.names`
 
 `r ncol(real.counts)` real bulk profiles were available, 
 with `r length(intersect(rownames(real.counts), rownames(sc.counts)))` 
-overlapping features.  
+overlapping features with provided single-cell data. (Pre-trained models are not considered here.)
 
 Ground-truth cell type quantities were available for `r nrow(real.props)` 
 cell types.
